@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { Plus, Edit, Trash2, X, Image as ImageIcon, DollarSign, Package, BookOpen, LoaderCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -167,13 +167,14 @@ const MenuItemModal = ({ isOpen, onClose, onSave, item, isLoading }: { isOpen: b
   const [formData, setFormData] = useState({ name: '', description: '', price: 0, category: '', inStock: true });
 
   // When the modal opens, populate the form if we are editing an item
-  useState(() => {
-    if (item) {
-      setFormData({ name: item.name, description: item.description, price: item.price, category: item.category, inStock: item.inStock });
-    } else {
-      setFormData({ name: '', description: '', price: 0, category: '', inStock: true });
+  useEffect(() => {
+    if (isOpen) {
+        if (item) {
+          setFormData({ name: item.name, description: item.description, price: item.price, category: item.category, inStock: item.inStock });
+        } else {
+          setFormData({ name: '', description: '', price: 0, category: '', inStock: true });
+        }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -271,14 +272,22 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName, isLoadi
 
 
 // Helper components for form fields
-const InputField = ({ icon: Icon, ...props }) => (
+interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon: React.ElementType;
+}
+
+const InputField = ({ icon: Icon, ...props }: InputFieldProps) => (
     <div className="relative">
         <Icon className="absolute w-5 h-5 text-gray-400 top-3 left-3" />
         <input {...props} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 transition" />
     </div>
 );
 
-const TextAreaField = ({ icon: Icon, ...props }) => (
+interface TextAreaFieldProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  icon: React.ElementType;
+}
+
+const TextAreaField = ({ icon: Icon, ...props }: TextAreaFieldProps) => (
     <div className="relative">
         <Icon className="absolute w-5 h-5 text-gray-400 top-3 left-3" />
         <textarea {...props} rows={3} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 transition" />
