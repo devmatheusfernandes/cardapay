@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import { Plus, Edit, Trash2, X, Image as ImageIcon, DollarSign, Package, BookOpen, LoaderCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Image as ImageIcon, DollarSign, Package, BookOpen, LoaderCircle, UtensilsCrossed } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+// NOTE: We will add these imports when we connect to the backend in the next step.
+// import { db, auth } from '../../../../lib/firebase';
+// import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+// import { useAuthState } from 'react-firebase-hooks/auth';
 
-// --- MOCK DATA & TYPES ---
-// In a real app, this would come from Firestore and a types definition file.
+
+// --- TYPE DEFINITION ---
+// This defines the shape of our menu item data.
 interface MenuItem {
   id: string;
   name: string;
@@ -16,26 +21,54 @@ interface MenuItem {
   inStock: boolean;
 }
 
-const MOCK_MENU_ITEMS: MenuItem[] = [
-  { id: '1', name: 'Classic Burger', description: 'A juicy beef patty with fresh lettuce, tomato, and our secret sauce.', price: 12.99, category: 'Burgers', inStock: true, imageUrl: 'https://placehold.co/600x400/FF6B6B/FFFFFF?text=Burger' },
-  { id: '2', name: 'Margherita Pizza', description: 'Classic pizza with fresh mozzarella, tomatoes, and basil.', price: 15.50, category: 'Pizzas', inStock: true },
-  { id: '3', name: 'Caesar Salad', description: 'Crisp romaine lettuce with parmesan, croutons, and Caesar dressing.', price: 9.75, category: 'Salads', inStock: false },
-  { id: '4', name: 'Spaghetti Carbonara', description: 'Pasta with a creamy egg sauce, pancetta, and pecorino cheese.', price: 14.25, category: 'Pastas', inStock: true },
-  { id: '5', name: 'Volcano Roll', description: 'Spicy tuna, cucumber, topped with baked crab and spicy mayo.', price: 16.00, category: 'Sushi', inStock: true, imageUrl: 'https://placehold.co/600x400/4ECDC4/FFFFFF?text=Sushi' },
-];
-// --- END MOCK DATA ---
-
 export default function MenuPage() {
-  // State for menu items (replace with Firestore data later)
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(MOCK_MENU_ITEMS);
+  // const [user, authLoading] = useAuthState(auth); // Will be used to get the logged-in user
+  
+  // State for menu items, now initialized as empty.
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState<MenuItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // For async operations
+  
+  // Loading states for page load and for actions (save/delete)
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
+  // --- DATA FETCHING (To be implemented) ---
+  useEffect(() => {
+    // ** Firestore connection will go here. **
+    // For now, we'll just simulate a fetch and then show an empty menu.
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1500); // Simulate network delay
+
+    return () => clearTimeout(timer);
+    
+    /*
+    // --- REAL FIRESTORE LOGIC ---
+    if (!user && !authLoading) {
+      // If no user, no need to fetch. The layout will redirect.
+      return;
+    }
+    if (user) {
+      const q = query(collection(db, "menuItems"), where("ownerId", "==", user.uid));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const items: MenuItem[] = [];
+        querySnapshot.forEach((doc) => {
+          items.push({ id: doc.id, ...doc.data() } as MenuItem);
+        });
+        setMenuItems(items);
+        setIsPageLoading(false);
+      });
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+    }
+    */
+  }, [/* user, authLoading */]);
 
   const handleOpenModal = (item: MenuItem | null = null) => {
-    setCurrentItem(item); // If null, it's a new item
+    setCurrentItem(item);
     setIsModalOpen(true);
   };
 
@@ -54,40 +87,69 @@ export default function MenuPage() {
     setIsDeleteConfirmOpen(false);
   };
 
-  const handleSaveItem = (itemData: Omit<MenuItem, 'id'>) => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      if (currentItem) {
-        // Update existing item
-        setMenuItems(menuItems.map(item => item.id === currentItem.id ? { ...item, ...itemData } : item));
-      } else {
-        // Add new item
-        const newItem: MenuItem = { ...itemData, id: Date.now().toString() };
-        setMenuItems([...menuItems, newItem]);
-      }
-      setIsLoading(false);
-      handleCloseModal();
+  // --- CRUD OPERATIONS (To be implemented) ---
+  const handleSaveItem = async (itemData: Omit<MenuItem, 'id'>) => {
+    setIsActionLoading(true);
+    console.log("Saving item (simulation):", itemData);
+    // ** Firestore save/update logic will go here. **
+    /*
+    if (!user) {
+        console.error("No user is authenticated.");
+        setIsActionLoading(false);
+        return;
+    }
+    try {
+        if (currentItem) {
+            const itemRef = doc(db, 'menuItems', currentItem.id);
+            await updateDoc(itemRef, itemData);
+        } else {
+            await addDoc(collection(db, 'menuItems'), { ...itemData, ownerId: user.uid });
+        }
+    } catch (error) {
+        console.error("Error saving item: ", error);
+        // Here you would show an error toast to the user
+    }
+    */
+    setTimeout(() => { // Simulate network delay
+        setIsActionLoading(false);
+        handleCloseModal();
     }, 1000);
   };
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = async () => {
     if (!itemToDelete) return;
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-        setMenuItems(menuItems.filter(item => item.id !== itemToDelete.id));
-        setIsLoading(false);
+    setIsActionLoading(true);
+    console.log("Deleting item (simulation):", itemToDelete.id);
+    // ** Firestore delete logic will go here. **
+    /*
+    try {
+        const itemRef = doc(db, 'menuItems', itemToDelete.id);
+        await deleteDoc(itemRef);
+    } catch (error) {
+        console.error("Error deleting item: ", error);
+    }
+    */
+    setTimeout(() => { // Simulate network delay
+        setMenuItems(prev => prev.filter(item => item.id !== itemToDelete.id)); // Optimistic UI update
+        setIsActionLoading(false);
         handleCloseDeleteConfirm();
     }, 1000);
   };
 
   const categories = [...new Set(menuItems.map(item => item.category))];
 
+  // --- RENDER LOGIC ---
+  if (isPageLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoaderCircle className="w-12 h-12 text-red-600 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
           <motion.button
@@ -101,19 +163,22 @@ export default function MenuPage() {
           </motion.button>
         </div>
 
-        {/* Menu Items Grid */}
-        <div className="space-y-8">
-          {categories.map(category => (
-            <div key={category}>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b-2 border-red-200 pb-2">{category}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {menuItems.filter(item => item.category === category).map(item => (
-                  <MenuItemCard key={item.id} item={item} onEdit={handleOpenModal} onDelete={handleOpenDeleteConfirm} />
-                ))}
+        {menuItems.length === 0 ? (
+          <EmptyState onAddItem={() => handleOpenModal()} />
+        ) : (
+          <div className="space-y-8">
+            {categories.map(category => (
+              <div key={category}>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b-2 border-red-200 pb-2">{category}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {menuItems.filter(item => item.category === category).map(item => (
+                    <MenuItemCard key={item.id} item={item} onEdit={handleOpenModal} onDelete={handleOpenDeleteConfirm} />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
       
       <MenuItemModal 
@@ -121,7 +186,7 @@ export default function MenuPage() {
         onClose={handleCloseModal} 
         onSave={handleSaveItem}
         item={currentItem}
-        isLoading={isLoading}
+        isLoading={isActionLoading}
       />
 
       <DeleteConfirmationModal
@@ -129,13 +194,32 @@ export default function MenuPage() {
         onClose={handleCloseDeleteConfirm}
         onConfirm={handleDeleteItem}
         itemName={itemToDelete?.name}
-        isLoading={isLoading}
+        isLoading={isActionLoading}
       />
     </div>
   );
 }
 
 // --- Reusable Components (would be in /components folder) ---
+
+const EmptyState = ({ onAddItem }: { onAddItem: () => void }) => (
+    <div className="text-center py-20 px-6 bg-white rounded-lg shadow-md">
+        <UtensilsCrossed className="mx-auto h-16 w-16 text-gray-400" />
+        <h3 className="mt-4 text-2xl font-semibold text-gray-900">Your menu is empty</h3>
+        <p className="mt-2 text-gray-500">Get started by adding your first dish or drink.</p>
+        <div className="mt-6">
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onAddItem}
+                className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition"
+            >
+                <Plus className="w-5 h-5" />
+                Add First Item
+            </motion.button>
+        </div>
+    </div>
+);
 
 const MenuItemCard = ({ item, onEdit, onDelete }: { item: MenuItem, onEdit: (item: MenuItem) => void, onDelete: (item: MenuItem) => void }) => (
   <motion.div 
@@ -166,7 +250,6 @@ const MenuItemCard = ({ item, onEdit, onDelete }: { item: MenuItem, onEdit: (ite
 const MenuItemModal = ({ isOpen, onClose, onSave, item, isLoading }: { isOpen: boolean, onClose: () => void, onSave: (data: Omit<MenuItem, 'id'>) => void, item: MenuItem | null, isLoading: boolean }) => {
   const [formData, setFormData] = useState({ name: '', description: '', price: 0, category: '', inStock: true });
 
-  // When the modal opens, populate the form if we are editing an item
   useEffect(() => {
     if (isOpen) {
         if (item) {
@@ -213,7 +296,6 @@ const MenuItemModal = ({ isOpen, onClose, onSave, item, isLoading }: { isOpen: b
                 <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><X className="w-6 h-6" /></button>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Form fields with icons */}
                 <InputField icon={Package} name="name" placeholder="Item Name" value={formData.name} onChange={handleChange} required />
                 <InputField icon={BookOpen} name="category" placeholder="Category (e.g., Appetizers)" value={formData.category} onChange={handleChange} required />
                 <TextAreaField icon={BookOpen} name="description" placeholder="Description" value={formData.description} onChange={handleChange} />
@@ -270,8 +352,6 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName, isLoadi
     </AnimatePresence>
 );
 
-
-// Helper components for form fields
 interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon: React.ElementType;
 }
