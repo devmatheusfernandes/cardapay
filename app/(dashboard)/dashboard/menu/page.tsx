@@ -3,10 +3,10 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { Plus, Edit, Trash2, X, Image as ImageIcon, DollarSign, Package, BookOpen, LoaderCircle, UtensilsCrossed } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// NOTE: We will add these imports when we connect to the backend in the next step.
-// import { db, auth } from '../../../../lib/firebase';
-// import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
-// import { useAuthState } from 'react-firebase-hooks/auth';
+// Import Firebase and Firestore modules
+import { db, auth } from '../../../../lib/firebase';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 
 // --- TYPE DEFINITION ---
@@ -22,50 +22,49 @@ interface MenuItem {
 }
 
 export default function MenuPage() {
-  // const [user, authLoading] = useAuthState(auth); // Will be used to get the logged-in user
+  const [user, authLoading] = useAuthState(auth);
   
-  // State for menu items, now initialized as empty.
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState<MenuItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
   
-  // Loading states for page load and for actions (save/delete)
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  // --- DATA FETCHING (To be implemented) ---
+  // --- REAL-TIME DATA FETCHING (READ) ---
   useEffect(() => {
-    // ** Firestore connection will go here. **
-    // For now, we'll just simulate a fetch and then show an empty menu.
-    const timer = setTimeout(() => {
+    if (authLoading) {
+        // Still checking for user, do nothing yet.
+        return;
+    }
+    if (!user) {
+      // No user found, the layout will handle the redirect.
+      // We can stop the page loader.
       setIsPageLoading(false);
-    }, 1500); // Simulate network delay
-
-    return () => clearTimeout(timer);
-    
-    /*
-    // --- REAL FIRESTORE LOGIC ---
-    if (!user && !authLoading) {
-      // If no user, no need to fetch. The layout will redirect.
       return;
     }
-    if (user) {
-      const q = query(collection(db, "menuItems"), where("ownerId", "==", user.uid));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const items: MenuItem[] = [];
-        querySnapshot.forEach((doc) => {
-          items.push({ id: doc.id, ...doc.data() } as MenuItem);
-        });
-        setMenuItems(items);
-        setIsPageLoading(false);
+
+    // Create a query to get menu items for the current user
+    const q = query(collection(db, "menuItems"), where("ownerId", "==", user.uid));
+    
+    // Set up the real-time listener
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const items: MenuItem[] = [];
+      querySnapshot.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() } as MenuItem);
       });
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
-    }
-    */
-  }, [/* user, authLoading */]);
+      setMenuItems(items);
+      setIsPageLoading(false);
+    }, (error) => {
+        console.error("Error fetching menu items: ", error);
+        setIsPageLoading(false); // Stop loading even if there's an error
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [user, authLoading]);
 
   const handleOpenModal = (item: MenuItem | null = null) => {
     setCurrentItem(item);
@@ -73,6 +72,7 @@ export default function MenuPage() {
   };
 
   const handleCloseModal = () => {
+    if (isActionLoading) return; // Prevent closing while an action is in progress
     setIsModalOpen(false);
     setCurrentItem(null);
   };
@@ -83,63 +83,60 @@ export default function MenuPage() {
   };
 
   const handleCloseDeleteConfirm = () => {
+     if (isActionLoading) return;
     setItemToDelete(null);
     setIsDeleteConfirmOpen(false);
   };
 
-  // --- CRUD OPERATIONS (To be implemented) ---
+  // --- CRUD OPERATIONS (CREATE/UPDATE) ---
   const handleSaveItem = async (itemData: Omit<MenuItem, 'id'>) => {
-    setIsActionLoading(true);
-    console.log("Saving item (simulation):", itemData);
-    // ** Firestore save/update logic will go here. **
-    /*
     if (!user) {
-        console.error("No user is authenticated.");
-        setIsActionLoading(false);
+        console.error("No user is authenticated to save an item.");
+        // Optionally: show an error message to the user
         return;
     }
+    setIsActionLoading(true);
+    
     try {
         if (currentItem) {
+            // Update existing item
             const itemRef = doc(db, 'menuItems', currentItem.id);
             await updateDoc(itemRef, itemData);
         } else {
+            // Add new item with the owner's ID
             await addDoc(collection(db, 'menuItems'), { ...itemData, ownerId: user.uid });
         }
+        handleCloseModal();
     } catch (error) {
         console.error("Error saving item: ", error);
         // Here you would show an error toast to the user
-    }
-    */
-    setTimeout(() => { // Simulate network delay
+    } finally {
         setIsActionLoading(false);
-        handleCloseModal();
-    }, 1000);
+    }
   };
 
+  // --- CRUD OPERATIONS (DELETE) ---
   const handleDeleteItem = async () => {
     if (!itemToDelete) return;
     setIsActionLoading(true);
-    console.log("Deleting item (simulation):", itemToDelete.id);
-    // ** Firestore delete logic will go here. **
-    /*
+
     try {
         const itemRef = doc(db, 'menuItems', itemToDelete.id);
         await deleteDoc(itemRef);
+        // The onSnapshot listener will automatically update the UI.
+        handleCloseDeleteConfirm();
     } catch (error) {
         console.error("Error deleting item: ", error);
-    }
-    */
-    setTimeout(() => { // Simulate network delay
-        setMenuItems(prev => prev.filter(item => item.id !== itemToDelete.id)); // Optimistic UI update
+        // Here you would show an error toast to the user
+    } finally {
         setIsActionLoading(false);
-        handleCloseDeleteConfirm();
-    }, 1000);
+    }
   };
 
   const categories = [...new Set(menuItems.map(item => item.category))];
 
   // --- RENDER LOGIC ---
-  if (isPageLoading) {
+  if (isPageLoading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoaderCircle className="w-12 h-12 text-red-600 animate-spin" />

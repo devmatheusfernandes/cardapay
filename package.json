@@ -17,6 +17,7 @@
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-firebase-hooks": "^5.1.1",
     "stripe": "^18.4.0"
   },
   "devDependencies": {
