@@ -3,16 +3,13 @@
 import { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-// Import the CartProvider
 import { CartProvider, useCart } from '@/lib/context/CartContext';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// This wrapper now provides the CartContext to the SuccessPage
 export default function SuccessPageWrapper() {
   return (
-    // Wrap the page in a Suspense boundary because useSearchParams can suspend
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
         <CartProvider>
             <SuccessPage />
         </CartProvider>
@@ -25,9 +22,7 @@ function SuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
 
-  // Clear the cart as soon as the customer lands on this page.
   useEffect(() => {
-    // A check to prevent clearing the cart unnecessarily on re-renders
     if (sessionId) {
         clearCart();
     }
@@ -46,19 +41,20 @@ function SuccessPage() {
           Payment Successful!
         </h1>
         <p className="text-slate-600 mt-3">
-          Thank you for your order. The restaurant has been notified and will begin preparing your items shortly.
+          Your order has been sent to the restaurant. You can track its status using the link below.
         </p>
         
         {sessionId && (
-            <div className="mt-6 text-sm text-slate-500">
-                <p>Your confirmation number is:</p>
-                <p className="font-mono bg-slate-100 p-2 rounded-md mt-1 inline-block">
-                    {sessionId.replace('cs_test_', '')}
-                </p>
-            </div>
+            <Link 
+                href={`/track/${sessionId}`}
+                className="mt-8 inline-flex items-center gap-2 w-full max-w-xs py-3 px-4 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition shadow-md"
+            >
+                <ExternalLink className="w-5 h-5" />
+                Track Your Order
+            </Link>
         )}
 
-        <Link href="/" className="mt-8 inline-block w-full max-w-xs py-3 px-4 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition shadow-md">
+        <Link href="/" className="mt-4 inline-block text-sm text-slate-500 hover:text-slate-800">
             Back to Home
         </Link>
       </motion.div>

@@ -5,11 +5,7 @@ import { stripe } from '@/lib/stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 
-// This tells Next.js to treat this route as a dynamic function
-// and not to try and statically analyze it at build time.
 export const dynamic = 'force-dynamic';
-
-// FIX: This explicitly tells Vercel's caching layer to never cache this route.
 export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
@@ -29,12 +25,10 @@ export async function POST(req: NextRequest) {
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
   }
 
-  // Handle the checkout.session.completed event
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
     try {
-      // Retrieve the full session object with line items
       const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
         session.id,
         {
@@ -43,18 +37,12 @@ export async function POST(req: NextRequest) {
       );
       
       const lineItems = sessionWithLineItems.line_items?.data;
-
-      if (!lineItems) {
-        throw new Error('Line items not found in session.');
-      }
-
-      // Extract restaurantId from metadata
       const restaurantId = session.metadata?.restaurantId;
-      if (!restaurantId) {
-        throw new Error('Restaurant ID not found in session metadata.');
+
+      if (!lineItems || !restaurantId) {
+        throw new Error('Required session data not found.');
       }
 
-      // Format the order data for Firestore
       const orderData = {
         restaurantId: restaurantId,
         items: lineItems.map(item => {
@@ -70,9 +58,9 @@ export async function POST(req: NextRequest) {
         createdAt: Timestamp.now(),
       };
 
-      // Create a new order document in Firestore
-      await adminDb.collection('orders').add(orderData);
-      console.log(`✅ Order created successfully for session: ${session.id}`);
+      // FIX: Use setDoc with the session ID as the document ID
+      await adminDb.collection('orders').doc(session.id).set(orderData);
+      console.log(`✅ Order ${session.id} created successfully.`);
 
     } catch (error: any) {
       console.error(`Error handling checkout session: ${error.message}`);
