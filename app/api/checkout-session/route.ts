@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
     }));
     
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:300';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cardapay.vercel.app';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
