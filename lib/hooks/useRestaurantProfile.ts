@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { db, auth, storage } from '../firebase';
 import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
@@ -13,9 +13,17 @@ export interface RestaurantProfile {
   logoUrl?: string;
   logoPath?: string;
   ownerId: string;
+  stripeAccountId?: string;
 }
 
-export type ProfileData = Omit<RestaurantProfile, 'id' | 'ownerId' | 'slug'>;
+export interface StripeAccountStatus {
+    status: 'connected' | 'not_connected';
+    details_submitted: boolean;
+    payouts_enabled: boolean;
+    charges_enabled: boolean;
+}
+
+export type ProfileData = Omit<RestaurantProfile, 'id' | 'ownerId' | 'slug' | 'stripeAccountId'>;
 
 // Helper function to generate a URL-friendly slug
 const generateSlug = (name: string) => {
@@ -30,7 +38,24 @@ const generateSlug = (name: string) => {
 export const useRestaurantProfile = () => {
   const [user, authLoading] = useAuthState(auth);
   const [profile, setProfile] = useState<RestaurantProfile | null>(null);
+  const [stripeStatus, setStripeStatus] = useState<StripeAccountStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchStripeStatus = useCallback(async () => {
+    if (!user) return;
+    try {
+        const idToken = await user.getIdToken();
+        const response = await fetch('/api/stripe-connect/get-account-status', {
+            headers: { 'Authorization': `Bearer ${idToken}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setStripeStatus(data);
+        }
+    } catch (error) {
+        console.error("Failed to fetch Stripe status:", error);
+    }
+  }, [user]);
 
   // Real-time listener for the user's restaurant profile
   useEffect(() => {
@@ -39,15 +64,23 @@ export const useRestaurantProfile = () => {
         return;
     }
 
-    // The document ID for the restaurant is the user's UID for easy lookup
     const docRef = doc(db, 'restaurants', user.uid);
 
     const unsubscribe = onSnapshot(docRef, 
       (doc) => {
         if (doc.exists()) {
-          setProfile({ id: doc.id, ...doc.data() } as RestaurantProfile);
+          const profileData = { id: doc.id, ...doc.data() } as RestaurantProfile;
+          setProfile(profileData);
+          if (profileData.stripeAccountId) {
+            fetchStripeStatus();
+          } else {
+            // FIX: Explicitly set status when no Stripe account is linked
+            setStripeStatus({ status: 'not_connected', details_submitted: false, payouts_enabled: false, charges_enabled: false });
+          }
         } else {
-          setProfile(null); // No profile exists yet
+          setProfile(null);
+          // FIX: Explicitly set status when no profile exists at all
+          setStripeStatus({ status: 'not_connected', details_submitted: false, payouts_enabled: false, charges_enabled: false });
         }
         setIsLoading(false);
       },
@@ -59,7 +92,7 @@ export const useRestaurantProfile = () => {
     );
 
     return () => unsubscribe();
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchStripeStatus]);
 
   // Function to save the restaurant profile
   const saveProfile = async (data: ProfileData, logoFile: File | null) => {
@@ -106,5 +139,5 @@ export const useRestaurantProfile = () => {
     }
   };
 
-  return { profile, isLoading: authLoading || isLoading, saveProfile };
+  return { profile, stripeStatus, isLoading: authLoading || isLoading, saveProfile };
 };

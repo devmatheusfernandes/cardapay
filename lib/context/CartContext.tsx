@@ -21,6 +21,9 @@ interface CartContextType {
   clearCart: () => void;
   itemCount: number;
   cartTotal: number;
+  isDelivery: boolean;
+  deliveryAddress: string;
+  setDeliveryOption: (isDelivery: boolean, address?: string) => void;
 }
 
 // Create the context with a default undefined value
@@ -38,6 +41,8 @@ export const useCart = () => {
 // The provider component that will wrap our page
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isDelivery, setIsDelivery] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
 
   const removeItem = useCallback((itemId: string) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
@@ -47,12 +52,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(i => i.id === item.id);
       if (existingItem) {
-        // If item already exists, just increase its quantity
         return prevItems.map(i =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      // Otherwise, add the new item with a quantity of 1
       return [...prevItems, { ...item, quantity: 1 }];
     });
     toast.success(`${item.name} added to cart!`);
@@ -60,7 +63,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const updateQuantity = useCallback((itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      // If quantity is 0 or less, remove the item
       removeItem(itemId);
     } else {
       setCartItems(prevItems =>
@@ -73,9 +75,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = useCallback(() => {
     setCartItems([]);
+    setIsDelivery(false);
+    setDeliveryAddress('');
+  }, []);
+  
+  const setDeliveryOption = useCallback((delivery: boolean, address: string = '') => {
+    setIsDelivery(delivery);
+    setDeliveryAddress(address);
   }, []);
 
-  // Memoize computed values to prevent unnecessary recalculations
   const itemCount = useMemo(() => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   }, [cartItems]);
@@ -92,6 +100,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     clearCart,
     itemCount,
     cartTotal,
+    isDelivery,
+    deliveryAddress,
+    setDeliveryOption,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

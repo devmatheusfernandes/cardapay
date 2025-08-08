@@ -21,7 +21,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
             <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
-            <p className="text-slate-600">Authenticating...</p>
         </div>
       </div>
     );

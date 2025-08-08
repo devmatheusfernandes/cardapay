@@ -9,30 +9,25 @@ interface CartItem {
   quantity: number;
 }
 
-// We now expect the restaurant's ID (which is the owner's UID)
 interface RequestBody {
     cartItems: CartItem[];
     restaurantId: string; 
+    isDelivery: boolean;
+    deliveryAddress: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { cartItems, restaurantId } = (await req.json()) as RequestBody;
+    const { cartItems, restaurantId, isDelivery, deliveryAddress } = (await req.json()) as RequestBody;
 
-    if (!cartItems || cartItems.length === 0) {
-      return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
-    }
-    if (!restaurantId) {
-        return NextResponse.json({ error: 'Restaurant ID is missing' }, { status: 400 });
+    if (!cartItems || cartItems.length === 0 || !restaurantId) {
+      return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
     }
 
     const line_items = cartItems.map(item => ({
       price_data: {
         currency: 'usd',
-        product_data: {
-          name: item.name,
-          images: item.imageUrl ? [item.imageUrl] : [],
-        },
+        product_data: { name: item.name, images: item.imageUrl ? [item.imageUrl] : [] },
         unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
@@ -46,9 +41,10 @@ export async function POST(req: NextRequest) {
       mode: 'payment',
       success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/${req.headers.get('referer')?.split('/').pop() || ''}`,
-      // Add the restaurantId to the metadata
       metadata: {
         restaurantId: restaurantId,
+        isDelivery: String(isDelivery), // Metadata values must be strings
+        deliveryAddress: deliveryAddress,
       },
     });
 

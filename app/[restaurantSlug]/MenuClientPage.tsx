@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCart } from '@/lib/context/CartContext';
-import { Utensils, MapPin, ShoppingCart, X, Plus, Minus, Trash2, LoaderCircle } from 'lucide-react';
+import { Utensils, MapPin, ShoppingCart, X, Plus, Minus, Trash2, LoaderCircle, Truck, Store } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
@@ -143,32 +143,35 @@ const CartIcon = ({ onCartClick }: { onCartClick: () => void }) => {
 };
 
 const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClose: () => void; restaurantId: string; }) => {
-    const { cartItems, updateQuantity, removeItem, cartTotal, clearCart } = useCart();
+    const { cartItems, updateQuantity, removeItem, cartTotal, clearCart, isDelivery, deliveryAddress, setDeliveryOption } = useCart();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const handleCheckout = async () => {
+        if (isDelivery && !deliveryAddress.trim()) {
+            toast.error("Please enter a delivery address.");
+            return;
+        }
         setIsCheckingOut(true);
         const toastId = toast.loading('Redirecting to payment...');
 
         try {
             const response = await fetch('/api/checkout-session', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ cartItems, restaurantId }), // Pass restaurantId here
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    cartItems, 
+                    restaurantId,
+                    isDelivery,
+                    deliveryAddress
+                }),
             });
 
             const { sessionId } = await response.json();
-
-            if (!response.ok) {
-                throw new Error('Failed to create checkout session.');
-            }
+            if (!response.ok) throw new Error('Failed to create checkout session.');
 
             const stripe = await stripePromise;
-            if (stripe) {
-                await stripe.redirectToCheckout({ sessionId });
-            }
+            if (stripe) await stripe.redirectToCheckout({ sessionId });
+            
             toast.dismiss(toastId);
         } catch (error) {
             console.error(error);
@@ -180,63 +183,62 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/60 z-50"
-                    onClick={onClose}
-                >
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-xl flex flex-col"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50" onClick={onClose}>
+                    <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
                         <header className="flex items-center justify-between p-4 border-b border-slate-200">
                             <h2 className="text-xl font-bold text-slate-800">Your Order</h2>
-                            <button onClick={onClose} className="p-1 rounded-full text-slate-500 hover:bg-slate-100">
-                                <X className="w-6 h-6" />
-                            </button>
+                            <button onClick={onClose} className="p-1 rounded-full text-slate-500 hover:bg-slate-100"><X className="w-6 h-6" /></button>
                         </header>
                         
                         {cartItems.length > 0 ? (
                             <>
-                                <div className="flex-grow p-4 overflow-y-auto space-y-4">
-                                    {cartItems.map(item => (
-                                        <div key={item.id} className="flex items-center gap-4">
-                                            <img src={item.imageUrl || 'https://placehold.co/100x100/EAEAEA/1A1A1A?text=Item'} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
-                                            <div className="flex-grow">
-                                                <p className="font-semibold text-slate-800">{item.name}</p>
-                                                <p className="text-sm text-slate-500">${item.price.toFixed(2)}</p>
+                                <div className="flex-grow p-4 overflow-y-auto">
+                                    {/* Delivery/Pickup Toggle */}
+                                    <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-lg mb-4">
+                                        <button onClick={() => setDeliveryOption(false)} className={`flex items-center justify-center gap-2 p-2 rounded-md text-sm font-semibold transition ${!isDelivery ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}><Store className="w-5 h-5" /> Pickup</button>
+                                        <button onClick={() => setDeliveryOption(true)} className={`flex items-center justify-center gap-2 p-2 rounded-md text-sm font-semibold transition ${isDelivery ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}><Truck className="w-5 h-5" /> Delivery</button>
+                                    </div>
+
+                                    {isDelivery && (
+                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mb-4">
+                                            <textarea
+                                                value={deliveryAddress}
+                                                onChange={(e) => setDeliveryOption(true, e.target.value)}
+                                                placeholder="Enter your full delivery address..."
+                                                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 transition"
+                                                rows={3}
+                                            />
+                                        </motion.div>
+                                    )}
+
+                                    <div className="space-y-4">
+                                        {cartItems.map(item => (
+                                            <div key={item.id} className="flex items-center gap-4">
+                                                <img src={item.imageUrl || 'https://placehold.co/100x100/EAEAEA/1A1A1A?text=Item'} alt={item.name} className="w-16 h-16 rounded-md object-cover" />
+                                                <div className="flex-grow">
+                                                    <p className="font-semibold text-slate-800">{item.name}</p>
+                                                    <p className="text-sm text-slate-500">${item.price.toFixed(2)}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200"><Minus className="w-4 h-4"/></button>
+                                                    <span className="font-semibold w-6 text-center">{item.quantity}</span>
+                                                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200"><Plus className="w-4 h-4"/></button>
+                                                </div>
+                                                <button onClick={() => removeItem(item.id)} className="p-1.5 text-slate-500 hover:text-rose-600"><Trash2 className="w-4 h-4"/></button>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200"><Minus className="w-4 h-4"/></button>
-                                                <span className="font-semibold w-6 text-center">{item.quantity}</span>
-                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200"><Plus className="w-4 h-4"/></button>
-                                            </div>
-                                            <button onClick={() => removeItem(item.id)} className="p-1.5 text-slate-500 hover:text-rose-600"><Trash2 className="w-4 h-4"/></button>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                                 <footer className="p-4 border-t border-slate-200 space-y-4">
                                     <div className="flex justify-between font-bold text-lg">
                                         <span>Total</span>
                                         <span>${cartTotal.toFixed(2)}</span>
                                     </div>
-                                    <button 
-                                        onClick={handleCheckout}
-                                        disabled={isCheckingOut}
-                                        className="w-full py-3 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition flex items-center justify-center gap-2 disabled:bg-rose-400"
-                                    >
+                                    <button onClick={handleCheckout} disabled={isCheckingOut} className="w-full py-3 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition flex items-center justify-center gap-2 disabled:bg-rose-400">
                                         {isCheckingOut && <LoaderCircle className="w-5 h-5 animate-spin" />}
                                         Proceed to Checkout
                                     </button>
-                                    <button onClick={clearCart} className="w-full text-sm text-slate-500 hover:text-rose-600">
-                                        Clear Cart
-                                    </button>
+                                    <button onClick={clearCart} className="w-full text-sm text-slate-500 hover:text-rose-600">Clear Cart</button>
                                 </footer>
                             </>
                         ) : (

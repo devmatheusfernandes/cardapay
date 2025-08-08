@@ -8,6 +8,7 @@ import { useMenu, MenuItem, MenuItemData } from '../../../../lib/hooks/useMenu';
 import InputField from '@/app/components/ui/InputField';
 import TextAreaField from '@/app/components/ui/TextAreaField';
 import Modal from '@/app/components/ui/Modal';
+import SubscriptionGuard from '@/app/components/guards/SubscriptionGuard';
 
 export default function MenuPage() {
   const { menuItems, categories, isLoading, saveItem, deleteItem, toggleInStock } = useMenu();
@@ -84,6 +85,7 @@ export default function MenuPage() {
   }
 
   return (
+    <SubscriptionGuard>
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
@@ -156,6 +158,7 @@ export default function MenuPage() {
         isLoading={isActionLoading}
       />
     </div>
+    </SubscriptionGuard>
   );
 }
 
