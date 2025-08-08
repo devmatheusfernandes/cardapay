@@ -1,8 +1,11 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { auth } from 'firebase-admin';
 
-// Helper to get the authenticated user's ID from the session token
+// Get authenticated user's ID from token
 async function getUserId(req: NextRequest) {
   const authorization = req.headers.get('Authorization');
   if (authorization?.startsWith('Bearer ')) {
@@ -26,24 +29,15 @@ async function safeJson<T = any>(req: NextRequest): Promise<T> {
   }
 }
 
-
 export async function POST(req: NextRequest) {
   try {
-    // Prevent running API logic during static build collection
-    if (process.env.NEXT_PHASE === 'phase-production-build') {
-      return NextResponse.json(
-        { message: 'Build phase — API logic skipped.' },
-        { status: 200 }
-      );
-    }
-
     const restaurantOwnerId = await getUserId(req);
     if (!restaurantOwnerId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-const body = await safeJson<{ code?: string }>(req);
-const code = body.code?.trim();
+    const body = await safeJson<{ code?: string }>(req);
+    const code = body.code?.trim();
 
     if (!code) {
       return NextResponse.json(
