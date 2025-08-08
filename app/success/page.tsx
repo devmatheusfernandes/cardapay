@@ -41,7 +41,7 @@ function SuccessPage() {
     visible: {
       opacity: 1,
       transition: {
-        when: "beforeChildren",
+        when: "beforeChildren" as const,
         staggerChildren: 0.2
       }
     }
@@ -53,7 +53,7 @@ function SuccessPage() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 300,
         damping: 24
       }
@@ -73,7 +73,7 @@ function SuccessPage() {
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              transition={{ type: "spring" as const, stiffness: 260, damping: 20 }}
               className="mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6"
             >
               <CheckCircle className="w-16 h-16 text-green-500" />
