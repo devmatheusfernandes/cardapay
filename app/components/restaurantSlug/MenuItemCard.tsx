@@ -1,6 +1,6 @@
+import { MenuItem } from '@/app/[restaurantSlug]/MenuClientPage';
 import { motion } from 'framer-motion';
 import { Utensils, Plus } from 'lucide-react';
-import { MenuItem } from './MenuClientPage';
 
 interface MenuItemCardProps {
   item: MenuItem;
