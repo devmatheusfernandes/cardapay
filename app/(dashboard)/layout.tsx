@@ -1,59 +1,46 @@
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { Toaster } from 'react-hot-toast';
+import Sidebar from '@/app/components/shared/Sidebar';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../../lib/firebase'; // Adjust path as needed
 import { LoaderCircle } from 'lucide-react';
-
-// This is the layout that will protect all routes inside the (dashboard) group.
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, loading] = useAuthState(auth);
   const router = useRouter();
 
-  useEffect(() => {
-    // onAuthStateChanged returns an unsubscribe function
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        // User is signed in.
-        setUser(currentUser);
-      } else {
-        // User is signed out.
-        // Redirect them to the sign-in page.
-        router.push('/sign-in');
-      }
-      // Finished checking auth state
-      setLoading(false);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [router]); // Add router to dependency array
-
-  // While we're checking the user's authentication status, show a loading screen.
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-            <LoaderCircle className="w-12 h-12 text-red-600 animate-spin" />
+            <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
+            <p className="text-slate-600">Authenticating...</p>
         </div>
       </div>
     );
   }
 
-  // If the user is authenticated (and we're no longer loading), render the children.
-  // The redirect for unauthenticated users happens inside the useEffect.
-  if (user) {
-    return <>{children}</>;
+  if (!user) {
+    router.push('/sign-in');
+    return null; // Render nothing while redirecting
   }
 
-  // This return is technically not reached if the redirect works,
-  // but it's good practice to have a fallback.
-  return null;
+  // If the user is authenticated, render the dashboard layout
+  return (
+    <div className="flex h-screen bg-slate-50">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        {/* The Toaster is now here, available to all dashboard pages */}
+        <Toaster position="top-center" reverseOrder={false} />
+        {children}
+      </main>
+    </div>
+  );
 }

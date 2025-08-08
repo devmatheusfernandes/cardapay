@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Edit, Trash2, X, DollarSign, Package, BookOpen, LoaderCircle, UtensilsCrossed, UploadCloud, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { useMenu, MenuItem, MenuItemData } from '../../../../lib/hooks/useMenu';
 import InputField from '@/app/components/ui/InputField';
 import TextAreaField from '@/app/components/ui/TextAreaField';
@@ -77,15 +77,14 @@ export default function MenuPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center h-full">
         <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <Toaster position="top-center" reverseOrder={false} />
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-slate-800">Menu Management</h1>
