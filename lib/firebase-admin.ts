@@ -2,7 +2,7 @@ import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
 // This is the Base64 encoded service account key from your .env.local file
-const encodedServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string;
+const encodedServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY as any;
 
 // Decode the Base64 string into a regular JSON string
 const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf-8');
