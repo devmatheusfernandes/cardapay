@@ -12,7 +12,7 @@ import SubscriptionGuard from '@/app/components/guards/SubscriptionGuard';
 const allOrderStatuses: Order['status'][] = ['Pending', 'In Progress', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Returned', 'Canceled'];
 
 const statusConfig = {
-    Pending: { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-100' },
+    Pending: { icon: Clock, color: 'text-indigo-500', bg: 'bg-indigo-100' },
     'In Progress': { icon: ChefHat, color: 'text-blue-500', bg: 'bg-blue-100' },
     'Ready for Pickup': { icon: ShoppingBag, color: 'text-purple-500', bg: 'bg-purple-100' },
     'Out for Delivery': { icon: Truck, color: 'text-cyan-500', bg: 'bg-cyan-100' },
@@ -95,7 +95,7 @@ export default function OrdersPage() {
     if (isLoading || driversLoading) {
         return (
             <div className="flex items-center justify-center h-full">
-                <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
+                <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
             </div>
         );
     }
@@ -307,7 +307,7 @@ const OrderCard = ({
         nextAction = { 
             text: 'Iniciar Preparo', 
             onClick: () => onUpdateStatus(order.id, 'In Progress'), 
-            color: 'bg-amber-500 hover:bg-amber-600' 
+            color: 'bg-indigo-500 hover:bg-indigo-600' 
         };
     } else if (order.status === 'In Progress') {
         if (order.isDelivery) {

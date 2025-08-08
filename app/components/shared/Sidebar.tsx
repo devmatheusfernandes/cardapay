@@ -54,7 +54,7 @@ const Sidebar = () => {
         className="hidden md:flex w-64 flex-shrink-0 bg-white border-r border-gray-100 flex-col h-screen sticky top-0"
       >
         <div className="h-16 flex items-center justify-center border-b border-gray-100">
-          <Link href="/dashboard/menu" className="text-2xl font-bold text-amber-600">
+          <Link href="/dashboard/menu" className="text-2xl font-bold text-indigo-600">
             Cardapay
           </Link>
         </div>
@@ -72,7 +72,7 @@ const Sidebar = () => {
                     href={item.href}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-amber-50 text-amber-600 font-medium shadow-sm'
+                        ? 'bg-indigo-50 text-indigo-600 font-medium shadow-sm'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
@@ -120,10 +120,10 @@ const Sidebar = () => {
               <Link
                 href={item.href}
                 className={`flex flex-col items-center p-2 rounded-full ${
-                  isActive ? 'text-amber-600' : 'text-gray-500'
+                  isActive ? 'text-indigo-600' : 'text-gray-500'
                 }`}
               >
-                <div className={`p-2 rounded-full ${isActive ? 'bg-amber-50' : ''}`}>
+                <div className={`p-2 rounded-full ${isActive ? 'bg-indigo-50' : ''}`}>
                   <item.icon className="w-6 h-6" />
                 </div>
                 <span className="text-xs mt-1">{item.label}</span>
@@ -156,7 +156,7 @@ const Sidebar = () => {
                     key={item.href}
                     href={item.href}
                     className={`flex items-center px-4 py-3 ${
-                      isActive ? 'bg-amber-50 text-amber-600' : 'text-gray-600 hover:bg-gray-50'
+                      isActive ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
                     <item.icon className="w-5 h-5 mr-3" />

@@ -367,7 +367,7 @@ export default function SubscriptionPage() {
         animate={{ opacity: 1 }}
         className="flex items-center justify-center h-screen"
       >
-        <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
+        <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
       </motion.div>
     );
   }
@@ -377,7 +377,7 @@ export default function SubscriptionPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-b from-amber-50 to-white py-12 px-4 sm:px-6 lg:px-8"
+      className="min-h-screen bg-gradient-to-b from-indigo-50 to-white py-12 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto">
         <motion.div
@@ -450,7 +450,7 @@ export default function SubscriptionPage() {
                           whileTap={buttonTap}
                           onClick={handleManageSubscription}
                           disabled={loadingStates.manage}
-                          className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition"
+                          className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition"
                         >
                           {loadingStates.manage && (
                             <LoaderCircle className="w-5 h-5 animate-spin" />
@@ -466,7 +466,7 @@ export default function SubscriptionPage() {
                           whileTap={buttonTap}
                           onClick={handleRenewSubscription}
                           disabled={loadingStates.renew}
-                          className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition"
+                          className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition"
                         >
                           {loadingStates.renew && (
                             <LoaderCircle className="w-5 h-5 animate-spin" />
@@ -513,20 +513,20 @@ export default function SubscriptionPage() {
                   transition={{ duration: 0.3 }}
                   className={`relative bg-white rounded-xl shadow-lg overflow-hidden border-2 ${
                     plan.recommended
-                      ? "border-amber-400"
+                      ? "border-indigo-400"
                       : "border-transparent"
                   }`}
                 >
                   {plan.recommended && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-bl-lg">
+                    <div className="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-bl-lg">
                       RECOMENDADO
                     </div>
                   )}
 
                   <div className="p-6">
                     <div className="text-center mb-6">
-                      <div className="w-16 h-16 bg-gradient-to-r from-amber-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Crown className="w-8 h-8 text-amber-600" />
+                      <div className="w-16 h-16 bg-gradient-to-r from-indigo-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Crown className="w-8 h-8 text-indigo-600" />
                       </div>
                       <h3 className="text-xl font-bold text-slate-800 mb-2">
                         {plan.name}
@@ -536,8 +536,8 @@ export default function SubscriptionPage() {
                       </p>
 
                       <div className="flex items-center justify-center gap-2 mb-4">
-                        <DollarSign className="w-6 h-6 text-amber-600" />
-                        <span className="text-2xl font-bold text-amber-600">
+                        <DollarSign className="w-6 h-6 text-indigo-600" />
+                        <span className="text-2xl font-bold text-indigo-600">
                           R$ {plan.price.toFixed(2).replace(".", ",")}
                         </span>
                         <span className="text-slate-500">
@@ -578,7 +578,7 @@ export default function SubscriptionPage() {
                         disabled={
                           loadingStates[plan.id as keyof typeof loadingStates]
                         }
-                        className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition"
+                        className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition"
                       >
                         {loadingStates[plan.id as keyof typeof loadingStates] && (
                           <LoaderCircle className="w-5 h-5 animate-spin" />

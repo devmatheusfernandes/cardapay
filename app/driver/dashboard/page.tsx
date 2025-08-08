@@ -41,7 +41,7 @@ export default function DriverDashboardPage() {
   const isLoading = profileLoading || (profile?.restaurantId && deliveriesLoading);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen"><LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" /></div>;
+    return <div className="flex items-center justify-center min-h-screen"><LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" /></div>;
   }
 
   return (
@@ -49,8 +49,8 @@ export default function DriverDashboardPage() {
       <Toaster position="top-center" />
       <header className="bg-white shadow-md">
         <div className="max-w-4xl mx-auto p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-amber-600">Painel do Entregador</h1>
-          <button onClick={handleSignOut} className="flex items-center gap-2 text-sm text-slate-600 hover:text-amber-600"><LogOut className="w-5 h-5" /> Sair</button>
+          <h1 className="text-2xl font-bold text-indigo-600">Painel do Entregador</h1>
+          <button onClick={handleSignOut} className="flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-600"><LogOut className="w-5 h-5" /> Sair</button>
         </div>
       </header>
       <main className="max-w-4xl mx-auto p-4 sm:p-6">
@@ -60,7 +60,7 @@ export default function DriverDashboardPage() {
                 <h2 className="mt-4 text-2xl font-semibold text-slate-800">Seu Código de Entregador</h2>
                 <p className="mt-2 text-slate-500">Compartilhe este código com o proprietário do restaurante.</p>
                 <div className="mt-6 flex items-center justify-center gap-2 p-4 bg-slate-100 rounded-md max-w-xs mx-auto">
-                    <span className="text-3xl font-mono font-bold text-amber-600 tracking-widest">{profile?.code}</span>
+                    <span className="text-3xl font-mono font-bold text-indigo-600 tracking-widest">{profile?.code}</span>
                     <button onClick={handleCopyCode} className="p-2 text-slate-500 hover:bg-slate-200 rounded-md transition"><Copy className="w-5 h-5"/></button>
                 </div>
             </div>
@@ -92,7 +92,7 @@ const DeliveryCard = ({ order, onConfirmClick }: { order: Order; onConfirmClick:
         </div>
       </div>
       <div className="mt-4 pt-4 border-t border-slate-200">
-        <p className="font-bold text-slate-700 flex items-center gap-2"><MapPin className="w-5 h-5 text-amber-500" /> Endereço:</p>
+        <p className="font-bold text-slate-700 flex items-center gap-2"><MapPin className="w-5 h-5 text-indigo-500" /> Endereço:</p>
         <p className="mt-1 text-slate-600 pl-7">{order.deliveryAddress}</p>
       </div>
     </motion.div>

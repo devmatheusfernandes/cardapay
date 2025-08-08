@@ -1,88 +1,176 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Utensils, CreditCard, BarChart3 } from 'lucide-react';
+import { useState, useEffect, SetStateAction } from "react";
+import { motion } from "framer-motion";
+import { Utensils, Menu } from "lucide-react";
+
+// Components
+import MobileMenu from "./components/landing/MobileMenu";
+import Header from "./components/landing/Header";
+import HeroSection from "./components/landing/HeroSection";
+import IntroSection from "./components/landing/IntroSection";
+import FeaturesSection from "./components/landing/FeaturesSection";
+import PricingSection from "./components/landing/PricingSection";
+import FaqSection from "./components/landing/FaqSection";
+import Footer from "./components/landing/Footer";
+
+const plans = [
+  {
+    id: "monthly",
+    name: "Plano Mensal",
+    price: 59.9,
+    interval: "month",
+    intervalCount: 1,
+    description: "Pagamento mensal recorrente por 1 ano",
+    features: [
+      "Código QR personalizado",
+      "Pedidos online integrados",
+      "Pagamentos via Stripe",
+      "Relatórios de vendas",
+      "Suporte prioritário",
+    ],
+  },
+  {
+    id: "semiannual",
+    name: "Plano Semestral",
+    price: 49.9,
+    interval: "month",
+    intervalCount: 6,
+    description: "Pagamento semestral (6 meses) por 1 ano",
+    savings: "Economize R$ 60,00 em relação ao mensal",
+    features: [
+      "Tudo do Plano Mensal",
+      "Economia de 16%",
+      "Cobrado a cada 6 meses",
+    ],
+    recommended: true,
+  },
+  {
+    id: "annual",
+    name: "Plano Anual",
+    price: 540.0,
+    interval: "year",
+    intervalCount: 1,
+    description: "Pagamento único anual",
+    savings: "Economize R$ 178,80 em relação ao mensal",
+    features: [
+      "Tudo do Plano Mensal",
+      "Economia de 25%",
+      "Pagamento único por ano",
+    ],
+  },
+];
+
+const stats = [
+  { number: "500+", label: "Restaurantes Ativos" },
+  { number: "50k+", label: "Pedidos Mensais" },
+  { number: "98%", label: "Satisfação dos Clientes" },
+  { number: "24/7", label: "Suporte Técnico" },
+];
+
+const faqs = [
+  {
+    question: "Como funciona o período de teste gratuito?",
+    answer:
+      "O período de teste de 14 dias dá acesso completo a todos os recursos da plataforma. Não é necessário cartão de crédito para iniciar o teste e você pode cancelar a qualquer momento.",
+  },
+  {
+    question: "Quais métodos de pagamento são aceitos?",
+    answer:
+      "Aceitamos todos os principais cartões de crédito, PIX e boleto bancário. As transações são processadas com segurança pelo Stripe, nosso parceiro de pagamentos.",
+  },
+  {
+    question: "Posso migrar meu cardápio atual para a plataforma?",
+    answer:
+      "Sim, nossa equipe oferece suporte gratuito para migração de dados. Basta nos enviar seu cardápio atual em qualquer formato (PDF, Excel, etc.) e cuidaremos do resto.",
+  },
+  {
+    question: "A plataforma funciona offline?",
+    answer:
+      "Nosso aplicativo mobile permite que garçons continuem registrando pedidos mesmo sem conexão com a internet. Os dados são sincronizados automaticamente quando a conexão é restabelecida.",
+  },
+  {
+    question: "Como funciona o suporte técnico?",
+    answer:
+      "Oferecemos suporte 24/7 via chat, email e telefone. Nossos tempos médios de resposta são de 15 minutos para prioridade máxima e 2 horas para questões padrão.",
+  },
+];
 
 export default function LandingPage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [activeFaq, setActiveFaq] = useState(null);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const toggleFaq = (index: SetStateAction<null>) => {
+    setActiveFaq(activeFaq === index ? null : index);
+  };
+
+  const navItems = ["Recursos", "Preços", "FAQ", "Sobre", "Contato"];
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: -15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring" as const, stiffness: 300, damping: 24 },
+    },
+    hover: {
+      scale: 1.05,
+      color: "#d97706",
+      transition: { duration: 0.2 },
+    },
+    tap: { scale: 0.95 },
+  };
+
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      boxShadow: "0px 5px 15px rgba(217, 119, 6, 0.4)",
+      transition: { duration: 0.1 },
+    },
+    tap: { scale: 0.98 },
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      {/* Hero */}
-      <section className="flex flex-col items-center justify-center flex-1 text-center px-6 py-20 bg-gradient-to-b from-white to-slate-100">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-5xl font-bold text-amber-600"
-        >
-          Cardapay
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mt-4 text-lg text-slate-700 max-w-xl"
-        >
-          A plataforma simples e poderosa para donos de restaurantes gerenciarem seus pedidos,
-          pagamentos e cardápios digitais — tudo em um só lugar.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="mt-8 flex gap-4"
-        >
-          <Link
-            href="/sign-up"
-            className="px-6 py-3 rounded-lg bg-amber-600 text-white font-medium shadow hover:bg-amber-700 transition"
-          >
-            Criar Conta
-          </Link>
-          <Link
-            href="/pricing"
-            className="px-6 py-3 rounded-lg border border-amber-600 text-amber-600 font-medium hover:bg-amber-50 transition"
-          >
-            Ver Preços
-          </Link>
-        </motion.div>
-      </section>
-
-      {/* Features */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-10">
-          {[
-            {
-              icon: Utensils,
-              title: 'Cardápio Digital',
-              desc: 'Atualize seu cardápio em tempo real, sem custos extras de impressão.',
-            },
-            {
-              icon: CreditCard,
-              title: 'Pagamentos Integrados',
-              desc: 'Receba pedidos e pagamentos direto pela plataforma.',
-            },
-            {
-              icon: BarChart3,
-              title: 'Relatórios Inteligentes',
-              desc: 'Acompanhe vendas, produtos mais pedidos e aumente seu faturamento.',
-            },
-          ].map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-slate-50 rounded-xl p-6 shadow hover:shadow-lg transition"
-            >
-              <f.icon className="w-10 h-10 text-amber-600 mb-4" />
-              <h3 className="text-xl font-semibold">{f.title}</h3>
-              <p className="mt-2 text-slate-600">{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+    <div className="min-h-screen bg-white text-slate-900">
+      <MobileMenu
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+      />
+      <Header
+        setIsMenuOpen={setIsMenuOpen}
+        setIsLoginModalOpen={setIsLoginModalOpen}
+        navItems={navItems}
+        containerVariants={containerVariants}
+        itemVariants={itemVariants}
+        buttonVariants={buttonVariants}
+      />
+      <HeroSection scrollY={scrollY} />
+      <IntroSection stats={stats} />
+      <FeaturesSection />
+      <PricingSection plans={plans} />
+      <FaqSection faqs={faqs} activeFaq={activeFaq} toggleFaq={toggleFaq} />
+      <Footer />
     </div>
   );
 }
+
+

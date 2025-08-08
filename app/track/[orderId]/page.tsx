@@ -37,8 +37,8 @@ const statusConfig = {
   Pending: {
     icon: Clock,
     text: "Seu pedido foi recebido.",
-    color: "text-amber-500",
-    bgColor: "bg-amber-200/50",
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-200/50",
   },
   "In Progress": {
     icon: ChefHat,
@@ -156,7 +156,7 @@ export default function OrderTrackingPage() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full"
+          className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full"
         />
       </div>
     );
@@ -229,7 +229,7 @@ export default function OrderTrackingPage() {
                       className="flex flex-col items-center mt-6 border-1 border-white p-4 rounded-lg"
                     >
                       <p className="font-semibold text-slate-700 flex items-center justify-center gap-2">
-                        <Key className="w-5 h-5 text-amber-500" />
+                        <Key className="w-5 h-5 text-indigo-500" />
                         Código de Confirmação
                       </p>
                       <p className="text-sm text-slate-500 mt-1">

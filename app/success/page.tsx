@@ -14,7 +14,7 @@ export default function SuccessPageWrapper() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full"
+          className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"
         />
       </div>
     }>
@@ -33,6 +33,19 @@ function SuccessPage() {
   useEffect(() => {
     if (sessionId) {
       clearCart();
+
+      // Salvar sessionId no localStorage
+      try {
+        const stored = localStorage.getItem("lastOrders");
+        let orders: string[] = stored ? JSON.parse(stored) : [];
+        if (!orders.includes(sessionId)) {
+          orders.unshift(sessionId); // adiciona no início
+          if (orders.length > 10) orders.pop(); // mantém até 10 pedidos
+          localStorage.setItem("lastOrders", JSON.stringify(orders));
+        }
+      } catch {
+        // Fail silently se localStorage não estiver disponível
+      }
     }
   }, [clearCart, sessionId]);
 

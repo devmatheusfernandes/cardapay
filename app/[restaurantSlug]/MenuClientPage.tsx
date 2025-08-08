@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCart } from '@/lib/context/CartContext';
-import { Utensils, MapPin, ShoppingCart, X, Plus, Minus, Trash2, LoaderCircle, Truck, Store } from 'lucide-react';
-import { Toaster, toast } from 'react-hot-toast';
+import { Utensils, ShoppingCart, X, Plus, Minus, Trash2, LoaderCircle, Truck, Store, Clock, Search, ArrowBigDown, ArrowDown } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -14,6 +14,7 @@ interface Restaurant {
   name: string;
   logoUrl?: string;
   address?: string;
+  schedule?: string;
 }
 
 interface MenuItem {
@@ -33,87 +34,211 @@ interface MenuClientPageProps {
 
 export default function MenuClientPage({ restaurant, menuItems }: MenuClientPageProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const { addItem } = useCart();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { addItem, itemCount } = useCart();
   
   const categories = [...new Set(menuItems.map(item => item.category))];
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+const filteredItems = menuItems
+  .filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  .filter(item =>
+    !activeCategory || item.category === activeCategory
+  );
+
+
+  const scrollToCategory = (category: string) => {
+    const element = document.getElementById(category.toLowerCase().replace(/\s+/g, '-'));
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-b from-amber-50 to-amber-50 min-h-screen">
-           
-      <header className="bg-amber-500 backdrop-blur-sm shadow-sm sticky top-0 z-30">
+    <div className="min-h-screen bg-white">
+      {/* Hero Section with Parallax Effect */}
+      <div 
+        ref={heroRef}
+        className="relative h-screen max-h-[100vh] w-full overflow-hidden bg-gray-900"
+      >
+        {restaurant.logoUrl ? (
+          <motion.img 
+            src={restaurant.logoUrl}
+            alt={restaurant.name}
+            className="absolute inset-0 w-full h-full object-cover opacity-70"
+            initial={{ scale: 1 }}
+            animate={{ scale: isScrolled ? 1.1 : 1 }}
+            transition={{ duration: 0.5 }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900 to-purple-900" />
+        )}
+        
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+          <motion.h1 
+            className="text-4xl md:text-6xl font-bold text-white mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            {restaurant.name}
+          </motion.h1>
+          
+          <motion.button
+            onClick={() => window.scrollTo({ top: heroRef.current?.offsetHeight, behavior: 'smooth' })}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className='absolute bottom-15'
+          >
+            <ArrowDown className='w-10 h-10'/>
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Sticky Header */}
+      <header className={`sticky top-0 z-30 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               {restaurant.logoUrl ? (
                 <img 
                   src={restaurant.logoUrl} 
                   alt={`${restaurant.name} logo`} 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md" 
+                  className={`transition-all duration-300 ${isScrolled ? 'w-10 h-10' : 'w-12 h-12'} rounded-full object-cover border-2 border-white shadow-md`} 
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center shadow-md">
-                  <Utensils className="w-6 h-6 text-white" />
+                <div className={`transition-all duration-300 ${isScrolled ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-gradient-to-r from-indigo-500 to-orange-500 flex items-center justify-center shadow-md`}>
+                  <Utensils className="w-5 h-5 text-white" />
                 </div>
               )}
-              <h1 className="text-xl font-bold text-gray-900">{restaurant.name}</h1>
+              <h1 className={`font-bold transition-all duration-300 ${isScrolled ? 'text-lg text-gray-800' : 'text-xl text-white'}`}>
+                {restaurant.name}
+              </h1>
             </div>
             
-            <CartIcon onCartClick={() => setIsCartOpen(true)} />
+            <CartIcon 
+              onCartClick={() => setIsCartOpen(true)} 
+              itemCount={itemCount} 
+              isScrolled={isScrolled}
+            />
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-12">
-          {restaurant.address && (
-            <p className="text-gray-500 inline-flex items-center gap-2 px-4 py-2 bg-amber-200 rounded-full shadow-sm">
-              <MapPin className="w-4 h-4 text-amber-500"/>
-              {restaurant.address}
-            </p>
-          )}
-          <h2 className="mt-4 text-3xl font-bold text-gray-900 sm:text-4xl">Our Menu</h2>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search and Category Filter */}
+        <div className="sticky top-16 z-20 bg-white py-4 mb-8 border-b">
+          <div className="relative mb-6">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search menu items..."
+              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex overflow-x-auto pb-2 hide-scrollbar">
+            <button
+              onClick={() => setActiveCategory(null)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap mr-2 text-sm font-medium transition-colors ${!activeCategory ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
+              All Items
+            </button>
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => {
+                  setActiveCategory(category);
+                  scrollToCategory(category);
+                }}
+                className={`px-4 py-2 rounded-full whitespace-nowrap mr-2 text-sm font-medium transition-colors ${activeCategory === category ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {menuItems.length === 0 ? (
+        {filteredItems.length === 0 ? (
           <div className="text-center py-16">
             <div className="mx-auto h-24 w-24 text-gray-300">
               <Utensils className="w-full h-full" />
             </div>
-            <h2 className="mt-6 text-2xl font-semibold text-gray-700">This restaurant's menu is currently empty.</h2>
-            <p className="mt-2 text-gray-500">Please check back later!</p>
+            <h2 className="mt-6 text-2xl font-semibold text-gray-700">No items found</h2>
+            <p className="mt-2 text-gray-500">Try adjusting your search or filter</p>
           </div>
         ) : (
           <div className="space-y-16">
-            {categories.map(category => (
-              <section key={category} className="scroll-mt-24" id={category.toLowerCase().replace(/\s+/g, '-')}>
-                <div className="flex items-center mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 flex-grow">{category}</h2>
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent flex-grow ml-4"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {menuItems.filter(item => item.category === category).map(item => (
-                    <MenuItemDisplayCard 
-                      key={item.id} 
-                      item={item} 
-                      onAddToCart={() => {
-                        addItem({ 
-                          id: item.id, 
-                          name: item.name, 
-                          price: item.price, 
-                          imageUrl: item.imageUrl 
-                        });
-                        toast.success(`${item.name} added to cart`);
-                      }}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+            {categories
+              .filter(category => filteredItems.some(item => item.category === category))
+              .map(category => (
+                <section key={category} className="scroll-mt-24" id={category.toLowerCase().replace(/\s+/g, '-')}>
+                  <div className="flex items-center mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 flex-grow">{category}</h2>
+                    <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent flex-grow ml-4"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredItems
+                      .filter(item => item.category === category)
+                      .map(item => (
+                        <MenuItemDisplayCard 
+                          key={item.id} 
+                          item={item} 
+                          onAddToCart={() => {
+                            addItem({ 
+                              id: item.id, 
+                              name: item.name, 
+                              price: item.price, 
+                              imageUrl: item.imageUrl 
+                            });
+                            toast.success(`${item.name} added to cart`);
+                          }}
+                        />
+                      ))}
+                  </div>
+                </section>
+              ))}
           </div>
         )}
-      </div>
+      </main>
+      
       
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} restaurantId={restaurant.id} />
+      
+      <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }
@@ -123,9 +248,9 @@ const MenuItemDisplayCard = ({ item, onAddToCart }: { item: MenuItem; onAddToCar
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.3 }}
-    className="bg-amber-100 rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300"
+    className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300"
   >
-    <div className="relative aspect-square overflow-hidden">
+    <div className="relative aspect-[4/3] overflow-hidden">
       {item.imageUrl ? (
         <img 
           src={item.imageUrl} 
@@ -143,42 +268,37 @@ const MenuItemDisplayCard = ({ item, onAddToCart }: { item: MenuItem; onAddToCar
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
-          <p className="text-gray-500 text-sm mt-1">{item.description}</p>
+          <p className="text-gray-500 text-sm mt-1 line-clamp-2">{item.description}</p>
         </div>
-        <p className="text-lg font-semibold text-amber-600 whitespace-nowrap ml-2">
+        <p className="text-lg font-semibold text-indigo-600 whitespace-nowrap ml-2">
           ${item.price.toFixed(2)}
         </p>
       </div>
       <motion.button 
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onAddToCart}
-        className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+        className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-orange-500 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
       >
         <Plus className="w-4 h-4" />
-        Adicionar
+        Add to Cart
       </motion.button>
     </div>
   </motion.div>
 );
 
-const CartIcon = ({ onCartClick }: { onCartClick: () => void }) => {
-  const { itemCount } = useCart();
-  
+const CartIcon = ({ onCartClick, itemCount, isScrolled }: { onCartClick: () => void; itemCount: number; isScrolled: boolean; }) => {
   return (
     <button
       onClick={onCartClick}
-      className="relative p-2 rounded-full bg-amber-600 shadow-md hover:shadow-lg transition-shadow"
+      className={`relative p-2 rounded-full transition-colors ${isScrolled ? 'text-indigo-500' : 'bg-white text-gray-700'}`}
       aria-label="Open cart"
     >
-      <ShoppingCart className="w-6 h-6 text-gray-700" />
+      <ShoppingCart className="w-6 h-6" />
       {itemCount > 0 && (
-        <motion.span 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute -top-1 -right-1 bg-amber-400 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center"
-        >
+        <span className="absolute -top-1 -right-1 bg-indigo-400 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
           {itemCount > 9 ? '9+' : itemCount}
-        </motion.span>
+        </span>
       )}
     </button>
   );
@@ -187,6 +307,39 @@ const CartIcon = ({ onCartClick }: { onCartClick: () => void }) => {
 const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClose: () => void; restaurantId: string; }) => {
   const { cartItems, updateQuantity, removeItem, cartTotal, clearCart, isDelivery, deliveryAddress, setDeliveryOption } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  // Address fields state
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [city, setCity] = useState('');
+  const [zip, setZip] = useState('');
+  const [complement, setComplement] = useState('');
+
+  const updateAddressField = useCallback((field: string, value: string) => {
+    switch(field) {
+      case 'street': setStreet(value); break;
+      case 'number': setNumber(value); break;
+      case 'neighborhood': setNeighborhood(value); break;
+      case 'city': setCity(value); break;
+      case 'zip': setZip(value); break;
+      case 'complement': setComplement(value); break;
+    }
+
+    // Get the current values, using the new value for the field being updated
+    const currentStreet = field === 'street' ? value : street;
+    const currentNumber = field === 'number' ? value : number;
+    const currentNeighborhood = field === 'neighborhood' ? value : neighborhood;
+    const currentCity = field === 'city' ? value : city;
+    const currentZip = field === 'zip' ? value : zip;
+    const currentComplement = field === 'complement' ? value : complement;
+
+    // Monta a string formatada para envio
+    const formattedAddress = 
+      `${currentStreet}, ${currentNumber}${currentComplement ? ', ' + currentComplement : ''}, ${currentNeighborhood}, ${currentCity} - CEP: ${currentZip}`;
+
+    setDeliveryOption(true, formattedAddress);
+  }, [street, number, neighborhood, city, zip, complement, setDeliveryOption]);
 
   const handleCheckout = async () => {
     if (isDelivery && !deliveryAddress.trim()) {
@@ -261,7 +414,7 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
                         !isDelivery ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-50'
                       }`}
                     >
-                      <Store className="w-5 h-5" /> Pickup
+                      <Store className="w-5 h-5" /> Retirada
                     </button>
                     <button 
                       onClick={() => setDeliveryOption(true)}
@@ -269,7 +422,7 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
                         isDelivery ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-50'
                       }`}
                     >
-                      <Truck className="w-5 h-5" /> Delivery
+                      <Truck className="w-5 h-5" /> Entrega
                     </button>
                   </div>
 
@@ -277,16 +430,54 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
                     <motion.div 
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
-                      className="mb-6"
+                      className="mb-6 space-y-4"
                     >
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address</label>
-                      <textarea
-                        value={deliveryAddress}
-                        onChange={(e) => setDeliveryOption(true, e.target.value)}
-                        placeholder="Enter your full delivery address..."
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 transition text-sm"
-                        rows={3}
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Endereço de Entrega</label>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          placeholder="Rua"
+                          value={street}
+                          onChange={(e) => updateAddressField('street', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Número"
+                          value={number}
+                          onChange={(e) => updateAddressField('number', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Bairro"
+                          value={neighborhood}
+                          onChange={(e) => updateAddressField('neighborhood', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Cidade"
+                          value={city}
+                          onChange={(e) => updateAddressField('city', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="CEP"
+                          value={zip}
+                          onChange={(e) => updateAddressField('zip', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Complemento (opcional)"
+                          value={complement}
+                          onChange={(e) => updateAddressField('complement', e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+                        />
+                      </div>
                     </motion.div>
                   )}
 
@@ -328,7 +519,7 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
                         </div>
                         <button 
                           onClick={() => removeItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-amber-600 transition-colors"
+                          className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
                         >
                           <Trash2 className="w-4 h-4"/>
                         </button>
@@ -345,22 +536,22 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
                   <button 
                     onClick={handleCheckout} 
                     disabled={isCheckingOut}
-                    className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-md transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-md transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     {isCheckingOut ? (
                       <LoaderCircle className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
                         <ShoppingCart className="w-5 h-5" />
-                        Checkout Now
+                        Pagamento
                       </>
                     )}
                   </button>
                   <button 
                     onClick={clearCart}
-                    className="w-full mt-3 text-sm text-gray-500 hover:text-amber-600 transition-colors"
+                    className="w-full mt-3 text-sm text-gray-500 hover:text-indigo-600 transition-colors"
                   >
-                    Clear Order
+                    Limpar
                   </button>
                 </footer>
               </>
@@ -369,15 +560,15 @@ const CartSidebar = ({ isOpen, onClose, restaurantId }: { isOpen: boolean; onClo
                 <div className="w-24 h-24 text-gray-300 mb-4">
                   <ShoppingCart className="w-full h-full" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700">Your cart is empty</h3>
+                <h3 className="text-xl font-semibold text-gray-700">Seu carrinho está vazio!</h3>
                 <p className="text-gray-500 mt-2 max-w-xs">
-                  Add delicious items from our menu to get started
+                  Não demora demais, mata logo essa fome!
                 </p>
                 <button 
                   onClick={onClose}
-                  className="mt-6 px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="text-gray-400 mt-6 px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
-                  Browse Menu
+                  Ver cardápio
                 </button>
               </div>
             )}

@@ -61,7 +61,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
+        <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function ProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-4">Restaurant Logo</label>
                 <div className="flex flex-col items-center">
                   <div 
-                    className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-gray-300 hover:border-amber-500 transition-colors cursor-pointer group"
+                    className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-gray-300 hover:border-indigo-500 transition-colors cursor-pointer group"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     {logoPreview ? (
@@ -96,7 +96,7 @@ export default function ProfilePage() {
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 group-hover:text-amber-500 transition-colors">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 group-hover:text-indigo-500 transition-colors">
                         <UploadCloud className="w-6 h-6 sm:w-8 sm:h-8" />
                         <span className="text-xs mt-1">Upload</span>
                       </div>
@@ -142,7 +142,7 @@ export default function ProfilePage() {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isActionLoading}
-                  className="w-full sm:w-auto sm:min-w-[200px] flex justify-center items-center gap-2 py-3 px-6 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-70 transition-colors shadow-sm"
+                  className="w-full sm:w-auto sm:min-w-[200px] flex justify-center items-center gap-2 py-3 px-6 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-colors shadow-sm"
                 >
                   {isActionLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
                   {isActionLoading ? 'Saving...' : 'Save Profile'}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1 p-3 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
-                      <span className="text-amber-600 font-mono text-sm break-all">
+                      <span className="text-indigo-600 font-mono text-sm break-all">
                         {publicUrl}
                       </span>
                     </div>
@@ -250,7 +250,7 @@ const StripeConnectSection = ({ stripeStatus }: { stripeStatus: StripeAccountSta
               <button 
                   onClick={handleConnect}
                   disabled={isLoading}
-                  className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-70 transition-colors shadow-sm w-full sm:w-auto"
+                  className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-colors shadow-sm w-full sm:w-auto"
               >
                   {isLoading ? <LoaderCircle className="w-5 h-5 animate-spin" /> : <ExternalLink className="w-5 h-5" />}
                   {isLoading ? 'Redirecting...' : 'Complete Stripe Setup'}

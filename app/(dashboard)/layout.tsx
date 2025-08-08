@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-            <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
+            <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
         </div>
       </div>
     );

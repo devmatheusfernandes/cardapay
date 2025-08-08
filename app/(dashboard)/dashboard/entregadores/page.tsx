@@ -24,7 +24,7 @@ export default function EntregadoresPage() {
     <SubscriptionGuard>
       {isLoading ? (
         <div className="flex items-center justify-center h-full">
-          <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
+          <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
         </div>
       ) : (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -35,7 +35,7 @@ export default function EntregadoresPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition w-full md:w-auto"
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition w-full md:w-auto"
               >
                 <UserPlus className="w-5 h-5" />
                 Adicionar Entregador
@@ -136,7 +136,7 @@ const AssociateDriverModal = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition flex items-center gap-2 disabled:bg-amber-400"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 disabled:bg-indigo-400"
           >
             {isLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
             {isLoading ? 'Adicionando...' : 'Adicionar Entregador'}

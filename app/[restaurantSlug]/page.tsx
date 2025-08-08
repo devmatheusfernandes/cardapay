@@ -6,80 +6,90 @@ import { Toaster } from "react-hot-toast";
 
 // Define the types for our data
 interface Restaurant {
-    id: string;
-    name: string;
-    logoUrl?: string;
-    address?: string;
+  id: string;
+  name: string;
+  logoUrl?: string;
+  address?: string;
 }
 
 interface MenuItem {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    category: string;
-    imageUrl?: string;
-    inStock: boolean;
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  imageUrl?: string;
+  inStock: boolean;
 }
 
 // This function fetches the data on the server
 async function getRestaurantData(slug: string) {
-    const restaurantQuery = await adminDb.collection('restaurants').where('slug', '==', slug).limit(1).get();
+  const restaurantQuery = await adminDb
+    .collection("restaurants")
+    .where("slug", "==", slug)
+    .limit(1)
+    .get();
 
-    if (restaurantQuery.empty) {
-        return null;
-    }
+  if (restaurantQuery.empty) {
+    return null;
+  }
 
-    const restaurantDoc = restaurantQuery.docs[0];
-    const restaurant: Restaurant = { id: restaurantDoc.id, ...restaurantDoc.data() } as Restaurant;
+  const restaurantDoc = restaurantQuery.docs[0];
+  const restaurant: Restaurant = {
+    id: restaurantDoc.id,
+    ...restaurantDoc.data(),
+  } as Restaurant;
 
-    const menuItemsQuery = await adminDb.collection('menuItems')
-        .where('ownerId', '==', restaurant.id)
-        .where('inStock', '==', true)
-        .get();
+  const menuItemsQuery = await adminDb
+    .collection("menuItems")
+    .where("ownerId", "==", restaurant.id)
+    .where("inStock", "==", true)
+    .get();
 
-    const menuItems: MenuItem[] = [];
-    menuItemsQuery.forEach(doc => {
-        menuItems.push({ id: doc.id, ...doc.data() } as MenuItem);
-    });
+  const menuItems: MenuItem[] = [];
+  menuItemsQuery.forEach((doc) => {
+    menuItems.push({ id: doc.id, ...doc.data() } as MenuItem);
+  });
 
-    return { restaurant, menuItems };
+  return { restaurant, menuItems };
 }
 
 // Updated type definition to match Next.js App Router expectations
 interface RestaurantMenuPageProps {
-    params: Promise<{
-        restaurantSlug: string;
-    }>;
+  params: Promise<{
+    restaurantSlug: string;
+  }>;
 }
 
 // The Page component itself remains a Server Component
-export default async function RestaurantMenuPage({ params }: RestaurantMenuPageProps) {
-    // Await the params Promise to get the actual parameters
-    const { restaurantSlug } = await params;
-    
-    const data = await getRestaurantData(restaurantSlug);
+export default async function RestaurantMenuPage({
+  params,
+}: RestaurantMenuPageProps) {
+  // Await the params Promise to get the actual parameters
+  const { restaurantSlug } = await params;
 
-    if (!data) {
-        notFound();
-    }
+  const data = await getRestaurantData(restaurantSlug);
 
-    const { restaurant, menuItems } = data;
+  if (!data) {
+    notFound();
+  }
 
-    // The CartProvider wraps the client component, providing it with cart state.
-    return (
-        <CartProvider>
-             <Toaster 
+  const { restaurant, menuItems } = data;
+
+  // The CartProvider wraps the client component, providing it with cart state.
+  return (
+    <CartProvider>
+      <Toaster
         position="bottom-center"
         toastOptions={{
           style: {
-            background: '#1e293b',
-            color: '#f8fafc',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-          }
+            background: "#1e293b",
+            color: "#f8fafc",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
         }}
       />
-            <MenuClientPage restaurant={restaurant} menuItems={menuItems} />
-        </CartProvider>
-    );
+      <MenuClientPage restaurant={restaurant} menuItems={menuItems} />
+    </CartProvider>
+  );
 }

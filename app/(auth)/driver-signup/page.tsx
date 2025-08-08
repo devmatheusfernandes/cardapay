@@ -5,11 +5,24 @@ import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../../../lib/firebase';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
-import { UserPlus, Mail, Lock, User, Phone } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { UserPlus, Mail, Lock, User, Phone, ChevronLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import InputField from '@/app/components/ui/InputField';
 import { toast, Toaster } from 'react-hot-toast';
+
+  const BackButton = () => (
+    <Link href="/" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+      >
+        <ChevronLeft className="w-8 h-8" />
+        <span className="text-md font-medium">Voltar</span>
+      </motion.button>
+    </Link>
+  );
 
 const generateDriverCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -67,44 +80,103 @@ export default function DriverSignUpPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-slate-50 text-slate-900 px-4 relative">
+      <BackButton />
       <Toaster position="top-center" />
+      
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl border border-slate-100"
       >
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-amber-600">Cadastro de Entregador</h1>
-          <p className="mt-2 text-slate-600">Crie sua conta para começar a fazer entregas.</p>
-        </div>
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="text-center"
+        >
+          <div className="flex justify-center mb-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center"
+            >
+              <UserPlus className="w-8 h-8 text-indigo-600" />
+            </motion.div>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800">Cadastro de Entregador</h1>
+          <p className="mt-2 text-slate-600">Crie sua conta para começar a fazer entregas</p>
+        </motion.div>
 
         <form onSubmit={handleSignUp} className="space-y-6">
-          <InputField icon={User} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome completo" required />
-          <InputField icon={Phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Seu telefone" required />
-          <InputField icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Seu email" required />
-          <InputField icon={Lock} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Crie uma senha" required />
-          <InputField icon={Lock} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirme sua senha" required />
-          
-          <div>
+          {[
+            { icon: User, type: 'text', value: name, onChange: setName, placeholder: 'Seu nome completo', required: true },
+            { icon: Phone, type: 'tel', value: phone, onChange: setPhone, placeholder: 'Seu telefone', required: true },
+            { icon: Mail, type: 'email', value: email, onChange: setEmail, placeholder: 'Seu email', required: true },
+            { icon: Lock, type: 'password', value: password, onChange: setPassword, placeholder: 'Crie uma senha', required: true },
+            { icon: Lock, type: 'password', value: confirmPassword, onChange: setConfirmPassword, placeholder: 'Confirme sua senha', required: true }
+          ].map((field, index) => (
+            <motion.div
+              key={index}
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 + (index * 0.1) }}
+            >
+              <InputField
+                icon={field.icon}
+                type={field.type}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                placeholder={field.placeholder}
+                required={field.required}
+              />
+            </motion.div>
+          ))}
+
+          <motion.div
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg text-white bg-amber-600 hover:bg-amber-700 transition"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-all"
             >
-              {isLoading ? 'Criando conta...' : 'Criar Conta'}
-              {!isLoading && <UserPlus className="w-5 h-5" />}
+              {isLoading ? (
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="block w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                />
+              ) : (
+                <>
+                  Criar Conta
+                  <UserPlus className="w-5 h-5" />
+                </>
+              )}
             </motion.button>
-          </div>
+          </motion.div>
         </form>
-         <p className="mt-8 text-sm text-center text-slate-600">
+
+        <motion.p
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mt-8 text-sm text-center text-slate-600"
+        >
           Já tem uma conta?{' '}
-          <Link href="/driver-login" className="font-medium text-indigo-600 hover:text-indigo-700">
+          <Link 
+            href="/driver-login" 
+            className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline transition"
+          >
             Faça login
           </Link>
-        </p>
+        </motion.p>
       </motion.div>
     </div>
   );
