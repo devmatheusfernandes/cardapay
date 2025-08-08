@@ -1,44 +1,26 @@
 import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
-function parseServiceAccount() {
-  let raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!raw) {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not set in environment variables.');
-  }
+// This is the Base64 encoded service account key from your .env.local file
+const encodedServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string;
 
-  raw = raw.trim();
+// Decode the Base64 string into a regular JSON string
+const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf-8');
 
-  // Remove surrounding quotes if present
-  if (raw.startsWith('"') && raw.endsWith('"')) {
-    raw = raw.slice(1, -1);
-  }
+// Parse the decoded JSON string
+const serviceAccount = JSON.parse(decodedServiceAccount);
 
-  // Try JSON first (handles raw JSON with escaped newlines)
-  try {
-    return JSON.parse(raw);
-  } catch {
-    // If JSON fails, try Base64 decode
-    try {
-      const decoded = Buffer.from(raw, 'base64').toString('utf-8');
-      return JSON.parse(decoded);
-    } catch {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is neither valid JSON nor valid Base64-encoded JSON.');
-    }
-  }
-}
 
+// Initialize Firebase Admin SDK if it hasn't been already
 if (!getApps().length) {
   try {
-    const serviceAccount = parseServiceAccount();
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
   } catch (error: any) {
-    console.error('Firebase admin initialization error:', error.stack || error);
-    throw error;
+    console.error('Firebase admin initialization error', error.stack);
   }
 }
 
+// Export the initialized admin instance's firestore database
 export const adminDb = admin.firestore();
-export { admin };
