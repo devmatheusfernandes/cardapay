@@ -5,9 +5,12 @@ import { stripe } from '@/lib/stripe';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 
-// FIX: This tells Next.js to treat this route as a dynamic function
+// This tells Next.js to treat this route as a dynamic function
 // and not to try and statically analyze it at build time.
 export const dynamic = 'force-dynamic';
+
+// FIX: This explicitly tells Vercel's caching layer to never cache this route.
+export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
