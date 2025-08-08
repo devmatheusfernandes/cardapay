@@ -1,72 +1,43 @@
-// app/api/mock/renew-subscription/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { stripe } from '@/lib/stripe';
+import { adminDb } from '@/lib/firebase-admin';
+import { auth as adminAuth } from 'firebase-admin';
+
+async function getUserId(req: NextRequest) {
+    const authorization = req.headers.get('Authorization');
+    if (authorization?.startsWith('Bearer ')) {
+        const idToken = authorization.split('Bearer ')[1];
+        const decodedToken = await adminAuth().verifyIdToken(idToken);
+        return decodedToken.uid;
+    }
+    return null;
+}
 
 export async function POST(req: NextRequest) {
-  try {
-    // ✅ Parse body
-    const body = await req.json();
-    const { subscriptionId, planType } = body;
+    try {
+        const userId = await getUserId(req);
+        if (!userId) {
+            return new NextResponse('Unauthorized', { status: 401 });
+        }
 
-    if (!subscriptionId || !planType) {
-      return NextResponse.json(
-        { error: 'subscriptionId and planType are required' },
-        { status: 400 }
-      );
+        const userDoc = await adminDb.collection('users').doc(userId).get();
+        const customerId = userDoc.data()?.stripeCustomerId;
+
+        if (!customerId) {
+            throw new Error('Stripe customer ID not found.');
+        }
+
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+        const portalSession = await stripe.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: `${appUrl}/dashboard/subscription`,
+        });
+
+        return NextResponse.json({ url: portalSession.url });
+
+    } catch (error: any) {
+        console.error('Error creating portal session:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
-    // ✅ Mock Stripe subscription retrieval
-    const subscription: Partial<Stripe.Subscription> = {
-      id: subscriptionId,
-      customer: 'cus_mock123',
-      status: 'active',
-     
-    };
-
-    // ✅ Ensure current_period_end exists and is a number
-    if (
-      !('current_period_end' in subscription) ||
-      typeof subscription.current_period_end !== 'number'
-    ) {
-      return NextResponse.json(
-        { error: 'Invalid subscription data - missing period end' },
-        { status: 400 }
-      );
-    }
-
-    // ✅ Calculate expiration
-    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-    const now = new Date();
-    const daysUntilExpiration = Math.floor(
-      (currentPeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    // ✅ Only allow renewal if expiring in <= 30 days
-    if (daysUntilExpiration > 30) {
-      return NextResponse.json(
-        {
-          error: 'Subscription not eligible for renewal yet',
-          daysRemaining: daysUntilExpiration,
-          currentPeriodEnd: currentPeriodEnd.toISOString(),
-        },
-        { status: 400 }
-      );
-    }
-
-    // ✅ Mock renewal session creation
-    const mockCheckoutUrl = `https://mock-checkout.stripe.com/session_${Date.now()}`;
-
-    return NextResponse.json({
-      message: 'Renewal session created',
-      checkoutUrl: mockCheckoutUrl,
-      subscriptionId: subscription.id,
-      daysUntilExpiration,
-    });
-  } catch (error) {
-    console.error('Error in mock subscription renewal:', error);
-    return NextResponse.json(
-      { error: 'Failed to process renewal' },
-      { status: 500 }
-    );
-  }
 }

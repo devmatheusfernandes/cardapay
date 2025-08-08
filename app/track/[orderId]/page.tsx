@@ -12,11 +12,26 @@ import {
   Truck,
   Store,
   Key,
+  ChevronLeft,
 } from "lucide-react";
 import TimeAgo from "react-timeago";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
+  const BackButton = () => (
+    <Link href="/" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+      >
+        <ChevronLeft className="w-8 h-8" />
+        <span className="text-md font-medium">Voltar</span>
+      </motion.button>
+    </Link>
+  );
+  
 interface Order {
   id: string;
   status:
@@ -164,6 +179,7 @@ export default function OrderTrackingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">
+      <BackButton />
       <AnimatePresence>
         <motion.div
           key={orderId}
@@ -171,7 +187,7 @@ export default function OrderTrackingPage() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.4 }}
-          className={`p-6 sm:p-10 rounded-2xl shadow-xl max-w-md w-full mx-auto ${
+          className={`p-6 sm:p-10 rounded-2xl max-w-md w-full mx-auto ${
             order ? statusConfig[order.status].bgColor : "bg-white"
           }`}
         >

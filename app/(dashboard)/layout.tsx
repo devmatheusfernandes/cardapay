@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import Sidebar from '@/app/components/shared/Sidebar';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -16,19 +16,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [user, loading] = useAuthState(auth);
   const router = useRouter();
 
-  if (loading) {
+  // FIX: Handle navigation as a side effect inside useEffect
+  useEffect(() => {
+    // If loading is finished and there's no user, redirect to sign-in
+    if (!loading && !user) {
+      router.push('/sign-in');
+    }
+  }, [user, loading, router]); // Dependencies ensure this runs when auth state changes
+
+  if (loading || !user) {
+    // Show a loading spinner while checking for a user or during redirection
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-            <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
+            <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    router.push('/sign-in');
-    return null; // Render nothing while redirecting
   }
 
   // If the user is authenticated, render the dashboard layout
@@ -36,7 +40,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex h-screen bg-slate-50">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
-        {/* The Toaster is now here, available to all dashboard pages */}
         <Toaster position="top-center" reverseOrder={false} />
         {children}
       </main>

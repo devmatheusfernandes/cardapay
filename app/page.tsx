@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, SetStateAction } from "react";
-import { motion } from "framer-motion";
-import { Utensils, Menu } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Utensils, Menu, ChevronLeft } from "lucide-react";
 
 // Components
 import MobileMenu from "./components/landing/MobileMenu";
@@ -18,7 +18,7 @@ const plans = [
   {
     id: "monthly",
     name: "Plano Mensal",
-    price: 59.9,
+    price: 59.90,
     interval: "month",
     intervalCount: 1,
     description: "Pagamento mensal recorrente por 1 ano",
@@ -33,7 +33,7 @@ const plans = [
   {
     id: "semiannual",
     name: "Plano Semestral",
-    price: 49.9,
+    price: 49.90,
     interval: "month",
     intervalCount: 6,
     description: "Pagamento semestral (6 meses) por 1 ano",
@@ -98,7 +98,6 @@ const faqs = [
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [activeFaq, setActiveFaq] = useState(null);
 
@@ -112,7 +111,13 @@ export default function LandingPage() {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-  const navItems = ["Recursos", "Preços", "FAQ", "Sobre", "Contato"];
+const navItems = [
+  { text: "Sobre Nós", href: "#about" },
+  { text: "Recursos", href: "#features" },
+  { text: "Preços", href: "#pricing" },
+  { text: "FAQ", href: "#faq" },
+  { text: "Contato", href: "#contact" },
+];
 
   // Animation variants
   const containerVariants = {
@@ -157,7 +162,6 @@ export default function LandingPage() {
       />
       <Header
         setIsMenuOpen={setIsMenuOpen}
-        setIsLoginModalOpen={setIsLoginModalOpen}
         navItems={navItems}
         containerVariants={containerVariants}
         itemVariants={itemVariants}
@@ -169,6 +173,24 @@ export default function LandingPage() {
       <PricingSection plans={plans} />
       <FaqSection faqs={faqs} activeFaq={activeFaq} toggleFaq={toggleFaq} />
       <Footer />
+
+      <div className="block md:hidden">
+        <AnimatePresence>
+          {scrollY > 400 && (
+            <motion.button
+              onClick={() => setIsMenuOpen(true)}
+              className="fixed bottom-4 right-5 z-50 bg-indigo-600 text-white p-4 rounded-full flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              aria-label="Abrir menu"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -30,12 +30,8 @@ const QRCodeGenerator = ({ url }: QRCodeGeneratorProps) => {
   };
 
   return (
-    <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold text-slate-800">Menu QR Code</h2>
-      <p className="text-slate-500 text-sm mt-1">
-        Download this QR code and print it for your tables.
-      </p>
-      <div className="mt-4 flex flex-col items-center gap-4">
+    <div className="w-full bg-gray-50 p-6 px-10 rounded-lg shadow-md">
+      <div className="flex flex-col items-center gap-4">
         <div ref={qrRef} className="p-4 bg-white border border-slate-200 rounded-lg inline-block">
           <QRCodeCanvas
             value={url}

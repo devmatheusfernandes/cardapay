@@ -19,11 +19,11 @@ import Image, { StaticImageData } from "next/image";
 
 //Images
 import Feature01 from "@/public/images/app-pic.jpg";
-import Feature02 from "@/public/images/app-pic.jpg";
+import Feature02 from "@/public/images/hero-02.png";
 import Feature03 from "@/public/images/hero-03.jpg";
-import Feature04 from "@/public/images/app-pic.jpg";
-import Feature05 from "@/public/images/hero-03.jpg";
-import Feature06 from "@/public/images/app-pic.jpg";
+import Feature04 from "@/public/images/hero-01.png";
+import Feature05 from "@/public/images/hero-04.jpg";
+import Feature06 from "@/public/images/hero-05.jpg";
 
 interface FeatureItem {
   icon: LucideIcon;

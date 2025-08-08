@@ -43,7 +43,7 @@ export default function EntregadoresPage() {
             </div>
 
             {drivers.length === 0 ? (
-              <div className="text-center py-20 px-6 bg-white rounded-lg shadow-md">
+              <div className="text-center py-20 px-6 rounded-lg">
                 <UserPlus className="mx-auto h-16 w-16 text-slate-400" />
                 <h3 className="mt-4 text-2xl font-semibold text-slate-800">Nenhum entregador cadastrado</h3>
                 <p className="mt-2 text-slate-500">Adicione um entregador usando o código fornecido por ele.</p>

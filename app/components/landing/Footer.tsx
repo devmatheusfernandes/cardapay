@@ -52,7 +52,7 @@ const Footer: FC = () => {
   ];
 
   return (
-    <footer className="bg-slate-900 text-white py-12">
+    <footer id="contact" className="bg-slate-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
         
         {/* Logo e descrição */}
@@ -93,7 +93,7 @@ const Footer: FC = () => {
           <h4 className="text-xl font-semibold text-indigo-600 mb-4">
             Redes Sociais
           </h4>
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 flex-col">
             {socialItems.map((social, index) => (
               <a
                 key={index}

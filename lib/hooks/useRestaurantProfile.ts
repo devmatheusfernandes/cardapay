@@ -5,6 +5,24 @@ import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
+export interface WorkingHours {
+  monday: { open: string; close: string; closed: boolean };
+  tuesday: { open: string; close: string; closed: boolean };
+  wednesday: { open: string; close: string; closed: boolean };
+  thursday: { open: string; close: string; closed: boolean };
+  friday: { open: string; close: string; closed: boolean };
+  saturday: { open: string; close: string; closed: boolean };
+  sunday: { open: string; close: string; closed: boolean };
+}
+
+export interface SocialMedia {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  website?: string;
+  phone?: string;
+}
+
 export interface RestaurantProfile {
   id: string;
   name: string;
@@ -12,8 +30,13 @@ export interface RestaurantProfile {
   slug: string;
   logoUrl?: string;
   logoPath?: string;
+  coverUrl?: string;
+  coverPath?: string;
   ownerId: string;
   stripeAccountId?: string;
+  workingHours?: WorkingHours;
+  socialMedia?: SocialMedia;
+  description?: string;
 }
 
 export interface StripeAccountStatus {
@@ -33,6 +56,17 @@ const generateSlug = (name: string) => {
         .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
         .replace(/\s+/g, '-')         // Replace spaces with hyphens
         .substring(0, 50) + '-' + randomSuffix;
+};
+
+// Default working hours
+const defaultWorkingHours: WorkingHours = {
+  monday: { open: '09:00', close: '22:00', closed: false },
+  tuesday: { open: '09:00', close: '22:00', closed: false },
+  wednesday: { open: '09:00', close: '22:00', closed: false },
+  thursday: { open: '09:00', close: '22:00', closed: false },
+  friday: { open: '09:00', close: '22:00', closed: false },
+  saturday: { open: '09:00', close: '22:00', closed: false },
+  sunday: { open: '09:00', close: '22:00', closed: false },
 };
 
 export const useRestaurantProfile = () => {
@@ -95,7 +129,7 @@ export const useRestaurantProfile = () => {
   }, [user, authLoading, fetchStripeStatus]);
 
   // Function to save the restaurant profile
-  const saveProfile = async (data: ProfileData, logoFile: File | null) => {
+  const saveProfile = async (data: ProfileData, logoFile: File | null, coverFile: File | null) => {
     if (!user) {
       toast.error("You must be logged in.");
       return;
@@ -106,7 +140,10 @@ export const useRestaurantProfile = () => {
     try {
       let logoUrl = profile?.logoUrl || '';
       let logoPath = profile?.logoPath || '';
+      let coverUrl = profile?.coverUrl || '';
+      let coverPath = profile?.coverPath || '';
 
+      // Upload logo if provided
       if (logoFile) {
         const filePath = `logos/${user.uid}/${Date.now()}_${logoFile.name}`;
         const storageRef = ref(storage, filePath);
@@ -114,12 +151,28 @@ export const useRestaurantProfile = () => {
         logoUrl = await getDownloadURL(uploadResult.ref);
         logoPath = filePath;
       }
+
+      // Upload cover if provided
+      if (coverFile) {
+        const filePath = `covers/${user.uid}/${Date.now()}_${coverFile.name}`;
+        const storageRef = ref(storage, filePath);
+        const uploadResult = await uploadBytes(storageRef, coverFile);
+        coverUrl = await getDownloadURL(uploadResult.ref);
+        coverPath = filePath;
+      }
       
       const docRef = doc(db, 'restaurants', user.uid);
       
       if (profile) {
         // Profile exists, update it
-        await updateDoc(docRef, { ...data, logoUrl, logoPath });
+        await updateDoc(docRef, { 
+          ...data, 
+          logoUrl, 
+          logoPath, 
+          coverUrl, 
+          coverPath,
+          workingHours: data.workingHours || defaultWorkingHours
+        });
       } else {
         // Profile doesn't exist, create it with a new slug
         const newSlug = generateSlug(data.name);
@@ -127,8 +180,11 @@ export const useRestaurantProfile = () => {
             ...data, 
             logoUrl, 
             logoPath, 
+            coverUrl, 
+            coverPath,
             slug: newSlug, 
-            ownerId: user.uid 
+            ownerId: user.uid,
+            workingHours: data.workingHours || defaultWorkingHours
         });
       }
 

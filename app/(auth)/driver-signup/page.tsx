@@ -80,7 +80,7 @@ export default function DriverSignUpPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-slate-50 text-slate-900 px-4 relative">
+    <div className="flex items-center justify-center min-h-screen py-18 md:py-0 bg-gradient-to-br from-indigo-50 to-slate-50 text-slate-900 px-4 relative">
       <BackButton />
       <Toaster position="top-center" />
       

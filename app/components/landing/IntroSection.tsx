@@ -1,4 +1,5 @@
 import { motion, useAnimation, useInView } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface Stat {
@@ -14,6 +15,7 @@ export default function IntroSection({ stats }: IntroSectionProps) {
   const controls = useAnimation();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const router = useRouter();
 
   useEffect(() => {
     if (isInView) {
@@ -22,14 +24,14 @@ export default function IntroSection({ stats }: IntroSectionProps) {
   }, [isInView, controls]);
 
   return (
-    <section className="bg-slate-50 flex items-center justify-center overflow-hidden pt-16 md:pt-0">
+    <section id="about" className="bg-slate-50 flex items-center justify-center overflow-hidden pt-0 md:pt-16">
       {/* Hero Content */}
       <div className="relative z-20 max-w-4xl mx-auto px-6 py-20 text-center">
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl md:text-6xl font-bold text-slate-900 mb-6"
+          className="text-3xl md:text-6xl font-bold text-slate-900 mb-6"
         >
           <p className="flex flex-row gap-2 justify-center">Revolução <span className="block text-indigo-600">Digital</span></p>
           para Restaurantes
@@ -51,10 +53,10 @@ export default function IntroSection({ stats }: IntroSectionProps) {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <button className="px-8 py-4 rounded-xl bg-indigo-600 text-white font-semibold text-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+          <button onClick={() => router.push("/sign-up")} className="px-8 py-4 rounded-xl bg-indigo-600 text-white font-semibold text-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
             Começar Gratuitamente
           </button>
-          <button className="px-8 py-4 rounded-xl border-2 border-indigo-600 text-indigo-600 hover:text-white font-semibold text-lg hover:bg-indigo-600 transition-all duration-300">
+          <button onClick={() => router.push("/demo")} className="px-8 py-4 rounded-xl border-2 border-indigo-600 text-indigo-600 hover:text-white font-semibold text-lg hover:bg-indigo-600 transition-all duration-300">
             Ver Demonstração
           </button>
         </motion.div>

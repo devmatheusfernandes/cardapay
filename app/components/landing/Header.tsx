@@ -1,11 +1,19 @@
+// components/landing/Header.tsx
+
 import { motion, Variants } from "framer-motion";
 import { Utensils, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// Define the correct type for a single navigation item
+interface NavItem {
+  text: string;
+  href: string;
+}
+
 interface HeaderProps {
   setIsMenuOpen: (isOpen: boolean) => void;
-  setIsLoginModalOpen: (isOpen: boolean) => void;
-  navItems: string[];
+  // Update navItems to expect an array of NavItem objects
+  navItems: NavItem[];
   containerVariants: Variants;
   itemVariants: Variants;
   buttonVariants: Variants;
@@ -21,7 +29,6 @@ export default function Header({
   const router = useRouter();
   return (
     <header className={`absolute top-0 left-0 w-full z-50`}>
-      
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo with animation */}
@@ -46,27 +53,27 @@ export default function Header({
 
           {/* Navigation with modern animations */}
           <motion.nav
-            className="hidden md:flex items-center gap-18"
+            className="hidden md:flex items-center gap-8" // Increased gap for better spacing
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {navItems.map((item, idx) => (
+            {navItems.map((item) => ( // Use the object `item` now
               <motion.div
-                key={idx}
+                key={item.href} // Use a unique value like href for the key
                 variants={itemVariants}
                 whileHover="hover"
                 whileTap="tap"
                 className="relative"
               >
                 <a
-                  href={`#${item.toLowerCase()}`}
-                  className="text-white hover:text-indigo-600 font-medium tracking-wide text-[17px] transition-all duration-300 ease-in-out"
+                  href={item.href} // Use item.href for the link
+                  className="text-white hover:text-indigo-400 font-medium tracking-wide text-[17px] transition-all duration-300 ease-in-out"
                 >
-                  {item}
+                  {item.text} {/* Use item.text for the display name */}
                 </a>
                 <motion.div
-                  className="absolute bottom-0 left-0 h-0.5 bg-indigo-600"
+                  className="absolute bottom-[-4px] left-0 h-0.5 bg-indigo-500" // Adjusted position
                   initial={{ width: 0 }}
                   whileHover={{ width: "100%" }}
                   transition={{ duration: 0.3 }}
@@ -83,29 +90,19 @@ export default function Header({
             transition={{ delay: 0.3 }}
           >
             <motion.button
-              onClick={() => router.push('/sign-in')}
-              className="text-white font-medium px-4 py-2 rounded-lg hover:text-indigo-700 cursor-pointer"
+              onClick={() => router.push("/sign-in")}
+              className="text-white font-medium px-4 py-2 rounded-lg"
               whileHover={{
-                backgroundColor: "#f3f4f6",
-                boxShadow: "0px 3px 10px rgba(0,0,0,0.1)",
-                transition: {
-                  duration: 0.4,
-                  ease: [0.25, 0.1, 0.25, 1], // Smooth ease-in-out cubic bezier
-                },
+                scale: 1.05,
+                color: "#4f46e5", // Change text color on hover
               }}
-              whileTap={{
-                scale: 0.97,
-                transition: {
-                  duration: 0.4,
-                  ease: [0.25, 0.1, 0.25, 1], // Consistent easing
-                },
-              }}
+              whileTap={{ scale: 0.95 }}
             >
               Entrar
             </motion.button>
 
             <motion.button
-              className="cursor-pointer px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium"
+              className="cursor-pointer px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium shadow-lg"
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -122,12 +119,10 @@ export default function Header({
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <Menu className="w-6 h-6 text-slate-900" />
+            <Menu className="w-8 h-8 text-white" />
           </motion.button>
         </div>
       </div>
     </header>
   );
 }
-
-

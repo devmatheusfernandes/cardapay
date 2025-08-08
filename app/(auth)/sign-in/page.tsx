@@ -23,7 +23,7 @@ export default function SignInPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      router.push('/dashboard/profile');
     } catch (err: any) {
       let errorMessage = 'Falha ao entrar. Verifique suas credenciais.';
       switch (err.code) {

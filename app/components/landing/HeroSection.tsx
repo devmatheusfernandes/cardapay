@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { TypeAnimation } from "react-type-animation";
-import Hero02 from "@/public/images/hero-03.jpg";
+import Hero02 from "@/public/images/hero6.jpg";
 
 interface HeroSectionProps {
   scrollY: number;
@@ -44,9 +44,10 @@ export default function HeroSection({ scrollY }: HeroSectionProps) {
             repeat={Infinity}
             style={{
               display: "inline-block",
-              color: "#3949AB", // amber-600
-              minWidth: "300px", // prevents layout shift
-              textAlign: "left",
+              color: "#3F51B5",
+              minWidth: "300px", // Good for preventing layout shift
+              textAlign: "center", // THE FIX: Change "left" to "center"
+              fontWeight: 'bold'
             }}
             className="text-indigo-600"
           />
@@ -55,5 +56,3 @@ export default function HeroSection({ scrollY }: HeroSectionProps) {
     </section>
   );
 }
-
-

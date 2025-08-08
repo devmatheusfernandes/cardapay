@@ -1,96 +1,97 @@
-// lib/hooks/useSubscription.ts
-import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { User } from 'firebase/auth';
+'use client';
 
-export interface SubscriptionStatus {
+import { useState, useEffect, useCallback } from 'react';
+import { auth, db } from '@/lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { toast } from 'react-hot-toast';
+import dayjs from 'dayjs';
+
+export interface SubscriptionData {
   status: 'active' | 'canceled' | 'past_due' | 'trialing' | null;
-  startDate?: string;
-  endDate?: string;
-  stripeCustomerId?: string;
+  currentPeriodEnd?: string;
   stripeSubscriptionId?: string;
-  isLoading: boolean;
+  planType?: 'monthly' | 'semiannual' | 'annual';
 }
 
-export function useSubscription() {
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({
-    status: null,
-    isLoading: true
+export const useSubscription = () => {
+  const [user, authLoading] = useAuthState(auth);
+  const [subscription, setSubscription] = useState<SubscriptionData>({ status: null });
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingStates, setLoadingStates] = useState({
+    monthly: false,
+    semiannual: false,
+    annual: false,
+    manage: false,
   });
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    if (authLoading || !user) {
+      if (!authLoading) setIsLoading(false);
+      return;
+    }
 
-    const setupSubscription = (user: User) => {
-      const userDocRef = doc(db, 'users', user.uid);
-      
-      unsubscribe = onSnapshot(userDocRef, (doc) => {
+    const docRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(docRef, (doc) => {
+      if (doc.exists()) {
         const data = doc.data();
-        
-        setSubscriptionStatus({
-          status: data?.subscriptionStatus || null,
-          startDate: data?.subscriptionStartDate,
-          endDate: data?.subscriptionEndDate,
-          stripeCustomerId: data?.stripeCustomerId,
-          stripeSubscriptionId: data?.stripeSubscriptionId,
-          isLoading: false
+        setSubscription({
+          status: data.subscriptionStatus || null,
+          currentPeriodEnd: data.subscriptionEndDate,
+          stripeSubscriptionId: data.stripeSubscriptionId,
+          planType: data.planType,
         });
-      }, (error) => {
-        console.error('Error listening to subscription status:', error);
-        setSubscriptionStatus(prev => ({ ...prev, isLoading: false }));
-      });
-    };
-
-    const authUnsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setupSubscription(user);
       } else {
-        setSubscriptionStatus({
-          status: null,
-          isLoading: false
-        });
+        setSubscription({ status: null });
       }
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching subscription:", error);
+      toast.error("Erro ao carregar dados da assinatura.");
+      setIsLoading(false);
     });
 
-    return () => {
-      authUnsubscribe();
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, []);
+    return () => unsubscribe();
+  }, [user, authLoading]);
 
-  const isActive = () => {
-    return subscriptionStatus.status === 'active' || subscriptionStatus.status === 'trialing';
-  };
-
-  const isExpired = () => {
-    if (!subscriptionStatus.endDate) return false;
-    return new Date(subscriptionStatus.endDate) < new Date();
-  };
-
-  const getDaysUntilExpiry = () => {
-    if (!subscriptionStatus.endDate) return null;
-    const endDate = new Date(subscriptionStatus.endDate);
-    const today = new Date();
-    const diffTime = endDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  return {
-    ...subscriptionStatus,
-    isActive: isActive(),
-    isExpired: isExpired(),
-    daysUntilExpiry: getDaysUntilExpiry(),
-    refresh: () => {
-      // Force refresh by updating the user doc listener
-      const user = auth.currentUser;
-      if (user) {
-        setSubscriptionStatus(prev => ({ ...prev, isLoading: true }));
-      }
+  const handleAction = useCallback(async (planId: string, apiEndpoint: string) => {
+    setLoadingStates((prev) => ({ ...prev, [planId]: true }));
+    try {
+      if (!user) throw new Error("Você precisa estar logado.");
+      
+      const idToken = await user.getIdToken();
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ planId }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Ocorreu um erro.");
+      window.location.href = data.url;
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [planId]: false }));
     }
+  }, [user]);
+
+  const isActive = subscription.status === 'active' || subscription.status === 'trialing';
+  
+  const daysUntilExpiry = subscription.currentPeriodEnd 
+    ? dayjs(subscription.currentPeriodEnd).diff(dayjs(), 'day') 
+    : undefined;
+
+  return { 
+    subscription, 
+    status: subscription.status,
+    isActive, 
+    isLoading: authLoading || isLoading, 
+    daysUntilExpiry,
+    loadingStates,
+    handleSubscribe: (planId: string) => handleAction(planId, '/api/stripe-subscription/create-checkout'),
+    handleManageSubscription: () => handleAction('manage', '/api/stripe-subscription/manage-subscription'),
   };
-}
+};

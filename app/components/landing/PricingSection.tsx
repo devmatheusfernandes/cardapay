@@ -49,7 +49,7 @@ export default function PricingSection({ plans }: PricingSectionProps) {
                   ? "border-indigo-600 transform scale-105"
                   : "border-transparent"
               }
-    hover:shadow-xl transition-all duration-300 relative`}
+                  hover:shadow-xl transition-all duration-300 relative`}
             >
               {plan.recommended && (
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase flex items-center gap-1">
@@ -61,7 +61,10 @@ export default function PricingSection({ plans }: PricingSectionProps) {
               </h3>
               <p className="text-slate-600 mb-4">{plan.description}</p>
               <div className="text-5xl font-bold text-indigo-600 mb-4">
-                R$ {plan.price.toLocaleString("pt-BR")}
+                R$ {plan.price.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
                 <span className="text-xl text-slate-500">
                   /{plan.interval === "month" ? "mês" : "ano"}
                 </span>

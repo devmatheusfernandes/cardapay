@@ -20,7 +20,7 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
         className={`w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg 
                    focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
                    transition-all duration-200 outline-none
-                   placeholder:text-slate-400 ${className}`}
+                   placeholder:text-slate-500 text-slate-600 ${className}`}
       />
     </div>
   )

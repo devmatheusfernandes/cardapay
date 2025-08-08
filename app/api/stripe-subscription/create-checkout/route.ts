@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { adminDb } from "@/lib/firebase-admin";
@@ -175,28 +174,29 @@ export async function POST(req: NextRequest) {
         `Creating Stripe checkout session for customer: ${customerId} with plan: ${planId}`
       );
 
-const session = await stripe.checkout.sessions.create({
-  customer: customerId,
-  payment_method_types: ["card"],
-  mode: "subscription",
-  line_items: [PLANS[planId]], // aqui PLANS já tem o tipo correto
-  success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/subscription?session_id={CHECKOUT_SESSION_ID}`,
-  cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/subscription`,
-  metadata: {
-    userId,
-    firebaseUid: userId,
-    planType: planId,
-  },
-  subscription_data: {
-    metadata: {
-      userId,
-      firebaseUid: userId,
-      planType: planId,
-    },
-  },
-  allow_promotion_codes: true,
-  billing_address_collection: "required",
-});
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ["card"],
+        mode: "subscription",
+        line_items: [PLANS[planId]],
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/subscription?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/subscription`,
+        metadata: {
+          userId,
+          firebaseUid: userId,
+          planType: planId,
+        },
+        subscription_data: {
+          trial_period_days: 7, // ✨ Trial period added here
+          metadata: {
+            userId,
+            firebaseUid: userId,
+            planType: planId,
+          },
+        },
+        allow_promotion_codes: true,
+        billing_address_collection: "required",
+      });
 
       console.log("Stripe checkout session created:", session.id);
 
