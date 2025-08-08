@@ -7,7 +7,6 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
-  // FIX: Added 'await' to resolve the headers promise
   const signature = (await headers()).get('Stripe-Signature') as string;
 
   let event: Stripe.Event;
@@ -19,7 +18,7 @@ export async function POST(req: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (error: any) {
-    console.error(`❌ Webhook signature verification failed: ${error.message}`);
+    console.error(`Webhook signature verification failed: ${error.message}`);
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
   }
 
