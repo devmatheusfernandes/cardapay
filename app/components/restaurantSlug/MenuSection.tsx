@@ -1,6 +1,6 @@
 import { Utensils } from 'lucide-react';
 import { MenuItemCard } from './MenuItemCard';
-import { MenuItem } from './MenuClientPage';
+import { MenuItem } from '@/app/[restaurantSlug]/MenuClientPage';
 
 interface MenuSectionProps {
   filteredItems: MenuItem[];

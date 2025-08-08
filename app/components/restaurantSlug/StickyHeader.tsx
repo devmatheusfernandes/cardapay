@@ -1,6 +1,6 @@
 import { Utensils } from 'lucide-react';
 import { CartIcon } from './CartIcon';
-import { Restaurant } from './MenuClientPage';
+import { Restaurant } from '@/app/[restaurantSlug]/MenuClientPage';
 
 interface StickyHeaderProps {
   restaurant: Restaurant;
