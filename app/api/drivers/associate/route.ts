@@ -31,23 +31,27 @@ export async function POST(req: NextRequest) {
         const querySnapshot = await q.get();
 
         if (querySnapshot.empty) {
-            throw new Error("Nenhum entregador encontrado com este código.");
+            throw new Error('Nenhum entregador encontrado com este código.');
         }
 
         const driverDoc = querySnapshot.docs[0];
         const driverData = driverDoc.data();
 
         if (driverData.restaurantId) {
-            throw new Error("Este entregador já está associado a um restaurante.");
+            throw new Error('Este entregador já está associado a um restaurante.');
         }
 
         // 2. Associe o entregador ao restaurante
         await driverDoc.ref.update({ restaurantId: restaurantOwnerId });
 
-        return NextResponse.json({ message: `Entregador ${driverData.name} adicionado com sucesso!` });
+        return NextResponse.json({ 
+            message: `Entregador ${driverData.name} adicionado com sucesso!` 
+        });
 
     } catch (error: any) {
         console.error('Error associating driver:', error);
-        return NextResponse.json({ error: error.message || 'Failed to add driver.' }, { status: 500 });
+        return NextResponse.json({ 
+            error: error.message || 'Failed to add driver.' 
+        }, { status: 500 });
     }
 }
