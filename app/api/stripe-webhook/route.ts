@@ -71,6 +71,8 @@
 
 //   return new NextResponse(null, { status: 200 });
 // }
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -78,9 +80,6 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
