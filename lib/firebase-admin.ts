@@ -2,21 +2,28 @@ import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
 function parseServiceAccount() {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  let raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
   if (!raw) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not set in environment variables.');
   }
 
+  raw = raw.trim();
+
+  // Remove surrounding quotes if present
+  if (raw.startsWith('"') && raw.endsWith('"')) {
+    raw = raw.slice(1, -1);
+  }
+
+  // Try JSON first (handles raw JSON with escaped newlines)
   try {
-    // Try Base64 decode first
-    const decoded = Buffer.from(raw, 'base64').toString('utf-8');
-    return JSON.parse(decoded);
+    return JSON.parse(raw);
   } catch {
-    // If Base64 decoding fails, assume it's raw JSON
+    // If JSON fails, try Base64 decode
     try {
-      return JSON.parse(raw);
-    } catch (err) {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is neither valid Base64 nor valid JSON.');
+      const decoded = Buffer.from(raw, 'base64').toString('utf-8');
+      return JSON.parse(decoded);
+    } catch {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is neither valid JSON nor valid Base64-encoded JSON.');
     }
   }
 }
