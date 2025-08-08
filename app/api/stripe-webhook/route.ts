@@ -71,8 +71,6 @@
 
 //   return new NextResponse(null, { status: 200 });
 // }
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
