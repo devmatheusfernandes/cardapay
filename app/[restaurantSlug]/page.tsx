@@ -45,15 +45,18 @@ async function getRestaurantData(slug: string) {
     return { restaurant, menuItems };
 }
 
-// Define a type for the component's props for clarity
+// Updated type definition to match Next.js App Router expectations
 interface RestaurantMenuPageProps {
-    params: {
+    params: Promise<{
         restaurantSlug: string;
-    };
+    }>;
 }
 
 // The Page component itself remains a Server Component
-export default async function RestaurantMenuPage({ params: { restaurantSlug } }: RestaurantMenuPageProps) {
+export default async function RestaurantMenuPage({ params }: RestaurantMenuPageProps) {
+    // Await the params Promise to get the actual parameters
+    const { restaurantSlug } = await params;
+    
     const data = await getRestaurantData(restaurantSlug);
 
     if (!data) {
