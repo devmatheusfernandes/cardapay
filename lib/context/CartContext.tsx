@@ -58,7 +58,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return [...prevItems, { ...item, quantity: 1 }];
     });
-    toast.success(`${item.name} added to cart!`);
   }, []);
 
   const updateQuantity = useCallback((itemId: string, quantity: number) => {

@@ -42,7 +42,7 @@ export default function PricingPage() {
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold text-rose-600"
+          className="text-4xl font-bold text-amber-600"
         >
           Planos e Preços
         </motion.h1>
@@ -65,19 +65,19 @@ export default function PricingPage() {
             viewport={{ once: true }}
             className="bg-white rounded-2xl p-8 shadow hover:shadow-lg transition flex flex-col"
           >
-            <h3 className="text-2xl font-bold text-rose-600">{plan.name}</h3>
+            <h3 className="text-2xl font-bold text-amber-600">{plan.name}</h3>
             <p className="mt-4 text-3xl font-bold">{plan.price}</p>
             <ul className="mt-6 space-y-3 flex-1">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-2 text-slate-600">
-                  <Check className="w-5 h-5 text-rose-600" />
+                  <Check className="w-5 h-5 text-amber-600" />
                   {feature}
                 </li>
               ))}
             </ul>
             <Link
               href="/sign-up"
-              className="mt-8 px-6 py-3 rounded-lg bg-rose-600 text-white font-medium shadow hover:bg-rose-700 transition text-center"
+              className="mt-8 px-6 py-3 rounded-lg bg-amber-600 text-white font-medium shadow hover:bg-amber-700 transition text-center"
             >
               Começar Agora
             </Link>

@@ -11,7 +11,7 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
+        <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
       </div>
     );
   }
@@ -80,8 +80,8 @@ export default function AnalyticsPage() {
 
 const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string }) => (
     <div className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4">
-        <div className="bg-rose-100 p-3 rounded-full">
-            <Icon className="w-6 h-6 text-rose-600" />
+        <div className="bg-amber-100 p-3 rounded-full">
+            <Icon className="w-6 h-6 text-amber-600" />
         </div>
         <div>
             <p className="text-sm text-slate-500">{title}</p>

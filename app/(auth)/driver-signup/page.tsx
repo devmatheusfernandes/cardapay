@@ -75,7 +75,7 @@ export default function DriverSignUpPage() {
         className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg"
       >
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-rose-600">Cadastro de Entregador</h1>
+          <h1 className="text-4xl font-bold text-amber-600">Cadastro de Entregador</h1>
           <p className="mt-2 text-slate-600">Crie sua conta para começar a fazer entregas.</p>
         </div>
 
@@ -92,7 +92,7 @@ export default function DriverSignUpPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg text-white bg-rose-600 hover:bg-rose-700 transition"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg text-white bg-amber-600 hover:bg-amber-700 transition"
             >
               {isLoading ? 'Criando conta...' : 'Criar Conta'}
               {!isLoading && <UserPlus className="w-5 h-5" />}

@@ -2,6 +2,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { notFound } from "next/navigation";
 import { CartProvider } from "@/lib/context/CartContext";
 import MenuClientPage from "./MenuClientPage";
+import { Toaster } from "react-hot-toast";
 
 // Define the types for our data
 interface Restaurant {
@@ -68,6 +69,16 @@ export default async function RestaurantMenuPage({ params }: RestaurantMenuPageP
     // The CartProvider wraps the client component, providing it with cart state.
     return (
         <CartProvider>
+             <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#1e293b',
+            color: '#f8fafc',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }
+        }}
+      />
             <MenuClientPage restaurant={restaurant} menuItems={menuItems} />
         </CartProvider>
     );

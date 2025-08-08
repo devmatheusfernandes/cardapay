@@ -23,7 +23,7 @@ export default function SubscriptionGuard({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoaderCircle className="w-8 h-8 text-rose-600 animate-spin" />
+        <LoaderCircle className="w-8 h-8 text-amber-600 animate-spin" />
       </div>
     );
   }
@@ -50,13 +50,13 @@ export default function SubscriptionGuard({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-rose-50 to-pink-50 p-8 rounded-lg shadow-md border-2 border-rose-200 text-center"
+          className="bg-gradient-to-br from-amber-50 to-pink-50 p-8 rounded-lg shadow-md border-2 border-amber-200 text-center"
         >
-          <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
             {status === 'past_due' ? (
               <AlertTriangle className="w-8 h-8 text-amber-600" />
             ) : (
-              <Crown className="w-8 h-8 text-rose-600" />
+              <Crown className="w-8 h-8 text-amber-600" />
             )}
           </div>
           
@@ -82,22 +82,22 @@ export default function SubscriptionGuard({
 
           <div className="space-y-3 mb-6">
             <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-              <Crown className="w-4 h-4 text-rose-600" />
+              <Crown className="w-4 h-4 text-amber-600" />
               <span>Menu digital ilimitado</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-              <Crown className="w-4 h-4 text-rose-600" />
+              <Crown className="w-4 h-4 text-amber-600" />
               <span>Pedidos online integrados</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-              <Crown className="w-4 h-4 text-rose-600" />
+              <Crown className="w-4 h-4 text-amber-600" />
               <span>Relatórios de vendas</span>
             </div>
           </div>
 
           <Link
             href="/dashboard/subscription"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
           >
             <Crown className="w-5 h-5" />
             {status === 'past_due' ? 'Atualizar Pagamento' : 'Assinar Plano Premium'}

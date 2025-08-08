@@ -13,7 +13,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl font-bold text-rose-600"
+          className="text-5xl font-bold text-amber-600"
         >
           Cardapay
         </motion.h1>
@@ -35,13 +35,13 @@ export default function LandingPage() {
         >
           <Link
             href="/sign-up"
-            className="px-6 py-3 rounded-lg bg-rose-600 text-white font-medium shadow hover:bg-rose-700 transition"
+            className="px-6 py-3 rounded-lg bg-amber-600 text-white font-medium shadow hover:bg-amber-700 transition"
           >
             Criar Conta
           </Link>
           <Link
             href="/pricing"
-            className="px-6 py-3 rounded-lg border border-rose-600 text-rose-600 font-medium hover:bg-rose-50 transition"
+            className="px-6 py-3 rounded-lg border border-amber-600 text-amber-600 font-medium hover:bg-amber-50 transition"
           >
             Ver Preços
           </Link>
@@ -76,7 +76,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="bg-slate-50 rounded-xl p-6 shadow hover:shadow-lg transition"
             >
-              <f.icon className="w-10 h-10 text-rose-600 mb-4" />
+              <f.icon className="w-10 h-10 text-amber-600 mb-4" />
               <h3 className="text-xl font-semibold">{f.title}</h3>
               <p className="mt-2 text-slate-600">{f.desc}</p>
             </motion.div>

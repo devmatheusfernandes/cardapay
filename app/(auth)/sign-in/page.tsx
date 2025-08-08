@@ -52,7 +52,7 @@ export default function SignInPage() {
         className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg"
       >
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-rose-600">Cardapay</h1>
+          <h1 className="text-4xl font-bold text-amber-600">Cardapay</h1>
           <p className="mt-2 text-slate-600">Welcome back! Sign in to manage your restaurant.</p>
         </div>
 
@@ -97,7 +97,7 @@ export default function SignInPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:bg-opacity-50 transition"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-opacity-50 transition"
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
               {!isLoading && <LogIn className="w-5 h-5" />}

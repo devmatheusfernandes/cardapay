@@ -14,7 +14,7 @@ import {
   DollarSign,
   BadgePercent,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
 
@@ -37,6 +37,40 @@ interface Plan {
   features: string[];
   recommended?: boolean;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+    },
+  },
+};
+
+const cardHover = {
+  scale: 1.02,
+  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+};
+
+const buttonHover = {
+  scale: 1.03,
+};
+
+const buttonTap = {
+  scale: 0.98,
+};
 
 export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<SubscriptionData>({
@@ -61,7 +95,6 @@ export default function SubscriptionPage() {
       intervalCount: 1,
       description: "Pagamento mensal recorrente por 1 ano",
       features: [
-        "Menu digital ilimitado",
         "Código QR personalizado",
         "Pedidos online integrados",
         "Pagamentos via Stripe",
@@ -303,12 +336,14 @@ export default function SubscriptionPage() {
     const IconComponent = config.icon;
 
     return (
-      <span
+      <motion.span
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
         className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${config.color}`}
       >
         <IconComponent className="w-4 h-4" />
         {config.text}
-      </span>
+      </motion.span>
     );
   };
 
@@ -327,223 +362,250 @@ export default function SubscriptionPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center h-screen"
+      >
+        <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
+      </motion.div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Assinatura</h1>
-        <p className="text-slate-500 mb-8">
-          Gerencie sua assinatura e acesse todos os recursos premium da
-          plataforma
-        </p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gradient-to-b from-amber-50 to-white py-12 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-3 bg-clip-text">
+            Sua Assinatura
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Gerencie sua assinatura e acesse todos os recursos premium da
+            plataforma
+          </p>
+        </motion.div>
 
         {/* Current Subscription Status */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-xl font-semibold text-slate-800 mb-4">
-            Status da Assinatura
-          </h2>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-8"
+        >
+          <motion.div
+            variants={itemVariants}
+            className="bg-white rounded-xl shadow-lg overflow-hidden"
+          >
+            <div className="p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-slate-800 mb-6">
+                Status da Assinatura
+              </h2>
 
-          {subscription.status ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="text-slate-600">Status:</span>
-                {getStatusBadge(subscription.status)}
-                {subscription.planType && (
-                  <span className="text-slate-600">
-                    Plano: <strong>{getPlanName(subscription.planType)}</strong>
-                  </span>
-                )}
-              </div>
-
-              {subscription.currentPeriodEnd && (
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-slate-500" />
-                  <span className="text-slate-600">
-                    Próxima cobrança:{" "}
-                    <strong>{formatDate(subscription.currentPeriodEnd)}</strong>
-                  </span>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                {subscription.status === "active" && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleManageSubscription}
-                    disabled={loadingStates.manage}
-                    className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 transition"
+              <AnimatePresence mode="wait">
+                {subscription.status ? (
+                  <motion.div
+                    key="has-subscription"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-6"
                   >
-                    {loadingStates.manage && (
-                      <LoaderCircle className="w-5 h-5 animate-spin" />
-                    )}
-                    <CreditCard className="w-5 h-5" />
-                    Gerenciar Assinatura
-                  </motion.button>
-                )}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-slate-600">Status:</span>
+                      {getStatusBadge(subscription.status)}
+                      {subscription.planType && (
+                        <span className="text-slate-600">
+                          Plano:{" "}
+                          <strong>{getPlanName(subscription.planType)}</strong>
+                        </span>
+                      )}
+                    </div>
 
-                {showRenewButton && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleRenewSubscription}
-                    disabled={loadingStates.renew}
-                    className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 transition"
+                    {subscription.currentPeriodEnd && (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-5 h-5 text-slate-500" />
+                        <span className="text-slate-600">
+                          Próxima cobrança:{" "}
+                          <strong>
+                            {formatDate(subscription.currentPeriodEnd)}
+                          </strong>
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {subscription.status === "active" && (
+                        <motion.button
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                          onClick={handleManageSubscription}
+                          disabled={loadingStates.manage}
+                          className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition"
+                        >
+                          {loadingStates.manage && (
+                            <LoaderCircle className="w-5 h-5 animate-spin" />
+                          )}
+                          <CreditCard className="w-5 h-5" />
+                          Gerenciar Assinatura
+                        </motion.button>
+                      )}
+
+                      {showRenewButton && (
+                        <motion.button
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                          onClick={handleRenewSubscription}
+                          disabled={loadingStates.renew}
+                          className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition"
+                        >
+                          {loadingStates.renew && (
+                            <LoaderCircle className="w-5 h-5 animate-spin" />
+                          )}
+                          <Crown className="w-5 h-5" />
+                          Renovar Assinatura
+                        </motion.button>
+                      )}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="no-subscription"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center py-6"
                   >
-                    {loadingStates.renew && (
-                      <LoaderCircle className="w-5 h-5 animate-spin" />
-                    )}
-                    <Crown className="w-5 h-5" />
-                    Renovar Assinatura
-                  </motion.button>
+                    <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                    <p className="text-slate-600">
+                      Você ainda não possui uma assinatura ativa
+                    </p>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </div>
-          ) : (
-            <div className="text-center py-6">
-              <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-              <p className="text-slate-600">
-                Você ainda não possui uma assinatura ativa
-              </p>
-            </div>
-          )}
-        </div>
+          </motion.div>
 
-        {/* Subscription Plans */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-gradient-to-br from-rose-50 to-pink-50 p-6 rounded-lg shadow-md border-2 ${
-                plan.recommended
-                  ? "border-rose-400 transform scale-105"
-                  : "border-rose-200"
-              }`}
-            >
-              {plan.recommended && (
-                <div className="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
-                  RECOMENDADO
-                </div>
-              )}
-
-              <div className="text-center">
-                <Crown className="w-12 h-12 text-rose-600 mx-auto mb-3" />
-                <h3 className="text-xl font-bold text-slate-800 mb-2">
-                  {plan.name}
-                </h3>
-                <p className="text-slate-600 text-sm mb-3">
-                  {plan.description}
-                </p>
-
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <DollarSign className="w-6 h-6 text-rose-600" />
-                  <span className="text-2xl font-bold text-rose-600">
-                    R$ {plan.price.toFixed(2).replace(".", ",")}
-                  </span>
-                  <span className="text-slate-500">
-                    {plan.interval === "month" ? "/mês" : "/ano"}
-                  </span>
-                </div>
-
-                {plan.savings && (
-                  <div className="flex items-center justify-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs mb-4">
-                    <BadgePercent className="w-4 h-4" />
-                    {plan.savings}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {plan.features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-slate-700">{feature}</span>
-                  </div>
-                ))}
-              </div>
-
-              {!subscription.status || subscription.status === "canceled" ? (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={
-                    loadingStates[plan.id as keyof typeof loadingStates]
-                  }
-                  className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 transition"
+          {/* Subscription Plans */}
+          <motion.div
+            variants={itemVariants}
+            className="mb-12"
+          >
+            <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
+              Escolha seu Plano
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {plans.map((plan) => (
+                <motion.div
+                  key={plan.id}
+                  whileHover={cardHover}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={`relative bg-white rounded-xl shadow-lg overflow-hidden border-2 ${
+                    plan.recommended
+                      ? "border-amber-400"
+                      : "border-transparent"
+                  }`}
                 >
-                  {loadingStates[plan.id as keyof typeof loadingStates] && (
-                    <LoaderCircle className="w-5 h-5 animate-spin" />
+                  {plan.recommended && (
+                    <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-bl-lg">
+                      RECOMENDADO
+                    </div>
                   )}
-                  <Crown className="w-5 h-5" />
-                  {loadingStates[plan.id as keyof typeof loadingStates]
-                    ? "Processando..."
-                    : "Assinar Agora"}
-                </motion.button>
-              ) : (
-                <div className="text-center">
-                  <p className="text-green-600 font-medium">
-                    ✨ Você já possui uma assinatura!
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
 
-        {/* Benefits Section */}
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
-            Por que escolher nosso Plano Premium?
-          </h2>
+                  <div className="p-6">
+                    <div className="text-center mb-6">
+                      <div className="w-16 h-16 bg-gradient-to-r from-amber-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Crown className="w-8 h-8 text-amber-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">
+                        {plan.name}
+                      </h3>
+                      <p className="text-slate-600 text-sm mb-3">
+                        {plan.description}
+                      </p>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Crown className="w-8 h-8 text-rose-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Recursos Premium
-              </h3>
-              <p className="text-slate-600">
-                Acesso completo a todos os recursos da plataforma, incluindo
-                relatórios avançados e customizações
-              </p>
-            </div>
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <DollarSign className="w-6 h-6 text-amber-600" />
+                        <span className="text-2xl font-bold text-amber-600">
+                          R$ {plan.price.toFixed(2).replace(".", ",")}
+                        </span>
+                        <span className="text-slate-500">
+                          {plan.interval === "month" ? "/mês" : "/ano"}
+                        </span>
+                      </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Aumente suas Vendas
-              </h3>
-              <p className="text-slate-600">
-                Facilite pedidos online e pagamentos digitais, aumentando
-                significativamente seu faturamento
-              </p>
-            </div>
+                      {plan.savings && (
+                        <motion.div
+                          initial={{ scale: 0.9 }}
+                          animate={{ scale: 1 }}
+                          className="inline-flex items-center justify-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs mb-4"
+                        >
+                          <BadgePercent className="w-4 h-4" />
+                          {plan.savings}
+                        </motion.div>
+                      )}
+                    </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CreditCard className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Pagamentos Seguros
-              </h3>
-              <p className="text-slate-600">
-                Integração completa com Stripe para processamento seguro de
-                pagamentos online
-              </p>
+                    <div className="space-y-3 mb-6">
+                      {plan.features.map((feature, index) => (
+                        <motion.div
+                          key={index}
+                          whileHover={{ x: 5 }}
+                          className="flex items-center gap-3"
+                        >
+                          <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                          <span className="text-slate-700">{feature}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {!subscription.status || subscription.status === "canceled" ? (
+                      <motion.button
+                        whileHover={buttonHover}
+                        whileTap={buttonTap}
+                        onClick={() => handleSubscribe(plan.id)}
+                        disabled={
+                          loadingStates[plan.id as keyof typeof loadingStates]
+                        }
+                        className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 transition"
+                      >
+                        {loadingStates[plan.id as keyof typeof loadingStates] && (
+                          <LoaderCircle className="w-5 h-5 animate-spin" />
+                        )}
+                        <Crown className="w-5 h-5" />
+                        {loadingStates[plan.id as keyof typeof loadingStates]
+                          ? "Processando..."
+                          : "Assinar Agora"}
+                      </motion.button>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-2 px-4 bg-green-50 text-green-700 rounded-lg"
+                      >
+                        <p className="font-medium">
+                          ✨ Você já possui uma assinatura!
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

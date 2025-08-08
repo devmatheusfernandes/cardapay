@@ -79,7 +79,7 @@ export default function MenuPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
+        <LoaderCircle className="w-12 h-12 text-amber-600 animate-spin" />
       </div>
     );
   }
@@ -94,7 +94,7 @@ export default function MenuPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg shadow-md hover:bg-rose-700 transition w-full md:w-auto"
+            className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition w-full md:w-auto"
           >
             <Plus className="w-5 h-5" />
             Add New Item
@@ -110,13 +110,13 @@ export default function MenuPage() {
                     placeholder="Search for a menu item..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 transition"
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 transition"
                 />
             </div>
             <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full md:w-64 border border-slate-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 transition py-2 px-3"
+                className="w-full md:w-64 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 transition py-2 px-3"
             >
                 {categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -174,7 +174,7 @@ const EmptyState = ({ onAddItem }: { onAddItem: () => void }) => (
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onAddItem}
-                className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-rose-600 text-white rounded-lg shadow-md hover:bg-rose-700 transition"
+                className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-amber-600 text-white rounded-lg shadow-md hover:bg-amber-700 transition"
             >
                 <Plus className="w-5 h-5" />
                 Add First Item
@@ -211,10 +211,10 @@ const MenuItemCard = ({ item, onEdit, onDelete, onToggleStock }: { item: MenuIte
       <p className="text-slate-600 mt-2 text-sm">{item.description}</p>
     </div>
     <div className="p-4 bg-slate-50 flex justify-between items-center">
-      <p className="text-lg font-semibold text-rose-600">${item.price.toFixed(2)}</p>
+      <p className="text-lg font-semibold text-amber-600">${item.price.toFixed(2)}</p>
       <div className="flex gap-2">
         <button onClick={() => onEdit(item)} className="p-2 text-slate-500 hover:text-indigo-600 transition"><Edit className="w-5 h-5" /></button>
-        <button onClick={() => onDelete(item)} className="p-2 text-slate-500 hover:text-rose-600 transition"><Trash2 className="w-5 h-5" /></button>
+        <button onClick={() => onDelete(item)} className="p-2 text-slate-500 hover:text-amber-600 transition"><Trash2 className="w-5 h-5" /></button>
       </div>
     </div>
   </motion.div>
@@ -275,7 +275,7 @@ const MenuItemModal = ({ isOpen, onClose, onSave, item, isLoading }: { isOpen: b
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Item Image</label>
                 <div 
-                    className="w-full h-48 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-500 cursor-pointer hover:border-rose-500 hover:text-rose-500 transition-colors"
+                    className="w-full h-48 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-500 cursor-pointer hover:border-amber-500 hover:text-amber-500 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                 >
                     {imagePreview ? (
@@ -313,12 +313,12 @@ const MenuItemModal = ({ isOpen, onClose, onSave, item, isLoading }: { isOpen: b
             
             <div className="flex items-center justify-between">
                 <label htmlFor="inStock" className="text-slate-700 font-medium">In Stock</label>
-                <input type="checkbox" id="inStock" name="inStock" checked={formData.inStock} onChange={handleChange} className="h-5 w-5 text-rose-600 border-slate-300 rounded focus:ring-rose-500" />
+                <input type="checkbox" id="inStock" name="inStock" checked={formData.inStock} onChange={handleChange} className="h-5 w-5 text-amber-600 border-slate-300 rounded focus:ring-amber-500" />
             </div>
 
             <div className="flex justify-end gap-4 pt-4">
               <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition">Cancel</button>
-              <button type="submit" disabled={isLoading} className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition flex items-center gap-2 disabled:bg-rose-400">
+              <button type="submit" disabled={isLoading} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition flex items-center gap-2 disabled:bg-amber-400">
                 {isLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
                 {isLoading ? 'Saving...' : 'Save Item'}
               </button>
@@ -333,7 +333,7 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName, isLoadi
         <p className="text-slate-600 my-4">Are you sure you want to delete the item "{itemName}"? This action cannot be undone.</p>
         <div className="flex justify-end gap-4">
             <button onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition">Cancel</button>
-            <button onClick={onConfirm} disabled={isLoading} className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition flex items-center gap-2 disabled:bg-rose-400">
+            <button onClick={onConfirm} disabled={isLoading} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition flex items-center gap-2 disabled:bg-amber-400">
                 {isLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
                 {isLoading ? 'Deleting...' : 'Delete'}
             </button>

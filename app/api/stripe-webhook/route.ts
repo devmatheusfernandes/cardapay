@@ -179,8 +179,11 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     throw new Error("Required session data not found.");
   }
 
-  // Generate confirmation code for delivery orders
+  // Fix: Handle both delivery and pickup orders
+  // metadata values are always strings, so we need to check properly
   const isDelivery = metadata.isDelivery === "true";
+  
+  // Generate confirmation code ONLY for delivery orders
   const confirmationCode = isDelivery
     ? Math.floor(1000 + Math.random() * 9000).toString()
     : undefined;
@@ -196,16 +199,21 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
       };
     }),
     totalAmount: (session.amount_total || 0) / 100,
-    status: "Pending",
+    status: "Pending" as const,
     createdAt: Timestamp.now(),
+    // Always include isDelivery field (true for delivery, false for pickup)
     isDelivery,
-    deliveryAddress: metadata.deliveryAddress || null,
-    confirmationCode,
+    // Only include delivery address if it's a delivery order
+    deliveryAddress: isDelivery ? (metadata.deliveryAddress || null) : null,
+    // Only include confirmation code for delivery orders
+    ...(confirmationCode && { confirmationCode }),
   };
 
   await adminDb.collection("orders").doc(session.id).set(orderData);
+  
+  const orderType = isDelivery ? "delivery" : "pickup";
   console.log(
-    `✅ Order ${session.id} created successfully${
+    `✅ ${orderType} order ${session.id} created successfully${
       confirmationCode ? ` with confirmation code: ${confirmationCode}` : ""
     }.`
   );

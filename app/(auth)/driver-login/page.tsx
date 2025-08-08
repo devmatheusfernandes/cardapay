@@ -42,7 +42,7 @@ export default function DriverLoginPage() {
         className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg"
       >
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-rose-600">Cardapay Entregas</h1>
+          <h1 className="text-4xl font-bold text-amber-600">Cardapay Entregas</h1>
           <p className="mt-2 text-slate-600">Acesse sua conta de entregador.</p>
         </div>
 
@@ -70,7 +70,7 @@ export default function DriverLoginPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg text-white bg-rose-600 hover:bg-rose-700 transition"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 rounded-lg text-white bg-amber-600 hover:bg-amber-700 transition"
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
               {!isLoading && <LogIn className="w-5 h-5" />}

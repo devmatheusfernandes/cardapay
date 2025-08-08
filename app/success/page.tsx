@@ -5,14 +5,22 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CartProvider, useCart } from '@/lib/context/CartContext';
 import { CheckCircle, ExternalLink } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SuccessPageWrapper() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-        <CartProvider>
-            <SuccessPage />
-        </CartProvider>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full"
+        />
+      </div>
+    }>
+      <CartProvider>
+        <SuccessPage />
+      </CartProvider>
     </Suspense>
   );
 }
@@ -24,40 +32,91 @@ function SuccessPage() {
 
   useEffect(() => {
     if (sessionId) {
-        clearCart();
+      clearCart();
     }
   }, [clearCart, sessionId]);
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className="bg-white p-8 sm:p-12 rounded-2xl shadow-lg max-w-lg w-full"
-      >
-        <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
-        <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 mt-6">
-          Payment Successful!
-        </h1>
-        <p className="text-slate-600 mt-3">
-          Your order has been sent to the restaurant. You can track its status using the link below.
-        </p>
-        
-        {sessionId && (
-            <Link 
-                href={`/track/${sessionId}`}
-                className="mt-8 inline-flex items-center gap-2 w-full max-w-xs py-3 px-4 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition shadow-md"
-            >
-                <ExternalLink className="w-5 h-5" />
-                Track Your Order
-            </Link>
-        )}
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    }
+  };
 
-        <Link href="/" className="mt-4 inline-block text-sm text-slate-500 hover:text-slate-800">
-            Back to Home
-        </Link>
-      </motion.div>
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">
+      <AnimatePresence>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="bg-teal-100 p-6 sm:p-10 rounded-2xl shadow-xl max-w-md w-full mx-auto"
+        >
+          <motion.div variants={itemVariants}>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              className="mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6"
+            >
+              <CheckCircle className="w-16 h-16 text-green-500" />
+            </motion.div>
+          </motion.div>
+
+          <motion.h1 
+            variants={itemVariants}
+            className="text-nowrap text-3xl sm:text-4xl font-bold text-slate-800 mb-3 text-center"
+          >
+            Pagamento Aprovado!
+          </motion.h1>
+
+          <motion.p 
+            variants={itemVariants}
+            className="text-slate-600 mb-8 text-lg text-center my-4"
+          >
+            Seu pedido foi enviado para o restaurante. Você pode acompanhar o status usando o link abaixo.
+          </motion.p>
+
+          {sessionId && (
+            <motion.div variants={itemVariants}>
+              <Link 
+                href={`/track/${sessionId}`}
+                className="group relative inline-flex items-center justify-center w-full py-4 px-6 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:from-teal-600 hover:to-teal-700"
+              >
+                <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
+                <ExternalLink className="w-5 h-5 mr-2" />
+                Acompanhar Pedido
+              </Link>
+            </motion.div>
+          )}
+
+          <motion.div variants={itemVariants} className="mt-6">
+            <Link 
+              href="/" 
+              className="inline-block text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-slate-800 hover:after:w-full after:transition-all after:duration-300"
+            >
+              Voltar para a página inicial
+            </Link>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
