@@ -1,14 +1,22 @@
 import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
-
-// This is the Base64 encoded service account key from your .env.local file
 const encodedServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string;
 
-// Decode the Base64 string into a regular JSON string
-const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf-8');
+if (!encodedServiceAccount) {
+  throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not defined');
+}
 
-// Parse the decoded JSON string
-const serviceAccount = JSON.parse(decodedServiceAccount);
+let serviceAccount;
+try {
+  // Decode the Base64 string
+  const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf-8');
+  
+  // Parse the JSON
+  serviceAccount = JSON.parse(decodedServiceAccount);
+} catch (error) {
+  console.error('Error decoding service account:', error);
+  throw new Error('Invalid FIREBASE_SERVICE_ACCOUNT_KEY format');
+}
 
 
 // Initialize Firebase Admin SDK if it hasn't been already
@@ -17,8 +25,10 @@ if (!getApps().length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
+    console.log('Firebase Admin initialized successfully');
   } catch (error: any) {
-    console.error('Firebase admin initialization error', error.stack);
+    console.error('Firebase admin initialization error:', error.message);
+    throw error;
   }
 }
 
