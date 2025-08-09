@@ -1,10 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
-import { toast } from 'react-hot-toast';
 
 // Define the shape of a single item in the cart
-interface CartItem {
+// UPDATE: Export the CartItem interface
+export interface CartItem {
   id: string;
   name: string;
   price: number;

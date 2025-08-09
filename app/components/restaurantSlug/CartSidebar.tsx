@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useCart } from '@/lib/context/CartContext';
 import { X, Plus, Minus, Trash2, LoaderCircle, Truck, Store, ShoppingCart } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -72,7 +72,7 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
             className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-xl z-50 flex flex-col"
           >
             <header className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">Your Order</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Seu Pedido</h2>
               <button 
                 onClick={onClose}
                 className="p-2 rounded-full text-gray-500 hover:bg-gray-50 transition-colors"
@@ -188,7 +188,7 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                 </div>
                 <h3 className="text-xl font-semibold text-gray-700">Seu carrinho está vazio!</h3>
                 <p className="text-gray-500 mt-2 max-w-xs">
-                  Adicione alguns itens deliciosos do menu para começar seu pedido.
+                  Adicione alguns itens do menu para começar seu pedido.
                 </p>
                 <button 
                   onClick={onClose}

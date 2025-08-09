@@ -1,12 +1,6 @@
 import { FC, JSX } from "react";
 import { motion } from "framer-motion";
-import { Utensils, MapPin, Smartphone, Clock, CoinsIcon } from "lucide-react";
-
-// Tipagem para itens de navegação
-interface NavItem {
-  label: string;
-  href: string;
-}
+import { Utensils, MapPin, Smartphone, Clock } from "lucide-react";
 
 // Tipagem para itens de contato
 interface ContactItem {
@@ -26,14 +20,6 @@ interface UteisIcon {
 }
 
 const Footer: FC = () => {
-  const navItems: NavItem[] = [
-    { label: "Recursos", href: "#features" },
-    { label: "Preços", href: "#pricing" },
-    { label: "FAQ", href: "#faq" },
-    { label: "Sobre Nós", href: "#" },
-    { label: "Contato", href: "#" },
-  ];
-
   const contactItems: ContactItem[] = [
     { icon: <MapPin className="w-5 h-5" />, text: "Rua Exemplo, 123, Cidade, Estado" },
     { icon: <Smartphone className="w-5 h-5" />, text: "(XX) XXXX-XXXX" },

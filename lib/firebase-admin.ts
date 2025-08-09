@@ -33,27 +33,6 @@ const serviceAccount = {
   clientX509CertUrl: requiredEnvVars.clientCertUrl!,
 };
 
-// Method 2: Alternative - Fix the Base64 decoding (if you prefer to keep it Base64)
-/*
-const encodedServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string;
-
-if (!encodedServiceAccount) {
-  throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not defined');
-}
-
-let serviceAccount;
-try {
-  // Decode the Base64 string
-  const decodedServiceAccount = Buffer.from(encodedServiceAccount, 'base64').toString('utf-8');
-  
-  // Parse the JSON
-  serviceAccount = JSON.parse(decodedServiceAccount);
-} catch (error) {
-  console.error('Error decoding service account:', error);
-  throw new Error('Invalid FIREBASE_SERVICE_ACCOUNT_KEY format');
-}
-*/
-
 // Initialize Firebase Admin SDK if it hasn't been already
 if (!getApps().length) {
   try {

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, onSnapshot, Timestamp } from "firebase/firestore";
+import { doc, onSnapshot, Timestamp, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
-  LoaderCircle,
   Clock,
   ChefHat,
   ShoppingBag,
@@ -13,25 +12,27 @@ import {
   Store,
   Key,
   ChevronLeft,
+  MapPin,
+  Utensils, // <-- 1. Import MapPin icon
 } from "lucide-react";
 import TimeAgo from "react-timeago";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-  const BackButton = () => (
-    <Link href="/" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
-      >
-        <ChevronLeft className="w-8 h-8" />
-        <span className="text-md font-medium">Voltar</span>
-      </motion.button>
-    </Link>
-  );
-  
+const BackButton = () => (
+  <Link href="/" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+    >
+      <ChevronLeft className="w-8 h-8" />
+      <span className="text-md font-medium">Voltar</span>
+    </motion.button>
+  </Link>
+);
+
 interface Order {
   id: string;
   status:
@@ -44,8 +45,15 @@ interface Order {
     | "Canceled";
   createdAt: Timestamp;
   isDelivery: boolean;
+  restaurantId: string;
   deliveryAddress?: string;
   confirmationCode?: string;
+}
+
+// 2. Update the Restaurant interface to include the address
+interface Restaurant {
+  name: string;
+  address: string; // <-- Added this field
 }
 
 const statusConfig = {
@@ -121,6 +129,7 @@ export default function OrderTrackingPage() {
   const params = useParams();
   const orderId = params.orderId as string | undefined;
   const [order, setOrder] = useState<Order | null>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -134,29 +143,44 @@ export default function OrderTrackingPage() {
     const docRef = doc(db, "orders", orderId);
     const unsubscribe = onSnapshot(
       docRef,
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
-          // Verifica e garante que createdAt é Timestamp
-          if (!data.createdAt || !(data.createdAt instanceof Timestamp)) {
-            setError("Dados do pedido inválidos.");
+      async (orderDoc) => {
+        if (orderDoc.exists()) {
+          const orderData = orderDoc.data();
+          
+          if (!orderData.createdAt || !(orderData.createdAt instanceof Timestamp) || !orderData.restaurantId) {
+            setError("Dados do pedido inválidos ou incompletos.");
             setIsLoading(false);
             return;
           }
-          setOrder({
-            id: doc.id,
-            status: data.status,
-            createdAt: data.createdAt,
-            isDelivery: data.isDelivery,
-            deliveryAddress: data.deliveryAddress,
-            confirmationCode: data.confirmationCode,
-          });
+
+          const typedOrderData: Order = {
+            id: orderDoc.id,
+            ...orderData,
+          } as Order;
+          
+          setOrder(typedOrderData);
+
+          try {
+            const restaurantRef = doc(db, "restaurants", typedOrderData.restaurantId);
+            const restaurantDoc = await getDoc(restaurantRef);
+            
+            if (restaurantDoc.exists()) {
+              setRestaurant(restaurantDoc.data() as Restaurant);
+            } else {
+              console.warn(`Restaurante com ID ${typedOrderData.restaurantId} não encontrado.`);
+            }
+          } catch (e) {
+            console.error("Erro ao buscar dados do restaurante:", e);
+            setError("Não foi possível carregar os dados do restaurante.");
+          }
+
         } else {
           setError("Desculpe, não conseguimos encontrar seu pedido.");
         }
         setIsLoading(false);
       },
       (err) => {
+        console.error("Firebase snapshot error:", err);
         setError("Ocorreu um erro ao rastrear seu pedido.");
         setIsLoading(false);
       }
@@ -220,6 +244,16 @@ export default function OrderTrackingPage() {
                   {order.isDelivery ? "Entrega" : "Retirada"}
                 </span>
               </motion.div>
+              
+              {restaurant && (
+                <motion.div
+                    variants={itemVariants}
+                    className="flex items-center justify-center gap-2 mt-4 text-slate-700 bg-black/5 p-2 rounded-md"
+                >
+                    <Utensils className="w-5 h-5 flex-shrink-0"/>
+                    <p className="font-semibold text-center">{restaurant.name}</p>
+                </motion.div>
+              )}
 
               {order.isDelivery && order.deliveryAddress && (
                 <motion.p
@@ -233,6 +267,22 @@ export default function OrderTrackingPage() {
               <motion.div variants={itemVariants} className="mt-8">
                 <StatusDisplay status={order.status} />
               </motion.div>
+
+              {/* 3. Add conditional block to show address for pickup */}
+              {order.status === "Ready for Pickup" && restaurant?.address && (
+                  <motion.div
+                      variants={itemVariants}
+                      className="mt-6 p-4 bg-white/60 rounded-lg text-center shadow"
+                  >
+                      <p className="font-semibold text-slate-700 flex items-center justify-center gap-2">
+                          <MapPin className="w-5 h-5 text-purple-500" />
+                          Endereço para Retirada
+                      </p>
+                      <p className="text-slate-600 mt-1 font-medium">
+                          {restaurant.address}
+                      </p>
+                  </motion.div>
+              )}
 
               {order.isDelivery &&
                 order.status === "Out for Delivery" &&

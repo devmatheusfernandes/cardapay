@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { doc, onSnapshot, Timestamp, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { LoaderCircle, CheckCircle, Clock, ChefHat, ShoppingBag, Truck, Copy } from 'lucide-react';
-import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import TimeAgo from 'react-timeago';
 import { useRouter } from 'next/navigation';

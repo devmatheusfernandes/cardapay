@@ -19,10 +19,12 @@ interface RestaurantFooterProps {
 export function RestaurantFooter({ restaurant }: RestaurantFooterProps) {
   return (
     <footer className="bg-gray-900 text-white mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* UPDATE: This container now handles the mobile/desktop separators */}
+        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-12 divide-y lg:divide-y-0 divide-gray-800">
+          
           {/* Left Side - Restaurant Info */}
-          <div className="space-y-6">
+          <div className="space-y-6 pb-12 lg:pb-0">
             <div className="flex items-center space-x-4">
               {restaurant.logoUrl ? (
                 <img 
@@ -41,7 +43,7 @@ export function RestaurantFooter({ restaurant }: RestaurantFooterProps) {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               {restaurant.address && (
                 <div className="flex items-start space-x-3">
                   <MapPin className="w-5 h-5 text-indigo-400 mt-1 flex-shrink-0" />
@@ -64,33 +66,28 @@ export function RestaurantFooter({ restaurant }: RestaurantFooterProps) {
             </div>
           </div>
 
-          {/* Right Side - CTA */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-orange-500 rounded-2xl p-8 max-w-md w-full text-center relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl"></div>
-              <div className="relative z-10">
-                <h4 className="text-2xl font-bold mb-4">
-                  Quer criar seu restaurante?
-                </h4>
-                <p className="text-white/90 mb-6 leading-relaxed">
-                  Junte-se a centenas de restaurantes que já estão vendendo online. 
-                  É fácil, rápido e sem complicações!
-                </p>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+          {/* Right Side - CTA with Vertical Separator */}
+          <div className="pt-12 lg:pt-0 lg:border-l lg:border-gray-800 lg:pl-12 px-6 md:px-2">
+              <h4 className="text-2xl font-bold mb-4">
+                Quer criar seu restaurante?
+              </h4>
+              <p className="text-white/90 mb-6 leading-relaxed">
+                Junte-se a centenas de restaurantes que já estão vendendo online. 
+                É fácil, rápido e sem complicações!
+              </p>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-block"
+              >
+                <Link 
+                  href="/sign-up"
+                  className="inline-flex items-center gap-2 bg-white text-indigo-600 font-bold px-6 py-3 rounded-full hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl"
                 >
-                  <Link 
-                    href="/sign-up"
-                    className="inline-flex items-center gap-2 bg-white text-indigo-600 font-bold px-6 py-3 rounded-full hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl"
-                  >
-                    Começar Agora
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
+                  Começar Agora
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              </motion.div>
           </div>
         </div>
 

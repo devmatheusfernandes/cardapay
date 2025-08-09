@@ -2,7 +2,7 @@
 
 import { useState, useEffect, SetStateAction } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Utensils, Menu, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 // Components
 import MobileMenu from "./components/landing/MobileMenu";
@@ -72,7 +72,7 @@ const faqs = [
   {
     question: "Como funciona o período de teste gratuito?",
     answer:
-      "O período de teste de 14 dias dá acesso completo a todos os recursos da plataforma. Não é necessário cartão de crédito para iniciar o teste e você pode cancelar a qualquer momento.",
+      "O período de teste de 7 dias dá acesso completo a todos os recursos da plataforma. Não é necessário cartão de crédito para iniciar o teste e você pode cancelar a qualquer momento.",
   },
   {
     question: "Quais métodos de pagamento são aceitos?",

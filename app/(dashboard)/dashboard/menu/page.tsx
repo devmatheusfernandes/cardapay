@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Edit, Trash2, X, DollarSign, Package, BookOpen, LoaderCircle, UtensilsCrossed, UploadCloud, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 import { useMenu, MenuItem, MenuItemData } from '../../../../lib/hooks/useMenu';
 import InputField from '@/app/components/ui/InputField';
 import TextAreaField from '@/app/components/ui/TextAreaField';

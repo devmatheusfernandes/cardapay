@@ -39,7 +39,9 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
-  const { addItem, itemCount } = useCart();
+
+  // UPDATE: Get cartItems and updateQuantity from the context
+  const { cartItems, addItem, updateQuantity, itemCount } = useCart();
   
   const categories = [...new Set(menuItems.map(item => item.category))];
 
@@ -68,7 +70,14 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
   const scrollToCategory = (category: string) => {
     const element = document.getElementById(category.toLowerCase().replace(/\s+/g, '-'));
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const headerOffset = 120;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+      });
     }
   };
 
@@ -97,43 +106,42 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
         onCartClick={() => setIsCartOpen(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SearchAndFilter
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          categories={categories}
-          activeCategory={activeCategory}
-          setActiveCategory={setActiveCategory}
-          scrollToCategory={scrollToCategory}
-        />
-
-        <MenuSection
-          filteredItems={filteredItems}
-          categories={categories}
-          onAddToCart={handleAddToCart}
-        />
+      <main className="h-[100vh] max-w-[95vw] mx-auto px-2 sm:px-6 lg:px-4 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8">
+          
+          <aside className="lg:col-span-1 mb-8 lg:mb-0">
+            <SearchAndFilter
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              categories={categories}
+              activeCategory={activeCategory}
+              setActiveCategory={setActiveCategory}
+              scrollToCategory={scrollToCategory}
+            />
+          </aside>
+          
+          <div className="lg:col-span-3">
+            {/* UPDATE: Pass new props to MenuSection */}
+            <MenuSection
+              filteredItems={filteredItems}
+              categories={categories}
+              cartItems={cartItems}
+              onAddToCart={handleAddToCart}
+              onUpdateQuantity={updateQuantity}
+            />
+          </div>
+        </div>
       </main>
       
-      <RestaurantFooter restaurant={restaurant} />
+      <RestaurantFooter restaurant={restaurant} /> 
 
       <CartSidebar 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
         restaurantId={restaurant.id} 
       />
-      
-      <style jsx>{`
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 }
 
 export type { Restaurant, MenuItem };
-
