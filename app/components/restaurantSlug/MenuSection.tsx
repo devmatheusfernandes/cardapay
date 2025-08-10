@@ -1,13 +1,11 @@
 import { Utensils } from 'lucide-react';
 import { MenuItemCard } from './MenuItemCard';
 import { MenuItem } from '@/app/[restaurantSlug]/MenuClientPage';
-// UPDATE: Import CartItem type
 import { CartItem } from '@/lib/context/CartContext';
 
 interface MenuSectionProps {
   filteredItems: MenuItem[];
   categories: string[];
-  // UPDATE: Add new props
   cartItems: CartItem[];
   onAddToCart: (item: MenuItem) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
@@ -40,18 +38,17 @@ export function MenuSection({ filteredItems, categories, cartItems, onAddToCart,
               {filteredItems
                 .filter(item => item.category === category)
                 .map(item => {
-                  // UPDATE: Find the quantity for the current item
-                  const cartItem = cartItems.find(ci => ci.id === item.id);
+                  // FIX: Use productId instead of id to match CartItem
+                  const cartItem = cartItems.find(ci => ci.productId === item.id);
                   const quantity = cartItem ? cartItem.quantity : 0;
 
                   return (
-                    // UPDATE: Pass new props to MenuItemCard
                     <MenuItemCard 
                       key={item.id} 
                       item={item} 
                       quantity={quantity}
                       onAddToCart={() => onAddToCart(item)}
-                      onUpdateQuantity={(newQuantity) => onUpdateQuantity(item.id, newQuantity)}
+                      onUpdateQuantity={(newQuantity: number) => onUpdateQuantity(item.id, newQuantity)}
                     />
                   );
                 })}

@@ -1,22 +1,39 @@
 'use client';
 
 import { motion } from 'framer-motion';
-// ATENÇÃO: Importando o tipo do local correto
 import { MenuItem } from '@/lib/types/restaurantSlug/types'; 
-// ATENÇÃO: Apenas o ícone Plus é necessário agora
-import { Utensils, Plus } from 'lucide-react';
+import { Utensils, Plus, Minus } from 'lucide-react';
 
-// ATENÇÃO: Props simplificadas
 interface MenuItemCardProps {
   item: MenuItem;
+  quantity: number; // ADD: quantity prop
   onAddToCart: (item: MenuItem) => void;
+  onUpdateQuantity: (newQuantity: number) => void; // ADD: onUpdateQuantity prop with proper typing
 }
 
-export function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
-  // ATENÇÃO: Lógica de preço inteligente
-  // Verifica se o item tem tamanhos com preços diferentes do preço base
+export function MenuItemCard({ item, quantity, onAddToCart, onUpdateQuantity }: MenuItemCardProps) {
+  // Check if the item has varying prices
   const hasVaryingPrices = item.sizes && item.sizes.length > 0 && item.sizes.some(size => size.price !== item.basePrice);
   const displayPrice = `R$ ${(item.basePrice || 0).toFixed(2).replace('.', ',')}`;
+
+  // Handle quantity changes
+  const handleIncrement = () => {
+    onUpdateQuantity(quantity + 1);
+  };
+
+  const handleDecrement = () => {
+    if (quantity > 0) {
+      onUpdateQuantity(quantity - 1);
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (quantity === 0) {
+      onAddToCart(item);
+    } else {
+      handleIncrement();
+    }
+  };
 
   return (
     <motion.div 
@@ -46,25 +63,51 @@ export function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
           <div className="flex justify-between items-start gap-2">
             <h3 className="text-base font-bold text-gray-800">{item.name}</h3>
             <p className="text-base font-semibold text-indigo-600 whitespace-nowrap">
-              {/* Se os preços variam, mostra "A partir de". Senão, mostra o preço base. */}
               {hasVaryingPrices ? `A partir de ${displayPrice}` : displayPrice}
             </p>
           </div>
           <p className="text-gray-600 text-sm mt-1 line-clamp-2">{item.description}</p>
         </div>
         
-        {/* ATENÇÃO: Botão de ação único e simplificado */}
+        {/* Conditional rendering based on quantity */}
         <div className="mt-4 h-10 flex items-center justify-center">
-          <motion.button 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            // O onClick agora simplesmente chama a função pai, passando o item inteiro
-            onClick={() => onAddToCart(item)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Adicionar
-          </motion.button>
+          {quantity === 0 ? (
+            // Show "Add" button when quantity is 0
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleAddToCart}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Adicionar
+            </motion.button>
+          ) : (
+            // Show quantity controls when quantity > 0
+            <div className="w-full flex items-center justify-between bg-gray-50 rounded-lg p-1">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleDecrement}
+                className="flex items-center justify-center w-8 h-8 rounded-md bg-white hover:bg-gray-100 text-gray-600 shadow-sm transition-all"
+              >
+                <Minus className="w-4 h-4" />
+              </motion.button>
+              
+              <span className="text-sm font-semibold text-gray-800 px-3">
+                {quantity}
+              </span>
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleIncrement}
+                className="flex items-center justify-center w-8 h-8 rounded-md bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm transition-all"
+              >
+                <Plus className="w-4 h-4" />
+              </motion.button>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
