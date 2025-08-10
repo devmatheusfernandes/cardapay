@@ -1,28 +1,30 @@
-import { MenuItem } from '@/app/[restaurantSlug]/MenuClientPage';
-import { motion } from 'framer-motion';
-// UPDATE: Import Minus icon
-import { Utensils, Plus, Minus } from 'lucide-react';
+'use client';
 
+import { motion } from 'framer-motion';
+// ATENÇÃO: Importando o tipo do local correto
+import { MenuItem } from '@/lib/types/restaurantSlug/types'; 
+// ATENÇÃO: Apenas o ícone Plus é necessário agora
+import { Utensils, Plus } from 'lucide-react';
+
+// ATENÇÃO: Props simplificadas
 interface MenuItemCardProps {
   item: MenuItem;
-  onAddToCart: () => void;
-  // UPDATE: Add new props
-  quantity: number;
-  onUpdateQuantity: (newQuantity: number) => void;
+  onAddToCart: (item: MenuItem) => void;
 }
 
-export function MenuItemCard({ item, onAddToCart, quantity, onUpdateQuantity }: MenuItemCardProps) {
-  const isSelected = quantity > 0;
+export function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
+  // ATENÇÃO: Lógica de preço inteligente
+  // Verifica se o item tem tamanhos com preços diferentes do preço base
+  const hasVaryingPrices = item.sizes && item.sizes.length > 0 && item.sizes.some(size => size.price !== item.basePrice);
+  const displayPrice = `R$ ${(item.basePrice || 0).toFixed(2).replace('.', ',')}`;
 
   return (
     <motion.div 
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      // UPDATE: Add conditional styling for the selected state
-      className={`bg-white rounded-xl shadow-sm overflow-hidden border hover:shadow-lg transition-all duration-300 flex flex-col ${
-        isSelected ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-100'
-      }`}
+      className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col"
     >
       <div className="relative aspect-[16/9] overflow-hidden">
         {item.imageUrl ? (
@@ -44,49 +46,25 @@ export function MenuItemCard({ item, onAddToCart, quantity, onUpdateQuantity }: 
           <div className="flex justify-between items-start gap-2">
             <h3 className="text-base font-bold text-gray-800">{item.name}</h3>
             <p className="text-base font-semibold text-indigo-600 whitespace-nowrap">
-              ${item.price.toFixed(2)}
+              {/* Se os preços variam, mostra "A partir de". Senão, mostra o preço base. */}
+              {hasVaryingPrices ? `A partir de ${displayPrice}` : displayPrice}
             </p>
           </div>
           <p className="text-gray-600 text-sm mt-1 line-clamp-2">{item.description}</p>
         </div>
         
-        {/* UPDATE: Conditionally render button or quantity controller */}
-        <div className="mt-3 h-10 flex items-center justify-center">
-          {isSelected ? (
-            <div className="flex items-center justify-between w-full">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onUpdateQuantity(quantity - 1)}
-                className="p-2 rounded-full bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
-                aria-label="Decrease quantity"
-              >
-                <Minus className="w-5 h-5" />
-              </motion.button>
-              
-              <span className="font-bold text-lg text-gray-900" aria-live="polite">
-                {quantity}
-              </span>
-              
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onUpdateQuantity(quantity + 1)}
-                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-                aria-label="Increase quantity"
-              >
-                <Plus className="w-5 h-5" />
-              </motion.button>
-            </div>
-          ) : (
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onAddToCart}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              Adicionar
-            </motion.button>
-          )}
+        {/* ATENÇÃO: Botão de ação único e simplificado */}
+        <div className="mt-4 h-10 flex items-center justify-center">
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            // O onClick agora simplesmente chama a função pai, passando o item inteiro
+            onClick={() => onAddToCart(item)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar
+          </motion.button>
         </div>
       </div>
     </motion.div>

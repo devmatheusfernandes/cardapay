@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
             throw new Error('Stripe customer ID not found.');
         }
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cardapay.vercel.app';
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
         const portalSession = await stripe.billingPortal.sessions.create({
             customer: customerId,

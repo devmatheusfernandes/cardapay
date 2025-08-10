@@ -1,38 +1,34 @@
+// app/(dashboard)/dashboard/menu/page.tsx
+
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Edit, Trash2, X, DollarSign, Package, BookOpen, LoaderCircle, UtensilsCrossed, UploadCloud, Search } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Plus, Edit, Trash2, LoaderCircle, UtensilsCrossed, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useMenu, MenuItem, MenuItemData } from '../../../../lib/hooks/useMenu';
-import InputField from '@/app/components/ui/InputField';
-import TextAreaField from '@/app/components/ui/TextAreaField';
+import { useMenu, MenuItem } from '../../../../lib/hooks/useMenu';
 import Modal from '@/app/components/ui/Modal';
 import SubscriptionGuard from '@/app/components/guards/SubscriptionGuard';
 
 export default function MenuPage() {
-  const { menuItems, categories, isLoading, saveItem, deleteItem, toggleInStock } = useMenu();
+  const { menuItems, categories, isLoading, deleteItem, toggleInStock } = useMenu();
+  const router = useRouter();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState<MenuItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
   
-  // Estado para busca e filtro
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas as Categorias');
 
-  const handleOpenModal = (item: MenuItem | null = null) => {
-    setCurrentItem(item);
-    setIsModalOpen(true);
+  const handleAddItem = () => {
+    router.push('/dashboard/menu/new');
   };
 
-  const handleCloseModal = () => {
-    if (isActionLoading) return;
-    setIsModalOpen(false);
-    setCurrentItem(null);
+  const handleEditItem = (item: MenuItem) => {
+    router.push(`/dashboard/menu/${item.id}`);
   };
-  
+
   const handleOpenDeleteConfirm = (item: MenuItem) => {
     setItemToDelete(item);
     setIsDeleteConfirmOpen(true);
@@ -44,13 +40,6 @@ export default function MenuPage() {
     setIsDeleteConfirmOpen(false);
   };
 
-  const handleSaveFlow = async (itemData: MenuItemData, imageFile: File | null) => {
-    setIsActionLoading(true);
-    await saveItem(itemData, currentItem, imageFile);
-    setIsActionLoading(false);
-    handleCloseModal();
-  };
-
   const handleDeleteFlow = async () => {
     if (!itemToDelete) return;
     setIsActionLoading(true);
@@ -59,12 +48,11 @@ export default function MenuPage() {
     handleCloseDeleteConfirm();
   };
   
-  // Itens do menu filtrados com base na busca e seleção de categoria
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter(item => {
-        const matchesCategory = selectedCategory === 'Todas as Categorias' || item.category === selectedCategory;
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesCategory && matchesSearch;
+      const matchesCategory = selectedCategory === 'Todas as Categorias' || item.category === selectedCategory;
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
     });
   }, [menuItems, searchTerm, selectedCategory]);
   
@@ -92,7 +80,7 @@ export default function MenuPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => handleOpenModal()}
+            onClick={handleAddItem}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition w-full md:w-auto"
           >
             <Plus className="w-5 h-5" />
@@ -104,7 +92,7 @@ export default function MenuPage() {
         <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="relative flex-grow">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"/>
-                <input 
+                <input  
                     type="text"
                     placeholder="Buscar por um item do cardápio..."
                     value={searchTerm}
@@ -124,7 +112,7 @@ export default function MenuPage() {
         </div>
 
         {menuItems.length === 0 ? (
-          <EmptyState onAddItem={() => handleOpenModal()} />
+          <EmptyState onAddItem={handleAddItem} />
         ) : (
           <div className="space-y-8">
             {displayedCategories.map(category => (
@@ -132,7 +120,7 @@ export default function MenuPage() {
                 <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b-2 border-slate-200 pb-2">{category}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredMenuItems.filter(item => item.category === category).map(item => (
-                    <MenuItemCard key={item.id} item={item} onEdit={handleOpenModal} onDelete={handleOpenDeleteConfirm} onToggleStock={toggleInStock} />
+                    <MenuItemCard key={item.id} item={item} onEdit={handleEditItem} onDelete={handleOpenDeleteConfirm} onToggleStock={toggleInStock} />
                   ))}
                 </div>
               </div>
@@ -141,14 +129,6 @@ export default function MenuPage() {
         )}
       </div>
       
-      <MenuItemModal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        onSave={handleSaveFlow}
-        item={currentItem}
-        isLoading={isActionLoading}
-      />
-
       <DeleteConfirmationModal
         isOpen={isDeleteConfirmOpen}
         onClose={handleCloseDeleteConfirm}
@@ -161,7 +141,7 @@ export default function MenuPage() {
   );
 }
 
-// --- Componentes Reutilizáveis ---
+// --- Componentes Reutilizáveis (sem alterações significativas) ---
 
 const EmptyState = ({ onAddItem }: { onAddItem: () => void }) => (
     <div className="text-center py-20 px-6">
@@ -194,7 +174,6 @@ const MenuItemCard = ({ item, onEdit, onDelete, onToggleStock }: { item: MenuIte
     <div className="p-4 flex-grow">
       <div className="flex justify-between items-start">
         <h3 className="text-xl font-bold text-slate-800 pr-2">{item.name}</h3>
-        {/* Botão de Alternância de Estoque */}
         <div className="flex items-center gap-2">
             <span className={`text-xs font-semibold ${item.inStock ? 'text-green-600' : 'text-slate-500'}`}>{item.inStock ? 'Em Estoque' : 'Esgotado'}</span>
             <button
@@ -207,132 +186,37 @@ const MenuItemCard = ({ item, onEdit, onDelete, onToggleStock }: { item: MenuIte
             </button>
         </div>
       </div>
-      <p className="text-slate-600 mt-2 text-sm">{item.description}</p>
+      <p className="text-slate-600 mt-2 text-sm line-clamp-2">{item.description}</p>
     </div>
     <div className="p-4 bg-slate-50 flex justify-between items-center">
-      <p className="text-lg font-semibold text-indigo-600">R${item.price.toFixed(2).replace('.', ',')}</p>
+      <p className="text-lg font-semibold text-indigo-600">
+        {/* Lógica de preço corrigida abaixo */}
+        {item.promoPrice ? (
+            <>
+                <span className="line-through text-slate-500 text-sm mr-2">
+                    {/* Adicionamos (item.basePrice || 0) */}
+                    R${(item.basePrice || 0).toFixed(2).replace('.', ',')}
+                </span>
+                {/* Adicionamos (item.promoPrice || 0) */}
+                R${(item.promoPrice || 0).toFixed(2).replace('.', ',')}
+            </>
+        ) : `R$${(item.basePrice || 0).toFixed(2).replace('.', ',')}`} 
+        {/* Adicionamos (item.basePrice || 0) aqui também */}
+      </p>
       <div className="flex gap-2">
         <button onClick={() => onEdit(item)} className="p-2 text-slate-500 hover:text-indigo-600 transition"><Edit className="w-5 h-5" /></button>
-        <button onClick={() => onDelete(item)} className="p-2 text-slate-500 hover:text-indigo-600 transition"><Trash2 className="w-5 h-5" /></button>
+        <button onClick={() => onDelete(item)} className="p-2 text-slate-500 hover:text-rose-600 transition"><Trash2 className="w-5 h-5" /></button>
       </div>
     </div>
   </motion.div>
 );
-
-const MenuItemModal = ({ isOpen, onClose, onSave, item, isLoading }: { isOpen: boolean, onClose: () => void, onSave: (data: MenuItemData, imageFile: File | null) => void, item: MenuItem | null, isLoading: boolean }) => {
-  const [formData, setFormData] = useState<MenuItemData>({ name: '', description: '', price: 0, category: '', inStock: true });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (item) {
-        setFormData({ name: item.name, description: item.description, price: item.price, category: item.category, inStock: item.inStock });
-        setImagePreview(item.imageUrl || null);
-      } else {
-        setFormData({ name: '', description: '', price: 0, category: '', inStock: true });
-        setImagePreview(null);
-      }
-      setImageFile(null);
-    }
-  }, [item, isOpen]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    if (type === 'checkbox') {
-        const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'number' ? parseFloat(value) : value
-        }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData, imageFile);
-  };
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={item ? 'Editar Item do Cardápio' : 'Adicionar Novo Item ao Cardápio'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Imagem do Item</label>
-                <div 
-                    className="w-full h-48 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-500 cursor-pointer hover:border-indigo-500 hover:text-indigo-500 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    {imagePreview ? (
-                        <img src={imagePreview} alt="Pré-visualização" className="w-full h-full object-cover rounded-md"/>
-                    ) : (
-                        <div className="text-center">
-                            <UploadCloud className="mx-auto h-12 w-12" />
-                            <p>Clique para enviar uma imagem</p>
-                            <p className="text-xs">PNG, JPG até 5MB</p>
-                        </div>
-                    )}
-                </div>
-                <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    className="hidden"
-                    accept="image/png, image/jpeg"
-                />
-            </div>
-
-            <InputField icon={Package} name="name" placeholder="Nome do Item" value={formData.name} onChange={handleChange} required />
-            <InputField icon={BookOpen} name="category" placeholder="Categoria (ex: Entradas)" value={formData.category} onChange={handleChange} required />
-            <TextAreaField icon={BookOpen} name="description" placeholder="Descrição" value={formData.description} onChange={handleChange} />
-            <InputField 
-                icon={DollarSign} 
-                name="price" 
-                type="number" 
-                placeholder="Preço" 
-                value={isNaN(formData.price) ? '' : formData.price} 
-                onChange={handleChange} 
-                required 
-                step="0.01" 
-            />
-            
-            <div className="flex items-center justify-between">
-                <label htmlFor="inStock" className="text-slate-700 font-medium">Em Estoque</label>
-                <input type="checkbox" id="inStock" name="inStock" checked={formData.inStock} onChange={handleChange} className="h-5 w-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
-            </div>
-
-            <div className="flex justify-end gap-4 pt-4">
-              <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition">Cancelar</button>
-              <button type="submit" disabled={isLoading} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 disabled:bg-indigo-400">
-                {isLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
-                {isLoading ? 'Salvando...' : 'Salvar Item'}
-              </button>
-            </div>
-        </form>
-    </Modal>
-  );
-};
 
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName, isLoading } : { isOpen: boolean, onClose: () => void, onConfirm: () => void, itemName?: string, isLoading: boolean }) => (
     <Modal isOpen={isOpen} onClose={onClose} title="Confirmar Exclusão" size="sm">
         <p className="text-slate-600 my-4">Tem certeza de que deseja excluir o item "{itemName}"? Esta ação não pode ser desfeita.</p>
         <div className="flex justify-end gap-4">
             <button onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition">Cancelar</button>
-            <button onClick={onConfirm} disabled={isLoading} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 disabled:bg-indigo-400">
+            <button onClick={onConfirm} disabled={isLoading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2 disabled:bg-red-400">
                 {isLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
                 {isLoading ? 'Excluindo...' : 'Excluir'}
             </button>

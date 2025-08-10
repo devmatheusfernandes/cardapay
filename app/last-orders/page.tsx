@@ -3,9 +3,22 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { ChevronLeft, ShoppingCart } from "lucide-react";
 import OrderListItem from "../components/features/OrderListItem"; // Importando o novo componente
 import { motion } from "framer-motion";
+
+const BackButton = () => (
+  <Link href="/track" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+    >
+      <ChevronLeft className="w-8 h-8" />
+      <span className="text-md font-medium">Voltar</span>
+    </motion.button>
+  </Link>
+);
 
 export default function LastOrdersPage() {
   const [orderIds, setOrderIds] = useState<string[]>([]);
@@ -40,6 +53,7 @@ export default function LastOrdersPage() {
   return (
     <>
       <Toaster position="top-center" />
+      <BackButton />
       <div className="min-h-screen bg-slate-50 px-4 py-10">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

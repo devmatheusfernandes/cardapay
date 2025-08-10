@@ -1,23 +1,45 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-// Define the shape of a single item in the cart
-// UPDATE: Export the CartItem interface
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  imageUrl?: string;
-  quantity: number;
+// --- Interfaces ---
+export interface SizeOption { id: string; name: string; price: number; }
+export interface AddonOption { id: string; name: string; price: number; }
+export interface StuffedCrustOption { id: string; name: string; price: number; }
+
+export interface SelectedOptions {
+  size?: SizeOption;
+  addons?: AddonOption[];
+  stuffedCrust?: StuffedCrustOption;
+  removableIngredients?: string[];
+  notes?: string;
 }
 
-// Define the shape of the context's value
+export interface CartItem {
+  cartItemId: string;
+  productId: string;
+  name: string;
+  quantity: number;
+  imageUrl?: string;
+  basePrice: number;
+  finalPrice: number;
+  options: SelectedOptions;
+}
+
+export interface ItemToAdd {
+  productId: string;
+  name: string;
+  basePrice: number;
+  imageUrl?: string;
+  options: SelectedOptions;
+}
+
 interface CartContextType {
   cartItems: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
+  addItem: (itemToAdd: ItemToAdd) => void;
+  removeItem: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   itemCount: number;
   cartTotal: number;
@@ -26,10 +48,8 @@ interface CartContextType {
   setDeliveryOption: (isDelivery: boolean, address?: string) => void;
 }
 
-// Create the context with a default undefined value
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Custom hook for easy access to the cart context
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
@@ -38,35 +58,78 @@ export const useCart = () => {
   return context;
 };
 
-// The provider component that will wrap our page
+
+const CART_STORAGE_KEY = 'cardapay-cart-items';
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isDelivery, setIsDelivery] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  const removeItem = useCallback((itemId: string) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
-  }, []);
-
-  const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(i => i.id === item.id);
-      if (existingItem) {
-        return prevItems.map(i =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
+  useEffect(() => {
+    try {
+      const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        setCartItems(JSON.parse(savedCart));
       }
-      return [...prevItems, { ...item, quantity: 1 }];
-    });
+    } catch (error) {
+      console.error("Failed to parse cart items from localStorage", error);
+    }
+    setIsHydrated(true);
   }, []);
 
-  const updateQuantity = useCallback((itemId: string, quantity: number) => {
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch (error) {
+      console.error("Failed to save cart items to localStorage", error);
+    }
+  }, [cartItems, isHydrated]);
+
+
+  const removeItem = useCallback((cartItemId: string) => {
+    setCartItems(prevItems => prevItems.filter(item => item.cartItemId !== cartItemId));
+  }, []);
+
+  const addItem = useCallback((itemToAdd: ItemToAdd) => {
+        console.log("ADICIONANDO ITEM:", JSON.stringify(itemToAdd, null, 2));
+
+    let finalPrice = itemToAdd.basePrice;
+    if (itemToAdd.options.size) {
+      finalPrice = itemToAdd.options.size.price;
+    }
+    if (itemToAdd.options.addons) {
+      finalPrice += itemToAdd.options.addons.reduce((total, addon) => total + addon.price, 0);
+    }
+    if (itemToAdd.options.stuffedCrust) {
+      finalPrice += itemToAdd.options.stuffedCrust.price;
+    }
+    
+    const newCartItem: CartItem = {
+      cartItemId: uuidv4(),
+      productId: itemToAdd.productId,
+      name: itemToAdd.name,
+      quantity: 1,
+      imageUrl: itemToAdd.imageUrl,
+      basePrice: itemToAdd.basePrice,
+      finalPrice,
+      options: itemToAdd.options, // Salva todas as opções, incluindo removableIngredients
+    };
+
+    setCartItems(prevItems => [...prevItems, newCartItem]);
+  }, []);
+
+  const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(itemId);
+      removeItem(cartItemId);
     } else {
       setCartItems(prevItems =>
         prevItems.map(item =>
-          item.id === itemId ? { ...item, quantity } : item
+          item.cartItemId === cartItemId ? { ...item, quantity } : item
         )
       );
     }
@@ -78,18 +141,23 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setDeliveryAddress('');
   }, []);
   
+  const [isDelivery, setIsDelivery] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+
   const setDeliveryOption = useCallback((delivery: boolean, address: string = '') => {
     setIsDelivery(delivery);
     setDeliveryAddress(address);
   }, []);
 
   const itemCount = useMemo(() => {
+    if (!isHydrated) return 0;
     return cartItems.reduce((total, item) => total + item.quantity, 0);
-  }, [cartItems]);
+  }, [cartItems, isHydrated]);
 
   const cartTotal = useMemo(() => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  }, [cartItems]);
+    if (!isHydrated) return 0;
+    return cartItems.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
+  }, [cartItems, isHydrated]);
 
   const value = {
     cartItems,

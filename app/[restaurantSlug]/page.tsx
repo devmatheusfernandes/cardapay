@@ -1,28 +1,14 @@
+// app/(public)/menu/[restaurantSlug]/page.tsx
+
 import { adminDb } from "@/lib/firebase-admin";
 import { notFound } from "next/navigation";
 import { CartProvider } from "@/lib/context/CartContext";
 import MenuClientPage from "./MenuClientPage";
 import { Toaster } from "react-hot-toast";
+// ATENÇÃO: Caminho do import corrigido para o arquivo de tipos central
+import { Restaurant, MenuItem } from "@/lib/types/restaurantSlug/types";
 
-// Define the types for our data
-interface Restaurant {
-  id: string;
-  name: string;
-  logoUrl?: string;
-  address?: string;
-}
-
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  imageUrl?: string;
-  inStock: boolean;
-}
-
-// This function fetches the data on the server
+// A lógica de busca de dados no servidor permanece a mesma
 async function getRestaurantData(slug: string) {
   const restaurantQuery = await adminDb
     .collection("restaurants")
@@ -54,20 +40,20 @@ async function getRestaurantData(slug: string) {
   return { restaurant, menuItems };
 }
 
-// Updated type definition to match Next.js App Router expectations
+// ATENÇÃO: A interface de props foi atualizada para refletir que params é uma Promise
 interface RestaurantMenuPageProps {
   params: Promise<{
     restaurantSlug: string;
   }>;
 }
 
-// The Page component itself remains a Server Component
 export default async function RestaurantMenuPage({
   params,
 }: RestaurantMenuPageProps) {
-  // Await the params Promise to get the actual parameters
-  const { restaurantSlug } = await params;
-
+  // ATENÇÃO: Correção principal - aguardamos a promise de params ser resolvida
+  const resolvedParams = await params;
+  const { restaurantSlug } = resolvedParams;
+  
   const data = await getRestaurantData(restaurantSlug);
 
   if (!data) {
@@ -76,7 +62,6 @@ export default async function RestaurantMenuPage({
 
   const { restaurant, menuItems } = data;
 
-  // The CartProvider wraps the client component, providing it with cart state.
   return (
     <CartProvider>
       <Toaster

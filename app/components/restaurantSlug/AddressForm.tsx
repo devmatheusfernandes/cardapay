@@ -52,42 +52,42 @@ export function AddressForm({ setDeliveryOption }: AddressFormProps) {
           placeholder="Rua"
           value={street}
           onChange={(e) => updateAddressField('street', e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+          className="placeholder:text-slate-800 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
         />
         <input
           type="text"
           placeholder="Número"
           value={number}
           onChange={(e) => updateAddressField('number', e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+          className="placeholder:text-slate-800 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
         />
         <input
           type="text"
           placeholder="Bairro"
           value={neighborhood}
           onChange={(e) => updateAddressField('neighborhood', e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+          className="placeholder:text-slate-800 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
         />
         <input
           type="text"
           placeholder="Cidade"
           value={city}
           onChange={(e) => updateAddressField('city', e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+          className="placeholder:text-slate-800 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
         />
         <input
           type="text"
           placeholder="CEP"
           value={zip}
           onChange={(e) => updateAddressField('zip', e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+          className="placeholder:text-slate-800 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
         />
         <input
           type="text"
           placeholder="Complemento (opcional)"
           value={complement}
           onChange={(e) => updateAddressField('complement', e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
+          className="placeholder:text-slate-800 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition text-sm"
         />
       </div>
     </motion.div>

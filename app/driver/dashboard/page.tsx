@@ -55,7 +55,7 @@ export default function DriverDashboardPage() {
         <div className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <h1 className="text-xl sm:text-2xl font-bold text-indigo-600 flex items-center gap-2">
             <Package className="w-6 h-6" />
-            <span>Painel do Entregador</span>
+            <span>Bem vindo!</span>
           </h1>
           <button 
             onClick={handleSignOut} 

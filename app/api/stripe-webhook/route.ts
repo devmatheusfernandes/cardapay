@@ -5,6 +5,18 @@ import { stripe } from "@/lib/stripe";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 
+// Definição de tipo para o item reconstruído do carrinho para clareza
+interface ReconstructedCartItem {
+  pid: string;
+  qty: number;
+  price: number;
+  opts: {
+    size?: string;
+    addons?: string[];
+    stuffedCrust?: string;
+  };
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = (await headers()).get("Stripe-Signature") as string;
@@ -102,33 +114,57 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     throw new Error("Required session data not found.");
   }
 
-  // Fix: Handle both delivery and pickup orders
-  // metadata values are always strings, so we need to check properly
+  // 1. RECONSTRUIR O CARRINHO A PARTIR DOS METADADOS
+  let reconstructedCartJson = "";
+  if (metadata.cartItems_chunks) {
+    // Se o carrinho foi dividido em pedaços (chunks)
+    const totalChunks = parseInt(metadata.cartItems_chunks, 10);
+    for (let i = 0; i < totalChunks; i++) {
+      reconstructedCartJson += metadata[`cartItems_${i}`];
+    }
+  } else if (metadata.cartItems) {
+    // Se o carrinho coube em um único campo
+    reconstructedCartJson = metadata.cartItems;
+  }
+
+  if (!reconstructedCartJson) {
+    throw new Error("Cart items not found in session metadata.");
+  }
+  
+  const reconstructedCart: ReconstructedCartItem[] = JSON.parse(reconstructedCartJson);
+
+  // 2. USAR O CARRINHO RECONSTRUÍDO PARA MONTAR OS ITENS DO PEDIDO
+  const orderItems = lineItems.map((lineItem, index) => {
+    const product = lineItem.price?.product as Stripe.Product;
+    const cartItem = reconstructedCart[index]; // Pega o item correspondente do nosso carrinho
+
+    if (!cartItem) {
+        throw new Error(`Mismatch between line items and cart metadata at index ${index}.`);
+    }
+
+    return {
+      productId: cartItem.pid,
+      name: product.name,
+      quantity: cartItem.qty,
+      price: cartItem.price, // Usamos o preço final que já calculamos
+      options: cartItem.opts || {}, // Salva as opções customizadas (addons, etc.)
+    };
+  });
+  
   const isDelivery = metadata.isDelivery === "true";
   
-  // Generate confirmation code ONLY for delivery orders
   const confirmationCode = isDelivery
     ? Math.floor(1000 + Math.random() * 9000).toString()
     : undefined;
 
   const orderData = {
     restaurantId: metadata.restaurantId,
-    items: lineItems.map((item) => {
-      const product = item.price?.product as Stripe.Product;
-      return {
-        name: product.name,
-        quantity: item.quantity || 0,
-        price: (item.price?.unit_amount || 0) / 100,
-      };
-    }),
+    items: orderItems, // Usa a nova lista de itens com as opções
     totalAmount: (session.amount_total || 0) / 100,
     status: "Pending" as const,
     createdAt: Timestamp.now(),
-    // Always include isDelivery field (true for delivery, false for pickup)
     isDelivery,
-    // Only include delivery address if it's a delivery order
     deliveryAddress: isDelivery ? (metadata.deliveryAddress || null) : null,
-    // Only include confirmation code for delivery orders
     ...(confirmationCode && { confirmationCode }),
   };
 

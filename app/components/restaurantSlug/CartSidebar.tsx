@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useCart } from '@/lib/context/CartContext';
 import { X, Plus, Minus, Trash2, LoaderCircle, Truck, Store, ShoppingCart } from 'lucide-react';
@@ -20,11 +22,11 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
 
   const handleCheckout = async () => {
     if (isDelivery && !deliveryAddress.trim()) {
-      toast.error("Please enter a delivery address.");
+      toast.error("Por favor, informe um endereço de entrega.");
       return;
     }
     setIsCheckingOut(true);
-    const toastId = toast.loading('Preparing your order...');
+    const toastId = toast.loading('Preparando seu pedido...');
 
     try {
       const response = await fetch('/api/checkout-session', {
@@ -39,7 +41,8 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
       });
 
       const { sessionId } = await response.json();
-      if (!response.ok) throw new Error('Failed to create checkout session.');
+      clearCart();
+      if (!response.ok) throw new Error('Falha ao criar a sessão de checkout.');
 
       const stripe = await stripePromise;
       if (stripe) await stripe.redirectToCheckout({ sessionId });
@@ -47,7 +50,7 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
       toast.dismiss(toastId);
     } catch (error) {
       console.error(error);
-      toast.error('Could not proceed to checkout.', { id: toastId });
+      toast.error('Não foi possível ir para o pagamento.', { id: toastId });
       setIsCheckingOut(false);
     }
   };
@@ -68,7 +71,7 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-xl z-50 flex flex-col"
           >
             <header className="flex items-center justify-between p-6 border-b border-gray-100">
@@ -110,45 +113,59 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                   <div className="space-y-4">
                     {cartItems.map(item => (
                       <motion.div 
-                        key={item.id}
+                        // ATENÇÃO: Chave atualizada para cartItemId
+                        key={item.cartItemId}
                         layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg"
                       >
-                        <div className="w-16 h-16 rounded-lg overflow-hidden">
-                          <img 
-                            src={item.imageUrl || 'https://placehold.co/100x100/EAEAEA/1A1A1A?text=Item'} 
-                            alt={item.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                        <img 
+                          src={item.imageUrl || 'https://placehold.co/100x100/EAEAEA/1A1A1A?text=Item'} 
+                          alt={item.name} 
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
                         <div className="flex-grow">
                           <p className="font-semibold text-gray-900">{item.name}</p>
-                          <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
+                          
+                          {/* ATENÇÃO: Exibindo as opções selecionadas */}
+                          <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                            {item.options.size && <span>{item.options.size.name}</span>}
+                            {item.options.addons && item.options.addons.map(addon => (
+                              <div key={addon.id}>+ {addon.name}</div>
+                            ))}
+                          </div>
+                          
+                           {/* ATENÇÃO: Usando o preço final do item */}
+                          <p className="text-sm font-semibold text-indigo-600 mt-2">R$ {item.finalPrice.toFixed(2)}</p>
                         </div>
-                        <div className="flex items-center gap-2 bg-white rounded-full p-1 shadow-inner">
+                        <div className="flex flex-col items-end justify-between h-full">
                           <button 
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                            // ATENÇÃO: Usando cartItemId para remover o item
+                            onClick={() => removeItem(item.cartItemId)}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                           >
-                            <Minus className="w-4 h-4"/>
+                            <Trash2 className="w-4 h-4"/>
                           </button>
-                          <span className="font-semibold text-sm w-6 text-center">{item.quantity}</span>
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
-                          >
-                            <Plus className="w-4 h-4"/>
-                          </button>
+                          <div className="flex items-center gap-1 bg-white rounded-full p-0.5 border">
+                            <button 
+                              // ATENÇÃO: Usando cartItemId para atualizar a quantidade
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                              className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                            >
+                              <Minus className="w-3 h-3"/>
+                            </button>
+                            <span className="font-semibold text-sm w-6 text-center text-slate-800">{item.quantity}</span>
+                            <button 
+                              // ATENÇÃO: Usando cartItemId para atualizar a quantidade
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                              className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                            >
+                              <Plus className="w-3 h-3"/>
+                            </button>
+                          </div>
                         </div>
-                        <button 
-                          onClick={() => removeItem(item.id)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4"/>
-                        </button>
                       </motion.div>
                     ))}
                   </div>
@@ -157,27 +174,27 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                 <footer className="p-6 border-t border-gray-100 bg-white">
                   <div className="flex justify-between items-center mb-4">
                     <span className="font-medium text-gray-700">Subtotal</span>
-                    <span className="font-bold text-gray-900">${cartTotal.toFixed(2)}</span>
+                    <span className="font-bold text-gray-900">R$ {cartTotal.toFixed(2)}</span>
                   </div>
                   <button 
                     onClick={handleCheckout} 
                     disabled={isCheckingOut}
-                    className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-md transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     {isCheckingOut ? (
                       <LoaderCircle className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
                         <ShoppingCart className="w-5 h-5" />
-                        Pagamento
+                        Ir para Pagamento
                       </>
                     )}
                   </button>
                   <button 
                     onClick={clearCart}
-                    className="w-full mt-3 text-sm text-gray-500 hover:text-indigo-600 transition-colors"
+                    className="w-full mt-3 text-sm text-center text-gray-500 hover:text-red-600 transition-colors"
                   >
-                    Limpar
+                    Esvaziar carrinho
                   </button>
                 </footer>
               </>
@@ -204,4 +221,3 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
     </AnimatePresence>
   );
 }
-

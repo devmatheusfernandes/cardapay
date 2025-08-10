@@ -1,32 +1,18 @@
+// app/(public)/menu/[restaurantSlug]/MenuClientPage.tsx
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useCart } from '@/lib/context/CartContext';
+import { useCart, ItemToAdd, SelectedOptions } from '@/lib/context/CartContext';
 import { toast } from 'react-hot-toast';
 import { HeroSection } from '@/app/components/restaurantSlug/HeroSection';
 import { StickyHeader } from '@/app/components/restaurantSlug/StickyHeader';
 import { SearchAndFilter } from '@/app/components/restaurantSlug/SearchAndFilter';
 import { MenuSection } from '@/app/components/restaurantSlug/MenuSection';
 import { CartSidebar } from '@/app/components/restaurantSlug/CartSidebar';
-import { RestaurantFooter } from '../components/restaurantSlug/Footer';
-
-interface Restaurant {
-  id: string;
-  name: string;
-  logoUrl?: string;
-  address?: string;
-  schedule?: string;
-}
-
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  imageUrl?: string;
-  inStock: boolean;
-}
+import { RestaurantFooter } from '@/app/components/restaurantSlug/Footer';
+import { MenuItem, Restaurant } from '@/lib/types/restaurantSlug/types';
+import { ItemOptionsModal } from '../components/restaurantSlug/ItemsOptionsModal';
 
 interface MenuClientPageProps {
   restaurant: Restaurant;
@@ -40,7 +26,9 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
   const [isScrolled, setIsScrolled] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  // UPDATE: Get cartItems and updateQuantity from the context
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+
   const { cartItems, addItem, updateQuantity, itemCount } = useCart();
   
   const categories = [...new Set(menuItems.map(item => item.category))];
@@ -53,7 +41,6 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
         setIsScrolled(false);
       }
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -73,7 +60,6 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
       const headerOffset = 120;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
       window.scrollTo({
           top: offsetPosition,
           behavior: 'smooth'
@@ -81,34 +67,36 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
     }
   };
 
-  const handleAddToCart = (item: MenuItem) => {
-    addItem({ 
-      id: item.id, 
-      name: item.name, 
-      price: item.price, 
-      imageUrl: item.imageUrl 
-    });
-    toast.success(`${item.name} added to cart`);
+  const handleAddToCart = (item: MenuItem, options?: SelectedOptions) => {
+    const hasOptions = (item.sizes && item.sizes.length > 0) || 
+                       (item.addons && item.addons.length > 0) || 
+                       (item.stuffedCrust && item.stuffedCrust.available);
+
+    if (hasOptions && !options) {
+      setSelectedItem(item);
+      setIsOptionsModalOpen(true);
+      return;
+    }
+
+    const itemToAdd: ItemToAdd = {
+      productId: item.id,
+      name: item.name,
+      basePrice: item.basePrice,
+      imageUrl: item.imageUrl,
+      options: options || {},
+    };
+    
+    addItem(itemToAdd);
+    toast.success(`${item.name} adicionado ao carrinho!`);
   };
 
   return (
     <div className="min-h-screen bg-white">
-      <HeroSection 
-        restaurant={restaurant} 
-        heroRef={heroRef} 
-        isScrolled={isScrolled} 
-      />
-
-      <StickyHeader 
-        restaurant={restaurant}
-        isScrolled={isScrolled}
-        itemCount={itemCount}
-        onCartClick={() => setIsCartOpen(true)}
-      />
-
-      <main className="h-[100vh] max-w-[95vw] mx-auto px-2 sm:px-6 lg:px-4 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8">
-          
+      <HeroSection restaurant={restaurant} heroRef={heroRef} isScrolled={isScrolled} />
+      <StickyHeader restaurant={restaurant} isScrolled={isScrolled} itemCount={itemCount} onCartClick={() => setIsCartOpen(true)} />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1 mb-8 lg:mb-0">
             <SearchAndFilter
               searchQuery={searchQuery}
@@ -119,9 +107,7 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
               scrollToCategory={scrollToCategory}
             />
           </aside>
-          
           <div className="lg:col-span-3">
-            {/* UPDATE: Pass new props to MenuSection */}
             <MenuSection
               filteredItems={filteredItems}
               categories={categories}
@@ -134,14 +120,21 @@ export default function MenuClientPage({ restaurant, menuItems }: MenuClientPage
       </main>
       
       <RestaurantFooter restaurant={restaurant} /> 
-
-      <CartSidebar 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-        restaurantId={restaurant.id} 
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} restaurantId={restaurant.id} />
+      
+      <ItemOptionsModal
+        isOpen={isOptionsModalOpen}
+        onClose={() => setIsOptionsModalOpen(false)}
+        item={selectedItem}
+        onAddToCart={(optionsFromModal) => {
+          if (selectedItem) {
+            handleAddToCart(selectedItem, optionsFromModal);
+          }
+        }}
       />
     </div>
   );
 }
 
+// Exportar o tipo aqui não é mais necessário, mas não causa erro
 export type { Restaurant, MenuItem };

@@ -95,14 +95,14 @@ function SuccessPage() {
 
           <motion.h1 
             variants={itemVariants}
-            className="text-nowrap text-3xl sm:text-4xl font-bold text-slate-800 mb-3 text-center"
+            className="text-nowrap text-2xl sm:text-3xl font-bold text-slate-800 mb-3 text-center"
           >
             Pagamento Aprovado!
           </motion.h1>
 
           <motion.p 
             variants={itemVariants}
-            className="text-slate-600 mb-8 text-lg text-center my-4"
+            className="text-slate-600 mb-8 text-md text-center my-4"
           >
             Seu pedido foi enviado para o restaurante. Você pode acompanhar o status usando o link abaixo.
           </motion.p>
