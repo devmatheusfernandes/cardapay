@@ -5,20 +5,23 @@
 import { useState, useMemo } from 'react';
 import { useOrders, Order } from '../../../../lib/hooks/useOrders';
 import { useDrivers, Driver } from '../../../../lib/hooks/useDrivers';
-import { LoaderCircle, Clock, ChefHat, ShoppingBag, CheckCircle, Truck, MapPin, Store, ListFilter, UserCheck, XCircle, Undo2, CalendarDays, Send, AlertTriangle } from 'lucide-react';
+import { LoaderCircle, Clock, ChefHat, ShoppingBag, CheckCircle, Truck, MapPin, Store, ListFilter, UserCheck, XCircle, Undo2, CalendarDays, Send, AlertTriangle, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TimeAgo from 'react-timeago';
 import Modal from '@/app/components/ui/Modal';
 import SubscriptionGuard from '@/app/components/guards/SubscriptionGuard';
 
-const allOrderStatuses: Order['status'][] = ['Pending', 'In Progress', 'Ready for Delivery', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Returned', 'Canceled'];
+const allOrderStatuses: Order['status'][] = ['Pending', 'Confirmed', 'In Progress', 'Ready to Serve', 'Ready for Delivery', 'Ready for Pickup', 'Out for Delivery', 'Delivered', 'Completed', 'Returned', 'Canceled'];
 
 const statusConfig = {
     Pending: { icon: Clock, color: 'text-indigo-500', bg: 'bg-indigo-100' },
+    Confirmed: { icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-100' },
     'In Progress': { icon: ChefHat, color: 'text-blue-500', bg: 'bg-blue-100' },
+    'Ready to Serve': { icon: Utensils, color: 'text-amber-500', bg: 'bg-amber-100' },
     'Ready for Delivery': { icon: Send, color: 'text-orange-500', bg: 'bg-orange-100' },
     'Ready for Pickup': { icon: ShoppingBag, color: 'text-purple-500', bg: 'bg-purple-100' },
     'Out for Delivery': { icon: Truck, color: 'text-cyan-500', bg: 'bg-cyan-100' },
+    Delivered: { icon: CheckCircle, color: 'text-teal-500', bg: 'bg-teal-100' },
     Completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100' },
     Returned: { icon: Undo2, color: 'text-red-500', bg: 'bg-red-100' },
     Canceled: { icon: XCircle, color: 'text-slate-500', bg: 'bg-slate-100' },
@@ -68,8 +71,8 @@ export default function OrdersPage() {
 
     const displayedStatuses = useMemo(() => {
         let statuses = allOrderStatuses.filter(s => s !== 'In Progress');
-        if (view === 'Delivery') return statuses.filter(s => s !== 'Ready for Pickup');
-        if (view === 'Pickup') return statuses.filter(s => s !== 'Out for Delivery' && s !== 'Ready for Delivery');
+        if (view === 'Delivery') return statuses.filter(s => s !== 'Ready for Pickup' && s !== 'Ready to Serve');
+        if (view === 'Pickup') return statuses.filter(s => s !== 'Out for Delivery' && s !== 'Ready for Delivery' && s !== 'Delivered');
         return statuses;
     }, [view]);
 
@@ -213,16 +216,45 @@ const OrderColumn = ({ status, orders, onUpdateStatus, onAssignDriverClick, onCa
     );
 };
 
-// ATENÇÃO: Única parte modificada
+// OrderCard component with enhanced actions for all statuses
 const OrderCard = ({ order, onUpdateStatus, onAssignDriverClick, onCancelClick }: { order: Order; onUpdateStatus: (id: string, newStatus: Order['status']) => void; onAssignDriverClick: (order: Order) => void; onCancelClick: (order: Order) => void; }) => {
     
     let mainAction = null;
+    let secondaryActions = [];
 
     if (order.status === 'Pending') {
+        mainAction = {
+            text: 'Confirmar Pedido',
+            onClick: () => onUpdateStatus(order.id, 'Confirmed'),
+            color: 'bg-emerald-500 hover:bg-emerald-600'
+        };
+        secondaryActions.push({
+            text: 'Cancelar',
+            onClick: () => onCancelClick(order),
+            color: 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+        });
+    } else if (order.status === 'Confirmed') {
         mainAction = {
             text: 'Mandar para Cozinha',
             onClick: () => onUpdateStatus(order.id, 'In Progress'),
             color: 'bg-indigo-500 hover:bg-indigo-600'
+        };
+        secondaryActions.push({
+            text: 'Cancelar',
+            onClick: () => onCancelClick(order),
+            color: 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+        });
+    } else if (order.status === 'Ready to Serve' && !order.isDelivery) {
+        mainAction = {
+            text: 'Marcar como Pronto p/ Retirada',
+            onClick: () => onUpdateStatus(order.id, 'Ready for Pickup'),
+            color: 'bg-purple-500 hover:bg-purple-600'
+        };
+    } else if (order.status === 'Ready to Serve' && order.isDelivery) {
+        mainAction = {
+            text: 'Marcar como Pronto p/ Entrega',
+            onClick: () => onUpdateStatus(order.id, 'Ready for Delivery'),
+            color: 'bg-orange-500 hover:bg-orange-600'
         };
     } else if (order.status === 'Ready for Delivery') {
         mainAction = {
@@ -231,6 +263,30 @@ const OrderCard = ({ order, onUpdateStatus, onAssignDriverClick, onCancelClick }
             color: 'bg-cyan-500 hover:bg-cyan-600'
         };
     } else if (order.status === 'Ready for Pickup') {
+        mainAction = {
+            text: 'Concluir Pedido',
+            onClick: () => onUpdateStatus(order.id, 'Completed'),
+            color: 'bg-green-500 hover:bg-green-600'
+        };
+    } else if (order.status === 'Out for Delivery') {
+        secondaryActions.push(
+            {
+                text: 'Marcar como Entregue',
+                onClick: () => onUpdateStatus(order.id, 'Delivered'),
+                color: 'bg-teal-500 hover:bg-teal-600 text-white'
+            },
+            {
+                text: 'Marcar como Devolvido',
+                onClick: () => onUpdateStatus(order.id, 'Returned'),
+                color: 'bg-red-50 hover:bg-red-100 text-red-700'
+            },
+            {
+                text: 'Cancelar Pedido',
+                onClick: () => onCancelClick(order),
+                color: 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }
+        );
+    } else if (order.status === 'Delivered') {
         mainAction = {
             text: 'Concluir Pedido',
             onClick: () => onUpdateStatus(order.id, 'Completed'),
@@ -275,28 +331,15 @@ const OrderCard = ({ order, onUpdateStatus, onAssignDriverClick, onCancelClick }
                         {mainAction.text}
                     </button>
                 )}
-                {order.status === 'Pending' && (
-                     <button onClick={() => onCancelClick(order)} className="w-full py-1.5 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition">
-                        Cancelar
+                {secondaryActions.map((action, index) => (
+                    <button 
+                        key={index}
+                        onClick={action.onClick} 
+                        className={`w-full py-1.5 px-3 text-xs font-semibold rounded-md transition ${action.color}`}
+                    >
+                        {action.text}
                     </button>
-                )}
-                {/* ATENÇÃO: Bloco adicionado para o status 'Out for Delivery' */}
-                {order.status === 'Out for Delivery' && (
-                    <>
-                        <button
-                            onClick={() => onUpdateStatus(order.id, 'Returned')}
-                            className="w-full py-1.5 px-3 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition"
-                        >
-                            Marcar como Devolvido
-                        </button>
-                        <button
-                            onClick={() => onCancelClick(order)}
-                            className="w-full py-1.5 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition"
-                        >
-                            Cancelar Pedido
-                        </button>
-                    </>
-                )}
+                ))}
             </div>
         </motion.div>
     );
