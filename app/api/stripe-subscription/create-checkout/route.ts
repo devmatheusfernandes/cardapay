@@ -88,9 +88,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Recebe o plano da requisição com tipagem correta
+    // Recebe o plano e a flag de trial da requisição
     const body = await req.json();
     const planId = body.planId as keyof typeof PLANS;
+    const skipTrial = body.skipTrial as boolean;
 
     if (!planId || !PLANS[planId]) {
       return NextResponse.json(
@@ -104,10 +105,6 @@ export async function POST(req: NextRequest) {
     try {
       const userDoc = await adminDb.collection("users").doc(userId).get();
       userData = userDoc.data();
-      console.log("User data retrieved:", {
-        hasData: !!userData,
-        customerId: userData?.stripeCustomerId,
-      });
     } catch (error) {
       console.error("Error fetching user data from Firestore:", error);
       return NextResponse.json(
@@ -129,13 +126,16 @@ export async function POST(req: NextRequest) {
         customerId = customer.id;
         console.log("Created Stripe customer:", customerId);
 
-        await adminDb.collection("users").doc(userId).set(
-          {
-            stripeCustomerId: customerId,
-            email: email,
-          },
-          { merge: true }
-        );
+        await adminDb
+          .collection("users")
+          .doc(userId)
+          .set(
+            {
+              stripeCustomerId: customerId,
+              email: email,
+            },
+            { merge: true }
+          );
         console.log("Updated user document with Stripe customer ID");
       } catch (error) {
         console.error("Error creating Stripe customer:", error);
@@ -171,29 +171,39 @@ export async function POST(req: NextRequest) {
     // Cria sessão de checkout com base no plano selecionado
     try {
       console.log(
-        `Creating Stripe checkout session for customer: ${customerId} with plan: ${planId}`
+        `Creating Stripe checkout session for customer: ${customerId} with plan: ${planId} and skipTrial: ${skipTrial}`
       );
+
+      const isTrial = !skipTrial;
+
+      // Prepara os dados da assinatura condicionalmente
+      const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+        metadata: {
+          userId,
+          firebaseUid: userId,
+          planType: planId,
+        },
+      };
+
+      if (isTrial) {
+        subscriptionData.trial_period_days = 7;
+      }
 
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         payment_method_types: ["card"],
         mode: "subscription",
         line_items: [PLANS[planId]],
-        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/subscription?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/subscription`,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/${
+          isTrial ? "welcome-trial" : "welcome"
+        }`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/`,
         metadata: {
           userId,
           firebaseUid: userId,
           planType: planId,
         },
-        subscription_data: {
-          trial_period_days: 7, // ✨ Trial period added here
-          metadata: {
-            userId,
-            firebaseUid: userId,
-            planType: planId,
-          },
-        },
+        subscription_data: subscriptionData,
         allow_promotion_codes: true,
         billing_address_collection: "required",
       });

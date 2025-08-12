@@ -1,7 +1,7 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
-import { useRouter } from "next/navigation";
+import { SetStateAction, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -13,22 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import InputField from "@/app/components/ui/InputField";
 import toast from "react-hot-toast";
-
-const BackButton = () => (
-  <Link
-    href="/"
-    className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer"
-  >
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
-    >
-      <ChevronLeft className="w-8 h-8" />
-      <span className="text-md font-medium">Voltar</span>
-    </motion.button>
-  </Link>
-);
+import BackButton from "@/app/components/shared/BackButton";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -39,6 +24,19 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const plan = searchParams.get("plan");
+    const trial = searchParams.get("trial");
+
+    // Se os parâmetros existirem, salve a intenção do usuário
+    if (plan && trial) {
+      const intent = { plan, trial };
+      localStorage.setItem("redirectIntent", JSON.stringify(intent));
+      console.log("Intenção de assinatura salva:", intent);
+    }
+  }, [searchParams]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -116,7 +114,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4 relative">
-      <BackButton />
+      <BackButton pathLink="/" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}

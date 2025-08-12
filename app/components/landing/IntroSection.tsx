@@ -60,7 +60,7 @@ export default function IntroSection({ stats }: IntroSectionProps) {
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <button
-            onClick={() => router.push("/sign-up")}
+            onClick={() => router.push("/#pricing")}
             className="px-8 py-4 rounded-xl bg-emerald-600 text-white font-semibold text-lg shadow-lg hover:bg-emerald-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
           >
             Começar Gratuitamente

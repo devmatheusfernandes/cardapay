@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, Check } from "lucide-react";
+import { Star, Check, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Plan {
@@ -20,6 +20,10 @@ interface PricingSectionProps {
 
 export default function PricingSection({ plans }: PricingSectionProps) {
   const router = useRouter();
+  const handleSelectPlan = (planId: string, isTrial: boolean) => {
+    // Redireciona para a página de cadastro com os parâmetros na URL
+    router.push(`/sign-up?plan=${planId}&trial=${isTrial}`);
+  };
 
   return (
     <section id="pricing" className="py-20 bg-white">
@@ -87,14 +91,20 @@ export default function PricingSection({ plans }: PricingSectionProps) {
                 ))}
               </ul>
               <button
-                onClick={() => router.push("./sign-up")}
-                className={`w-full mt-auto py-3 rounded-lg font-semibold text-lg ${
+                onClick={() => handleSelectPlan(plan.id, false)}
+                className={`w-full py-3 rounded-lg font-semibold text-lg ${
                   plan.recommended
                     ? "bg-emerald-600 text-white hover:bg-emerald-700"
                     : "bg-slate-200 text-slate-800 hover:bg-slate-300"
                 } transition-colors duration-300`}
               >
                 {plan.recommended ? "Assinar Agora" : "Escolher Plano"}
+              </button>
+              <button
+                onClick={() => handleSelectPlan(plan.id, true)}
+                className="w-full py-2 text-emerald-600 opacity-65 font-regular hover:text-emerald-800 duration-300 ease-linear transition-all"
+              >
+                Testar grátis por 7 dias
               </button>
             </motion.div>
           ))}
