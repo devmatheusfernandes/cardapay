@@ -3,19 +3,15 @@
 import { useMemo } from 'react';
 import { useOrders, Order, OrderItem } from '@/lib/hooks/useOrders';
 import { useMenu, MenuItem } from '@/lib/hooks/useMenu';
-import { LoaderCircle, ChefHat, Clock, Truck, Store, User, Check, MessageSquare, Plus, Package, XCircle, HelpCircle, Ban } from 'lucide-react';
+import { LoaderCircle, ChefHat, Clock, Truck, Store, User, Check, MessageSquare, Plus, Package, HelpCircle, Ban } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TimeAgo from 'react-timeago';
-// @ts-ignore
 import ptBrStrings from 'react-timeago/lib/language-strings/pt-br';
-// @ts-ignore
 import buildFormatter from 'react-timeago/lib/formatters/buildFormatter';
 import SubscriptionGuard from '@/app/components/guards/SubscriptionGuard';
 
 const formatter = buildFormatter(ptBrStrings);
 
-
-// --- COMPONENTE PRINCIPAL DA PÁGINA ---
 export default function KitchenPage() {
     const { orders, isLoading: isLoadingOrders, updateOrderStatus } = useOrders();
     const { menuItems, isLoading: isLoadingMenu } = useMenu();
@@ -81,6 +77,20 @@ const KitchenOrderCard = ({ order, onUpdateStatus, menuItems }: { order: Order; 
         nextAction = { text: 'Pronto para Retirada', onClick: () => onUpdateStatus(order.id, 'Ready for Pickup'), color: 'bg-purple-500 hover:bg-purple-600', icon: Store }
     }
 
+    // Função segura para obter a data
+    const getOrderDate = () => {
+        try {
+            if (order.createdAt && typeof order.createdAt.toDate === 'function') {
+                return order.createdAt.toDate();
+            }
+            // Fallback para timestamp atual se não conseguir converter
+            return new Date();
+        } catch (error) {
+            console.error('Erro ao converter data do pedido:', error);
+            return new Date();
+        }
+    };
+
     return (
         <motion.div layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-xl shadow-md border border-slate-200 p-4 flex flex-col h-full">
             <div className="flex justify-between items-start">
@@ -89,7 +99,7 @@ const KitchenOrderCard = ({ order, onUpdateStatus, menuItems }: { order: Order; 
                 </p>
                 <p className="text-xs text-slate-500 flex items-center gap-1">
                     <Clock className="w-3 h-3"/>
-                    <TimeAgo date={order.createdAt.toDate()} formatter={formatter} />
+                    <TimeAgo date={getOrderDate()} formatter={formatter} />
                 </p>
             </div>
             {order.source === 'waiter' && <div className="mt-1 text-xs font-semibold text-slate-500 flex items-center gap-1.5"><User className="w-3 h-3" /> Pedido do Garçom</div>}

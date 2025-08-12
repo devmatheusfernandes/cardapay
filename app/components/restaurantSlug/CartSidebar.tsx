@@ -113,7 +113,6 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                   <div className="space-y-4">
                     {cartItems.map(item => (
                       <motion.div 
-                        // ATENÇÃO: Chave atualizada para cartItemId
                         key={item.cartItemId}
                         layout
                         initial={{ opacity: 0, y: 20 }}
@@ -129,7 +128,6 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                         <div className="flex-grow">
                           <p className="font-semibold text-gray-900">{item.name}</p>
                           
-                          {/* ATENÇÃO: Exibindo as opções selecionadas */}
                           <div className="text-xs text-gray-500 mt-1 space-y-0.5">
                             {item.options.size && <span>{item.options.size.name}</span>}
                             {item.options.addons && item.options.addons.map(addon => (

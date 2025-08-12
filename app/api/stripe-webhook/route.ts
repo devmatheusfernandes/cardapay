@@ -14,7 +14,31 @@ interface ReconstructedCartItem {
     size?: string;
     addons?: string[];
     stuffedCrust?: string;
+    notes?: string;
   };
+}
+
+// Função auxiliar para remover valores undefined recursivamente
+function removeUndefined(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefined(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = removeUndefined(value);
+      }
+    }
+    return cleaned;
+  }
+  
+  return obj;
 }
 
 export async function POST(req: NextRequest) {
@@ -98,7 +122,6 @@ export async function POST(req: NextRequest) {
   return new NextResponse(null, { status: 200 });
 }
 
-// Existing order payment handler
 async function handleOrderPayment(session: Stripe.Checkout.Session) {
   const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
     session.id,
@@ -117,13 +140,11 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
   // 1. RECONSTRUIR O CARRINHO A PARTIR DOS METADADOS
   let reconstructedCartJson = "";
   if (metadata.cartItems_chunks) {
-    // Se o carrinho foi dividido em pedaços (chunks)
     const totalChunks = parseInt(metadata.cartItems_chunks, 10);
     for (let i = 0; i < totalChunks; i++) {
       reconstructedCartJson += metadata[`cartItems_${i}`];
     }
   } else if (metadata.cartItems) {
-    // Se o carrinho coube em um único campo
     reconstructedCartJson = metadata.cartItems;
   }
 
@@ -136,19 +157,27 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
   // 2. USAR O CARRINHO RECONSTRUÍDO PARA MONTAR OS ITENS DO PEDIDO
   const orderItems = lineItems.map((lineItem, index) => {
     const product = lineItem.price?.product as Stripe.Product;
-    const cartItem = reconstructedCart[index]; // Pega o item correspondente do nosso carrinho
+    const cartItem = reconstructedCart[index];
 
     if (!cartItem) {
         throw new Error(`Mismatch between line items and cart metadata at index ${index}.`);
     }
 
-    return {
+    // Construir o item com valores limpos (sem undefined)
+    const item: any = {
       productId: cartItem.pid,
       name: product.name,
       quantity: cartItem.qty,
-      price: cartItem.price, // Usamos o preço final que já calculamos
-      options: cartItem.opts || {}, // Salva as opções customizadas (addons, etc.)
+      price: cartItem.price,
+      options: cartItem.opts || {}
     };
+
+    // Só adicionar notes se existir e não for undefined/null
+    if (cartItem?.opts?.notes && cartItem.opts.notes.trim() !== '') {
+      item.notes = cartItem.opts.notes;
+    }
+
+    return item;
   });
   
   const isDelivery = metadata.isDelivery === "true";
@@ -157,9 +186,10 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     ? Math.floor(1000 + Math.random() * 9000).toString()
     : undefined;
 
+  // Construir orderData e limpar undefined values
   const orderData = {
     restaurantId: metadata.restaurantId,
-    items: orderItems, // Usa a nova lista de itens com as opções
+    items: orderItems,
     totalAmount: (session.amount_total || 0) / 100,
     status: "Pending" as const,
     createdAt: Timestamp.now(),
@@ -168,14 +198,22 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     ...(confirmationCode && { confirmationCode }),
   };
 
-  await adminDb.collection("orders").doc(session.id).set(orderData);
-  
-  const orderType = isDelivery ? "delivery" : "pickup";
-  console.log(
-    `✅ ${orderType} order ${session.id} created successfully${
-      confirmationCode ? ` with confirmation code: ${confirmationCode}` : ""
-    }.`
-  );
+  // Remove todos os valores undefined antes de salvar
+  const cleanOrderData = removeUndefined(orderData);
+
+  try {
+    await adminDb.collection("orders").doc(session.id).set(cleanOrderData);
+    
+    const orderType = isDelivery ? "delivery" : "pickup";
+    console.log(
+      `✅ ${orderType} order ${session.id} created successfully${
+        confirmationCode ? ` with confirmation code: ${confirmationCode}` : ""
+      }.`
+    );
+  } catch (error) {
+    console.error("Error saving order to database:", error);
+    throw new Error(`Failed to save order: ${error}`);
+  }
 }
 
 // Handle subscription checkout completion
@@ -372,4 +410,25 @@ async function handleSubscriptionPaymentFailed(invoice: Stripe.Invoice) {
       subscriptionId || "unknown"
     }`
   );
+}
+
+// Adicione essa função para salvar pagamentos que falharam
+async function saveFailedPayment(session: Stripe.Checkout.Session, error: any) {
+  try {
+    const failedPaymentData = {
+      sessionId: session.id,
+      paymentIntentId: session.payment_intent,
+      amountTotal: session.amount_total,
+      metadata: session.metadata,
+      error: error.message,
+      status: 'payment_succeeded_order_failed',
+      createdAt: Timestamp.now(),
+      needsManualProcessing: true
+    };
+
+    await adminDb.collection("failed_payments").doc(session.id).set(failedPaymentData);
+    console.log(`💾 Failed payment saved for manual processing: ${session.id}`);
+  } catch (fallbackError) {
+    console.error("CRITICAL: Could not save failed payment data:", fallbackError);
+  }
 }

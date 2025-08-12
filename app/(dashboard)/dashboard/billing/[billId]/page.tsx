@@ -1,4 +1,3 @@
-// app/dashboard/billing/[billId]/page.tsx
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -6,18 +5,21 @@ import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Order, OrderItem } from '@/lib/hooks/useOrders';
+import { useTablePaymentStatus } from '@/lib/hooks/useTablePaymentStatus';
 import { LoaderCircle, CheckCircle, Users, User, ChevronLeft, Divide, List, UserCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-// This is the new, interactive payment terminal component
 const PaymentTerminal = ({ bill }: { bill: Order }) => {
-    // State to manage the current view (total, separated, or split)
     const [view, setView] = useState<'together' | 'separated' | 'split'>(bill.paymentMethod || 'together');
     const [splitBy, setSplitBy] = useState(2);
+    const { confirmAndUpdateBill } = useTablePaymentStatus();
+    const router = useRouter();
+    const params = useParams();
+    const billId = params.billId as string;
 
-    // This calculation groups all items by the person (seat) who ordered them.
     const seatsData = useMemo(() => {
         const seatsMap: Record<number, { items: OrderItem[], total: number }> = {};
-        bill.items.forEach(item => {
+        (bill.items || []).forEach(item => {
             const seatId = item.seat || 0;
             if (!seatsMap[seatId]) seatsMap[seatId] = { items: [], total: 0 };
             seatsMap[seatId].items.push(item);
@@ -26,9 +28,19 @@ const PaymentTerminal = ({ bill }: { bill: Order }) => {
         return Object.entries(seatsMap).map(([seatId, data]) => ({ seatId: parseInt(seatId, 10), ...data }));
     }, [bill]);
 
+    const handleFinalizePayment = async () => {
+        if (bill.tableId && billId) {
+            const success = await confirmAndUpdateBill(billId, bill.tableId);
+            if (success) {
+                router.push('/dashboard/waiter'); 
+            }
+        } else {
+            toast.error("ID da mesa ou da conta não encontrado, não é possível finalizar.");
+        }
+    };
+
     const renderContent = () => {
         switch (view) {
-            // Case 1: Show the bill separated by person
             case 'separated':
                 return (
                     <div className="space-y-4">
@@ -36,7 +48,7 @@ const PaymentTerminal = ({ bill }: { bill: Order }) => {
                             <div key={seatId} className="p-4 rounded-lg border bg-slate-50">
                                 <h3 className="font-bold text-lg text-slate-800 mb-2 flex items-center gap-2"><UserCheck className="w-5 h-5 text-indigo-600"/> Conta - Pessoa {seatId}</h3>
                                 <div className="space-y-2 border-t pt-3 mt-2">
-                                    {items.map((item, index) => (
+                                    {(items || []).map((item, index) => (
                                         <div key={index} className="flex justify-between text-sm"><span className="text-slate-600">{item.quantity}x {item.name}</span><span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span></div>
                                     ))}
                                 </div>
@@ -45,58 +57,70 @@ const PaymentTerminal = ({ bill }: { bill: Order }) => {
                         ))}
                     </div>
                 );
-            // Case 2: Allow splitting the total amount evenly
             case 'split':
                  return (
-                    <div className="space-y-4 text-center p-4">
-                        <div>
-                            <label htmlFor="split-by" className="block text-sm font-medium text-gray-700">Dividir o valor total por:</label>
-                            <input
-                                type="number"
-                                id="split-by"
-                                value={splitBy}
-                                onChange={(e) => setSplitBy(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="mt-2 text-center text-lg font-semibold w-24 mx-auto block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            />
-                        </div>
-                        <div className="bg-indigo-50 p-4 rounded-lg">
+                     <div className="space-y-4 text-center p-4">
+                         <div>
+                             <label htmlFor="split-by" className="block text-sm font-medium text-gray-700">Dividir o valor total por:</label>
+                             <input
+                                 type="number"
+                                 id="split-by"
+                                 value={splitBy}
+                                 onChange={(e) => setSplitBy(Math.max(1, parseInt(e.target.value) || 1))}
+                                 className="mt-2 text-center text-lg font-semibold w-24 mx-auto block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                             />
+                         </div>
+                         <div className="bg-indigo-50 p-4 rounded-lg">
                             <p className="text-sm text-indigo-800">Valor por pessoa</p>
-                            <p className="text-4xl font-bold text-indigo-600">${(bill.totalAmount / splitBy).toFixed(2)}</p>
-                        </div>
-                    </div>
-                );
-            // Default Case: Show the single, total bill
+                             <p className="text-4xl font-bold text-indigo-600">${(bill.totalAmount / splitBy).toFixed(2)}</p>
+                         </div>
+                     </div>
+                 );
             case 'together':
             default:
                 return (
                     <div>
                         <div className="space-y-2 border-t border-b py-4">
-                            {bill.items.map((item, index) => (
+                            {(bill.items || []).map((item, index) => (
                                 <div key={index} className="flex justify-between"><span className="text-slate-600">{item.quantity}x {item.name} (P{item.seat})</span><span className="font-semibold">${(item.price * item.quantity).toFixed(2)}</span></div>
                             ))}
                         </div>
                     </div>
                 );
-        }
+    }
     };
 
     return (
         <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-            {/* View Toggle Buttons */}
             <div className="flex justify-center gap-2 bg-slate-100 p-1 rounded-lg mb-6">
                 <button onClick={() => setView('together')} className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${view === 'together' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}><List className="w-5 h-5"/> Conta Total</button>
                 <button onClick={() => setView('separated')} className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${view === 'separated' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}><User className="w-5 h-5"/> Por Pessoa</button>
                 <button onClick={() => setView('split')} className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${view === 'split' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}><Divide className="w-5 h-5"/> Dividir Valor</button>
             </div>
 
-            {/* Render the selected view */}
             {renderContent()}
 
-            {/* Always show the final total */}
             <div className="mt-6 pt-6 border-t-2 border-dashed flex justify-between items-center">
                 <span className="text-xl font-bold">Total da Mesa</span>
                 <span className="text-3xl font-bold text-slate-800">${bill.totalAmount.toFixed(2)}</span>
             </div>
+
+            {/* LÓGICA DO BOTÃO ATUALIZADA */}
+            {bill.status !== 'Completed' ? (
+                <div className="mt-8">
+                    <button
+                        onClick={handleFinalizePayment}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-lg flex items-center justify-center gap-2 transition-transform transform hover:scale-105"
+                    >
+                        <CheckCircle className="w-6 h-6" />
+                        Finalizar e Liberar Mesa
+                    </button>
+                </div>
+            ) : (
+                <div className="mt-8 text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="font-semibold text-green-700">✅ Esta conta já foi paga e finalizada.</p>
+                </div>
+            )}
         </div>
     );
 };
@@ -115,7 +139,7 @@ export default function BillingPage() {
         const docRef = doc(db, 'bills', billId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setBill(docSnap.data() as Order);
+          setBill({ id: docSnap.id, ...docSnap.data() } as Order);
         }
         setIsLoading(false);
       };
@@ -134,10 +158,10 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
-        <button onClick={() => router.push('/dashboard/billing')} className="absolute top-4 left-4 flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-semibold">
+    <div className="bg-slate-50  p-4 sm:p-6 lg:p-8">
+        <button onClick={() => router.push('/dashboard/billing')} className="relative top-4 left-4 flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-semibold">
             <ChevronLeft />
-            Voltar para Histórico
+            Histórico
         </button>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">

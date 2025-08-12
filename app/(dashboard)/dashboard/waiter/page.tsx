@@ -1,10 +1,9 @@
-// app/dashboard/waiter/page.tsx - VERSÃO SIMPLIFICADA APENAS COM FIREBASE
+// app/dashboard/waiter/page.tsx - VERSÃO ATUALIZADA COM useTableStatus
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAllTables } from '@/lib/hooks/useAllTables';
-import { useOrders } from '@/lib/hooks/useOrders';
+import { useTableStatus } from '@/lib/hooks/useTableStatus';
 import { Square, Users, PlusCircle, Activity, ChefHat, Clock, CheckCircle, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SubscriptionGuard from '@/app/components/guards/SubscriptionGuard';
@@ -30,93 +29,37 @@ export default function WaiterPage() {
   const [physicalTables, setPhysicalTables] = useState(Array.from({ length: 12 }, (_, i) => ({ id: i + 1 })));
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Estado para notificações de pedidos prontos
-  const [readyToServeNotifications, setReadyToServeNotifications] = useState<string[]>([]);
+  // Estado para notificações que já foram visualizadas
+  const [dismissedNotifications, setDismissedNotifications] = useState<string[]>([]);
 
-  // Hooks para obter o estado dinâmico - APENAS FIREBASE
-  const { tables: firebaseTables, isLoading } = useAllTables();
-  const { orders } = useOrders();
+  // Novo hook para status das mesas
+  const physicalTableIds = useMemo(() => physicalTables.map(t => t.id), [physicalTables]);
+  const { 
+    tablesWithStatus, 
+    isLoading, 
+    statusCounts, 
+    tablesWithNotifications 
+  } = useTableStatus(physicalTableIds);
 
-  // Monitorar pedidos "Ready to Serve" para notificações
-  useEffect(() => {
-    const readyToServeOrders = orders.filter(o => 
-      o.status === 'Ready to Serve' && 
-      o.source === 'waiter' && 
-      o.tableId
+  // Filtrar notificações que ainda não foram dispensadas
+  const activeNotifications = useMemo(() => {
+    return tablesWithNotifications.filter(tableId => 
+      !dismissedNotifications.includes(tableId)
     );
+  }, [tablesWithNotifications, dismissedNotifications]);
 
-    // Adicionar notificações para pedidos prontos
-    const newNotifications = readyToServeOrders
-      .map(order => order.tableId!.toString())
-      .filter(tableId => !readyToServeNotifications.includes(tableId));
-    
-    if (newNotifications.length > 0) {
-      setReadyToServeNotifications(prev => [...prev, ...newNotifications]);
-    }
-
-    console.log('🔥 Estado atual das mesas do Firebase:', firebaseTables);
-    console.log('📋 Pedidos Ready to Serve:', readyToServeOrders.map(o => `Mesa ${o.tableId}`));
-    
-  }, [orders, readyToServeNotifications, firebaseTables]);
-
-  // Calcula o status de cada mesa baseado apenas no Firebase
-  const tablesWithStatus = useMemo(() => {
-    const pendingOrdersByTable = orders
-      .filter(o => o.status === 'In Progress' && o.source === 'waiter')
-      .reduce((acc, order) => {
-        if(order.tableId) acc[order.tableId.toString()] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
-
-    const readyToServeOrdersByTable = orders
-      .filter(o => o.status === 'Ready to Serve' && o.source === 'waiter')
-      .reduce((acc, order) => {
-        if(order.tableId) acc[order.tableId.toString()] = true;
-        return acc;
-      }, {} as Record<string, boolean>);
-
-    return physicalTables.map(table => {
-      const tableId = table.id.toString();
-      const tableState = firebaseTables[tableId];
-      let status = 'free';
-
-      // PRIORIDADE 1: Verificar se há pedidos prontos para servir
-      if (readyToServeOrdersByTable[tableId]) {
-        status = 'ready-to-serve';
-      }
-      // PRIORIDADE 2: Verificar se há pedidos não enviados (baseado no Firebase)
-      else if (tableState?.seats?.some(seat => 
-        seat.items?.some(item => !item.submitted)
-      )) {
-        status = 'unsent';
-      }
-      // PRIORIDADE 3: Verificar se há pedidos na cozinha
-      else if (pendingOrdersByTable[tableId]) {
-        status = 'pending';
-      }
-      // PRIORIDADE 4: Verificar se há itens na mesa (baseado no Firebase)
-      else if (tableState?.seats?.some(seat => seat.items && seat.items.length > 0)) {
-        status = 'active';
-      }
-
-      console.log(`🔍 Mesa ${table.id}:`, {
-        status,
-        tableState,
-        hasReadyOrders: readyToServeOrdersByTable[tableId],
-        hasPendingOrders: pendingOrdersByTable[tableId],
-        hasUnsentItems: tableState?.seats?.some(seat => seat.items?.some(item => !item.submitted)),
-        hasActiveItems: tableState?.seats?.some(seat => seat.items && seat.items.length > 0)
-      });
-
-      return { ...table, status };
-    });
-  }, [physicalTables, firebaseTables, orders]);
+  // Debug logs
+  useEffect(() => {
+    console.log('🔥 Status atual das mesas:', tablesWithStatus);
+    console.log('📊 Contadores de status:', statusCounts);
+    console.log('🔔 Mesas com notificações:', tablesWithNotifications);
+  }, [tablesWithStatus, statusCounts, tablesWithNotifications]);
 
   const handleSelectTable = (tableId: number) => {
-    // Remover notificação ao acessar a mesa
+    // Marcar notificação como dispensada ao acessar a mesa
     const tableIdStr = tableId.toString();
-    if (readyToServeNotifications.includes(tableIdStr)) {
-      setReadyToServeNotifications(prev => prev.filter(id => id !== tableIdStr));
+    if (tablesWithNotifications.includes(tableIdStr)) {
+      setDismissedNotifications(prev => [...prev, tableIdStr]);
     }
     
     router.push(`/dashboard/waiter/${tableId}`);
@@ -125,8 +68,10 @@ export default function WaiterPage() {
   const handleAddTable = (tableId: number) => {
     setPhysicalTables(prev => [...prev, { id: tableId }].sort((a,b) => a.id - b.id));
   };
-  
-  const existingTableIds = useMemo(() => physicalTables.map(t => t.id), [physicalTables]);
+
+  const handleDismissNotification = (tableId: string) => {
+    setDismissedNotifications(prev => [...prev, tableId]);
+  };
 
   if (isLoading) {
     return (
@@ -157,39 +102,62 @@ export default function WaiterPage() {
             </button>
           </div>
 
+          {/* Resumo de Status */}
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-slate-100 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-slate-600">{statusCounts.free}</div>
+              <div className="text-sm text-slate-500">Livres</div>
+            </div>
+            <div className="bg-green-100 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-green-600">{statusCounts.active}</div>
+              <div className="text-sm text-green-500">Ativas</div>
+            </div>
+            <div className="bg-red-100 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-red-600">{statusCounts.unsent}</div>
+              <div className="text-sm text-red-500">Não Enviados</div>
+            </div>
+            <div className="bg-indigo-100 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-indigo-600">{statusCounts.pending}</div>
+              <div className="text-sm text-indigo-500">Na Cozinha</div>
+            </div>
+            <div className="bg-yellow-100 p-3 rounded-lg text-center">
+              <div className="text-2xl font-bold text-yellow-600">{statusCounts['ready-to-serve']}</div>
+              <div className="text-sm text-yellow-500">Prontos</div>
+            </div>
+          </div>
+
           {/* Notificações de pedidos prontos */}
-          {readyToServeNotifications.length > 0 && (
+          {activeNotifications.length > 0 && (
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4"
             >
-              <div className="flex items-start gap-3">
-                <Bell className="w-5 h-5 text-yellow-600 mt-0.5 animate-bounce" />
-                <div>
-                  <h3 className="font-semibold text-yellow-800">Pedidos Prontos para Servir!</h3>
-                  <p className="text-yellow-700 text-sm mt-1">
-                    {readyToServeNotifications.length === 1 
-                      ? `Mesa ${readyToServeNotifications[0]} tem pedidos prontos`
-                      : `Mesas ${readyToServeNotifications.join(', ')} têm pedidos prontos`
-                    }
-                  </p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <Bell className="w-5 h-5 text-yellow-600 mt-0.5 animate-bounce" />
+                  <div>
+                    <h3 className="font-semibold text-yellow-800">Pedidos Prontos para Servir!</h3>
+                    <p className="text-yellow-700 text-sm mt-1">
+                      {activeNotifications.length === 1 
+                        ? `Mesa ${activeNotifications[0]} tem pedidos prontos`
+                        : `Mesas ${activeNotifications.join(', ')} têm pedidos prontos`
+                      }
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => {
+                    activeNotifications.forEach(tableId => 
+                      handleDismissNotification(tableId)
+                    );
+                  }}
+                  className="text-yellow-600 hover:text-yellow-800 text-sm font-medium"
+                >
+                  Dispensar
+                </button>
               </div>
             </motion.div>
-          )}
-
-          {/* Status de conexão Firebase */}
-          <div className="mb-4 text-xs text-slate-500 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            Conectado ao Firebase • {Object.keys(firebaseTables).length} mesas com dados
-          </div>
-
-          {/* Debug info - remover em produção */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mb-4 p-2 bg-slate-100 rounded text-xs">
-              <strong>Debug Firebase Tables:</strong> {JSON.stringify(Object.keys(firebaseTables))}
-            </div>
           )}
 
           {/* Legenda dos status */}
@@ -250,9 +218,9 @@ export default function WaiterPage() {
                   bgColor: 'bg-yellow-50 hover:bg-yellow-100'
                 }
               };
-              const currentStyle = statusStyles[table.status as keyof typeof statusStyles];
+              const currentStyle = statusStyles[table.status];
 
-              const hasNotification = readyToServeNotifications.includes(table.id.toString());
+              const hasActiveNotification = activeNotifications.includes(table.id.toString());
 
               return (
                 <motion.button
@@ -261,19 +229,41 @@ export default function WaiterPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSelectTable(table.id)}
-                  className={`relative aspect-square rounded-xl shadow-sm border-2 flex flex-col items-center justify-center p-4 transition-colors ${currentStyle.borderColor} ${currentStyle.bgColor} ${hasNotification ? 'animate-pulse' : ''}`}
+                  className={`relative aspect-square rounded-xl shadow-sm border-2 flex flex-col items-center justify-center p-4 transition-colors ${currentStyle.borderColor} ${currentStyle.bgColor} ${hasActiveNotification ? 'animate-pulse' : ''}`}
                 >
-                  {table.status === 'active' && <Tag icon={Activity} text="Ativa" color="bg-green-500" />}
-                  {table.status === 'pending' && <Tag icon={ChefHat} text="Cozinha" color="bg-indigo-500" />}
-                  {table.status === 'unsent' && <Tag icon={Clock} text="Não Enviados" color="bg-red-500" />}
-                  {table.status === 'ready-to-serve' && <Tag icon={CheckCircle} text="Pronto!" color="bg-yellow-500" />}
+                  {/* Tags de status */}
+                  {table.status === 'active' && (
+                    <Tag icon={Activity} text="Ativa" color="bg-green-500" />
+                  )}
+                  {table.status === 'pending' && (
+                    <Tag icon={ChefHat} text="Cozinha" color="bg-indigo-500" />
+                  )}
+                  {table.status === 'unsent' && (
+                    <Tag 
+                      icon={Clock} 
+                      text={`${table.unsentItemsCount} Não Enviados`} 
+                      color="bg-red-500" 
+                    />
+                  )}
+                  {table.status === 'ready-to-serve' && (
+                    <Tag icon={CheckCircle} text="Pronto!" color="bg-yellow-500" />
+                  )}
                   
-                  {hasNotification && (
+                  {/* Indicador de notificação ativa */}
+                  {hasActiveNotification && (
                     <div className="absolute top-1 left-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
                   )}
                   
                   <Square className={`w-12 h-12 ${currentStyle.iconColor}`} />
                   <p className="mt-2 text-xl font-bold text-slate-700">Mesa {table.id}</p>
+                  
+                  {/* Informações adicionais para debug */}
+                  {(table.activeOrdersCount > 0 || table.unsentItemsCount > 0) && (
+                    <div className="absolute bottom-1 right-1 text-xs text-slate-500 bg-white/80 px-1 rounded">
+                      {table.unsentItemsCount > 0 && `${table.unsentItemsCount}📝`}
+                      {table.activeOrdersCount > 0 && ` ${table.activeOrdersCount}🍽️`}
+                    </div>
+                  )}
                 </motion.button>
               );
             })}
@@ -284,7 +274,7 @@ export default function WaiterPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddTable={handleAddTable}
-        existingTableIds={existingTableIds}
+        existingTableIds={physicalTableIds}
       />
     </>
   );

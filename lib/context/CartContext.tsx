@@ -96,7 +96,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const addItem = useCallback((itemToAdd: ItemToAdd) => {
-        console.log("ADICIONANDO ITEM:", JSON.stringify(itemToAdd, null, 2));
+    console.log("ADICIONANDO ITEM:", JSON.stringify(itemToAdd, null, 2));
 
     let finalPrice = itemToAdd.basePrice;
     if (itemToAdd.options.size) {
@@ -117,7 +117,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       imageUrl: itemToAdd.imageUrl,
       basePrice: itemToAdd.basePrice,
       finalPrice,
-      options: itemToAdd.options, // Salva todas as opções, incluindo removableIngredients
+      options: itemToAdd.options, 
     };
 
     setCartItems(prevItems => [...prevItems, newCartItem]);

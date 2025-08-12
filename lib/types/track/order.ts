@@ -1,0 +1,40 @@
+// src/types/order.ts
+
+import { Timestamp } from "firebase/firestore";
+
+export interface OrderItemOption {
+  size?: string;
+  addons?: string[];
+  stuffedCrust?: string;
+  notes?: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  options: OrderItemOption;
+}
+
+export interface Order {
+  id: string;
+  status:
+    | "Pending"
+    | "Confirmed"
+    | "In Progress"
+    | "Ready for Delivery"
+    | "Ready for Pickup"
+    | "Out for Delivery"
+    | "Completed"
+    | "Returned"
+    | "Canceled";
+  createdAt: Timestamp;
+  isDelivery: boolean;
+  restaurantId: string;
+  deliveryAddress?: string;
+  confirmationCode?: string;
+  isReviewed?: boolean;
+  items: OrderItem[];
+  totalAmount: number;
+}

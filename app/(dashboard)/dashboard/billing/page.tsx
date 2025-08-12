@@ -1,4 +1,3 @@
-// app/dashboard/billing/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -53,8 +52,9 @@ export default function BillingHistoryPage() {
                   className="w-full flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-left"
                 >
                   <div className="flex items-center gap-4">
-                     <div className="p-3 bg-indigo-100 rounded-lg">
-                        <FileText className="w-5 h-5 text-indigo-600"/>
+                     {/* LÓGICA DE COR ATUALIZADA */}
+                     <div className={`p-3 rounded-lg ${bill.status === 'Completed' ? 'bg-green-100' : 'bg-indigo-100'}`}>
+                        <FileText className={`w-5 h-5 ${bill.status === 'Completed' ? 'text-green-600' : 'text-indigo-600'}`}/>
                      </div>
                      <div>
                         <p className="font-bold text-slate-800">Mesa {bill.tableId}</p>
@@ -64,7 +64,10 @@ export default function BillingHistoryPage() {
                      </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="font-bold text-lg text-indigo-600">${bill.totalAmount.toFixed(2)}</span>
+                      {/* LÓGICA DE COR ATUALIZADA */}
+                    <span className={`font-bold text-lg ${bill.status === 'Completed' ? 'text-green-600' : 'text-indigo-600'}`}>
+                        ${bill.totalAmount.toFixed(2)}
+                      </span>
                     <ChevronRight className="w-5 h-5 text-slate-400" />
                   </div>
                 </motion.button>

@@ -42,18 +42,29 @@ export default function OrderListItem({ orderId }: OrderListItemProps) {
   useEffect(() => {
     const orderRef = doc(db, 'orders', orderId);
     const unsubscribeOrder = onSnapshot(orderRef, async (orderDoc) => {
-      if (orderDoc.exists()) {
-        const orderData = orderDoc.data() as OrderData;
-        setOrder(orderData);
+  if (orderDoc.exists()) {
+    const orderData = orderDoc.data(); // Pega os dados brutos
 
-        const restaurantRef = doc(db, 'restaurants', orderData.restaurantId);
-        const restaurantDoc = await getDoc(restaurantRef);
-        if (restaurantDoc.exists()) {
-          setRestaurant(restaurantDoc.data() as RestaurantData);
-        }
-      }
-      setIsLoading(false);
-    });
+    // Verifica se createdAt precisa ser convertido e o converte
+    if (orderData.createdAt && typeof orderData.createdAt._seconds === 'number') {
+      orderData.createdAt = new Timestamp(
+        orderData.createdAt._seconds,
+        orderData.createdAt._nanoseconds
+      );
+    }
+    
+    // Agora, orderData.createdAt é um objeto Timestamp garantido
+    setOrder(orderData as OrderData);
+
+    // O resto do código continua igual
+    const restaurantRef = doc(db, 'restaurants', orderData.restaurantId);
+    const restaurantDoc = await getDoc(restaurantRef);
+    if (restaurantDoc.exists()) {
+      setRestaurant(restaurantDoc.data() as RestaurantData);
+    }
+  }
+  setIsLoading(false);
+});
 
     return () => unsubscribeOrder();
   }, [orderId]);

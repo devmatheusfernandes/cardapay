@@ -12,7 +12,7 @@ import { MenuSection } from '@/app/components/restaurantSlug/MenuSection';
 import { CartSidebar } from '@/app/components/restaurantSlug/CartSidebar';
 import { RestaurantFooter } from '@/app/components/restaurantSlug/Footer';
 import { MenuItem, Restaurant } from '@/lib/types/restaurantSlug/types';
-import { ItemOptionsModal } from '../components/restaurantSlug/ItemsOptionsModal';
+import { ItemOptionsModal } from '@/app/components/restaurantSlug/ItemsOptionsModal';
 
 interface MenuClientPageProps {
   restaurant: Restaurant;

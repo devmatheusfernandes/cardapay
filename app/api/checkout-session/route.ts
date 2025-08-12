@@ -50,8 +50,6 @@ export async function POST(req: NextRequest) {
     const referer = req.headers.get('referer');
     const restaurantSlug = referer ? new URL(referer).pathname : '/';
 
-    // --- ATENÇÃO: LÓGICA DE METADADOS ATUALIZADA ---
-
     // 1. Criar uma versão "enxuta" do carrinho para economizar espaço nos metadados
     const leanCartForMetadata = cartItems.map(item => ({
       pid: item.productId,
@@ -61,6 +59,7 @@ export async function POST(req: NextRequest) {
         size: item.options.size?.id,
         addons: item.options.addons?.map(a => a.id),
         stuffedCrust: item.options.stuffedCrust?.id,
+        notes: item.options.notes || undefined,
       }
     }));
 
@@ -108,7 +107,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Erro ao criar a sessão Stripe:', error);
-    // Retorna uma mensagem de erro mais clara para o cliente
     const errorMessage = error.message.includes("carrinho é muito grande") 
       ? error.message 
       : 'Erro ao criar a sessão de checkout';
