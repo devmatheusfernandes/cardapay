@@ -123,85 +123,93 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleOrderPayment(session: Stripe.Checkout.Session) {
-  const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
-    session.id,
-    {
-      expand: ["line_items.data.price.product"],
-    }
-  );
+  try {
+    const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
+      session.id,
+      {
+        expand: ["line_items.data.price.product"],
+      }
+    );
 
-  const lineItems = sessionWithLineItems.line_items?.data;
-  const metadata = session.metadata;
+    const lineItems = sessionWithLineItems.line_items?.data;
+    const metadata = session.metadata;
 
-  if (!lineItems || !metadata?.restaurantId) {
-    throw new Error("Required session data not found.");
-  }
-
-  // 1. RECONSTRUIR O CARRINHO A PARTIR DOS METADADOS
-  let reconstructedCartJson = "";
-  if (metadata.cartItems_chunks) {
-    const totalChunks = parseInt(metadata.cartItems_chunks, 10);
-    for (let i = 0; i < totalChunks; i++) {
-      reconstructedCartJson += metadata[`cartItems_${i}`];
-    }
-  } else if (metadata.cartItems) {
-    reconstructedCartJson = metadata.cartItems;
-  }
-
-  if (!reconstructedCartJson) {
-    throw new Error("Cart items not found in session metadata.");
-  }
-  
-  const reconstructedCart: ReconstructedCartItem[] = JSON.parse(reconstructedCartJson);
-
-  // 2. USAR O CARRINHO RECONSTRUÍDO PARA MONTAR OS ITENS DO PEDIDO
-  const orderItems = lineItems.map((lineItem, index) => {
-    const product = lineItem.price?.product as Stripe.Product;
-    const cartItem = reconstructedCart[index];
-
-    if (!cartItem) {
-        throw new Error(`Mismatch between line items and cart metadata at index ${index}.`);
+    if (!lineItems || !metadata?.restaurantId) {
+      throw new Error("Required session data not found.");
     }
 
-    // Construir o item com valores limpos (sem undefined)
-    const item: any = {
-      productId: cartItem.pid,
-      name: product.name,
-      quantity: cartItem.qty,
-      price: cartItem.price,
-      options: cartItem.opts || {}
+    // 1. RECONSTRUIR O CARRINHO A PARTIR DOS METADADOS
+    let reconstructedCartJson = "";
+    if (metadata.cartItems_chunks) {
+      const totalChunks = parseInt(metadata.cartItems_chunks, 10);
+      for (let i = 0; i < totalChunks; i++) {
+        reconstructedCartJson += metadata[`cartItems_${i}`];
+      }
+    } else if (metadata.cartItems) {
+      reconstructedCartJson = metadata.cartItems;
+    }
+
+    if (!reconstructedCartJson) {
+      throw new Error("Cart items not found in session metadata.");
+    }
+    
+    const reconstructedCart: ReconstructedCartItem[] = JSON.parse(reconstructedCartJson);
+
+    // 2. USAR O CARRINHO RECONSTRUÍDO PARA MONTAR OS ITENS DO PEDIDO
+    const orderItems = lineItems.map((lineItem, index) => {
+      const product = lineItem.price?.product as Stripe.Product;
+      const cartItem = reconstructedCart[index];
+
+      if (!cartItem) {
+          throw new Error(`Mismatch between line items and cart metadata at index ${index}.`);
+      }
+
+      // Construir o item com valores limpos (sem undefined)
+      const item: any = {
+        productId: cartItem.pid,
+        name: product.name,
+        quantity: cartItem.qty,
+        price: cartItem.price,
+        options: cartItem.opts || {}
+      };
+
+      // Só adicionar notes se existir e não for undefined/null/vazio
+      if (cartItem?.opts?.notes && 
+          cartItem.opts.notes !== undefined && 
+          cartItem.opts.notes !== null && 
+          cartItem.opts.notes.trim() !== '') {
+        item.notes = cartItem.opts.notes.trim();
+      }
+
+      return item;
+    });
+    
+    const isDelivery = metadata.isDelivery === "true";
+    
+    const confirmationCode = isDelivery
+      ? Math.floor(1000 + Math.random() * 9000).toString()
+      : undefined;
+
+    // Construir orderData
+    const orderData: any = {
+      restaurantId: metadata.restaurantId,
+      items: orderItems,
+      totalAmount: (session.amount_total || 0) / 100,
+      status: "Pending" as const,
+      createdAt: Timestamp.now(),
+      isDelivery,
+      deliveryAddress: isDelivery ? (metadata.deliveryAddress || null) : null
     };
 
-    // Só adicionar notes se existir e não for undefined/null
-    if (cartItem?.opts?.notes && cartItem.opts.notes.trim() !== '') {
-      item.notes = cartItem.opts.notes;
+    // Só adicionar confirmationCode se existir
+    if (confirmationCode) {
+      orderData.confirmationCode = confirmationCode;
     }
 
-    return item;
-  });
-  
-  const isDelivery = metadata.isDelivery === "true";
-  
-  const confirmationCode = isDelivery
-    ? Math.floor(1000 + Math.random() * 9000).toString()
-    : undefined;
+    // Remove todos os valores undefined antes de salvar
+    const cleanOrderData = removeUndefined(orderData);
 
-  // Construir orderData e limpar undefined values
-  const orderData = {
-    restaurantId: metadata.restaurantId,
-    items: orderItems,
-    totalAmount: (session.amount_total || 0) / 100,
-    status: "Pending" as const,
-    createdAt: Timestamp.now(),
-    isDelivery,
-    deliveryAddress: isDelivery ? (metadata.deliveryAddress || null) : null,
-    ...(confirmationCode && { confirmationCode }),
-  };
-
-  // Remove todos os valores undefined antes de salvar
-  const cleanOrderData = removeUndefined(orderData);
-
-  try {
+    // Tentar salvar o pedido
     await adminDb.collection("orders").doc(session.id).set(cleanOrderData);
     
     const orderType = isDelivery ? "delivery" : "pickup";
@@ -210,9 +218,16 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
         confirmationCode ? ` with confirmation code: ${confirmationCode}` : ""
       }.`
     );
-  } catch (error) {
-    console.error("Error saving order to database:", error);
-    throw new Error(`Failed to save order: ${error}`);
+
+  } catch (error: any) {
+    console.error("Error processing order payment:", error);
+    
+    // Salvar o pagamento que falhou para processamento manual
+    await saveFailedPayment(session, error);
+    
+    // Re-lançar o erro para que o webhook retorne 500
+    // Isso fará o Stripe tentar novamente
+    throw error;
   }
 }
 
