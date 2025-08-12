@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
     }));
     
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cardapay.vercel.app/';
     
     const referer = req.headers.get('referer');
     const restaurantSlug = referer ? new URL(referer).pathname : '/';

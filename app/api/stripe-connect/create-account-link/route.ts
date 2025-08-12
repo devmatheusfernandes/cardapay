@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
             await restaurantRef.update({ stripeAccountId: accountId });
         }
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cardapay.vercel.app/';
 
         // 2. Create an account link
         const accountLink = await stripe.accountLinks.create({
