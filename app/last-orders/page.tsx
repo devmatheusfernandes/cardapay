@@ -8,11 +8,14 @@ import OrderListItem from "../components/features/OrderListItem"; // Importando 
 import { motion } from "framer-motion";
 
 const BackButton = () => (
-  <Link href="/track" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
+  <Link
+    href="/track"
+    className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer"
+  >
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
     >
       <ChevronLeft className="w-8 h-8" />
       <span className="text-md font-medium">Voltar</span>
@@ -44,7 +47,7 @@ export default function LastOrdersPage() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full"
+          className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full"
         />
       </div>
     );
@@ -76,7 +79,7 @@ export default function LastOrdersPage() {
               </p>
               <Link
                 href="/"
-                className="mt-6 inline-block text-rose-600 font-semibold hover:underline"
+                className="mt-6 inline-block text-emerald-600 font-semibold hover:underline"
               >
                 Começar a pedir
               </Link>

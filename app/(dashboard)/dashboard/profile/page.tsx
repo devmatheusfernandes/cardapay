@@ -200,7 +200,7 @@ export default function ProfilePage() {
         animate={{ opacity: 1 }}
         className="flex items-center justify-center h-screen"
       >
-        <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
+        <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
       </motion.div>
     );
   }
@@ -220,7 +220,7 @@ export default function ProfilePage() {
             className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4"
           >
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-600">
                 Perfil do Estabelecimento
               </h1>
               <p className="text-sm sm:text-base text-gray-500 mt-2">
@@ -236,7 +236,7 @@ export default function ProfilePage() {
               className={`flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
                 isEditing
                   ? "bg-red-100 text-red-700 hover:bg-red-200"
-                  : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
               }`}
             >
               {isEditing ? (
@@ -270,7 +270,7 @@ export default function ProfilePage() {
                     <div
                       className={`relative w-full h-48 sm:h-64 ${
                         isEditing
-                          ? "border-b-2 border-dashed border-gray-300 hover:border-indigo-500 cursor-pointer"
+                          ? "border-b-2 border-dashed border-gray-300 hover:border-emerald-500 cursor-pointer"
                           : ""
                       } transition-colors group overflow-hidden`}
                       onClick={() =>
@@ -297,7 +297,7 @@ export default function ProfilePage() {
                         <div
                           className={`absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 ${
                             isEditing
-                              ? "text-gray-400 group-hover:text-indigo-500"
+                              ? "text-gray-400 group-hover:text-emerald-500"
                               : "text-gray-300"
                           } transition-colors`}
                         >
@@ -334,12 +334,18 @@ export default function ProfilePage() {
                     {/* Logo */}
                     <div className="flex-shrink-0">
                       <div
-                        className={`relative ${isEditing ? 'w-24 h-24 sm:w-32 sm:h-32' : 'w-20 h-20 sm:w-24 sm:h-24'} rounded-full border-4 border-white shadow-lg ${
+                        className={`relative ${
                           isEditing
-                            ? "border-dashed border-gray-300 hover:border-indigo-500 cursor-pointer"
+                            ? "w-24 h-24 sm:w-32 sm:h-32"
+                            : "w-20 h-20 sm:w-24 sm:h-24"
+                        } rounded-full border-4 border-white shadow-lg ${
+                          isEditing
+                            ? "border-dashed border-gray-300 hover:border-emerald-500 cursor-pointer"
                             : "border-white"
                         } transition-colors group -mt-12 sm:-mt-16`}
-                        onClick={() => isEditing && logoInputRef.current?.click()}
+                        onClick={() =>
+                          isEditing && logoInputRef.current?.click()
+                        }
                       >
                         {logoPreview ? (
                           <>
@@ -358,7 +364,7 @@ export default function ProfilePage() {
                           <div
                             className={`absolute inset-0 flex flex-col items-center justify-center bg-white rounded-full ${
                               isEditing
-                                ? "text-gray-400 group-hover:text-indigo-500"
+                                ? "text-gray-400 group-hover:text-emerald-500"
                                 : "text-gray-300"
                             } transition-colors`}
                           >
@@ -389,7 +395,7 @@ export default function ProfilePage() {
                       {isEditing ? (
                         <>
                           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <Building className="w-5 h-5 text-indigo-600" />
+                            <Building className="w-5 h-5 text-emerald-600" />
                             Informações básicas
                           </h3>
                           <InputField
@@ -412,7 +418,7 @@ export default function ProfilePage() {
                           />
                           <div className="space-y-2">
                             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                              <FileText className="w-4 h-4 text-indigo-600" />
+                              <FileText className="w-4 h-4 text-emerald-600" />
                               Descrição
                             </label>
                             <textarea
@@ -422,7 +428,7 @@ export default function ProfilePage() {
                               onChange={handleChange}
                               rows={4}
                               disabled={!isEditing}
-                              className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-indigo-500 rounded-lg focus:border-transparent transition-colors resize-none bg-white text-slate-600"
+                              className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-emerald-500 rounded-lg focus:border-transparent transition-colors resize-none bg-white text-slate-600"
                             />
                           </div>
                         </>
@@ -454,7 +460,7 @@ export default function ProfilePage() {
                 {isEditing ? (
                   <div className="p-6 sm:p-8">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-indigo-600" />
+                      <Clock className="w-5 h-5 text-emerald-600" />
                       Horário de funcionamento
                     </h3>
                     <div className="grid gap-4">
@@ -483,7 +489,7 @@ export default function ProfilePage() {
                                     e.target.checked
                                   )
                                 }
-                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                               />
                               <span className="text-sm text-gray-600">
                                 Fechado
@@ -508,7 +514,7 @@ export default function ProfilePage() {
                                       e.target.value
                                     )
                                   }
-                                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                 />
                                 <span className="text-gray-500">à</span>
                                 <input
@@ -525,7 +531,7 @@ export default function ProfilePage() {
                                       e.target.value
                                     )
                                   }
-                                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                  className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                 />
                               </div>
                             </div>
@@ -538,14 +544,15 @@ export default function ProfilePage() {
                   /* Compact Working Hours Display */
                   <div className="px-6 sm:px-8 pb-6">
                     <div className="flex items-center gap-2 mb-3">
-                      <Clock className="w-4 h-4 text-indigo-600" />
+                      <Clock className="w-4 h-4 text-emerald-600" />
                       <span className="font-medium text-gray-900 text-sm">
                         Horário de funcionamento
                       </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                       {Object.entries(dayLabels).map(([day, label]) => {
-                        const dayInfo = formData.workingHours![day as keyof WorkingHours];
+                        const dayInfo =
+                          formData.workingHours![day as keyof WorkingHours];
                         return (
                           <div
                             key={day}
@@ -555,7 +562,9 @@ export default function ProfilePage() {
                               {label}
                             </div>
                             {dayInfo.closed ? (
-                              <div className="text-xs text-red-600">Fechado</div>
+                              <div className="text-xs text-red-600">
+                                Fechado
+                              </div>
                             ) : (
                               <div className="text-xs text-gray-600">
                                 <div>{dayInfo.open}</div>
@@ -573,7 +582,7 @@ export default function ProfilePage() {
                 {isEditing ? (
                   <div className="p-6 sm:p-8 space-y-6">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <Globe className="w-5 h-5 text-indigo-600" />
+                      <Globe className="w-5 h-5 text-emerald-600" />
                       Contato & Redes Sociais
                     </h3>
                     <div className="grid sm:grid-cols-2 gap-6">
@@ -631,10 +640,13 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   /* Compact Social Media Display */
-                  formData.socialMedia && Object.keys(formData.socialMedia).some(key => formData.socialMedia![key as keyof SocialMedia]) && (
+                  formData.socialMedia &&
+                  Object.keys(formData.socialMedia).some(
+                    (key) => formData.socialMedia![key as keyof SocialMedia]
+                  ) && (
                     <div className="px-6 sm:px-8 pb-6">
                       <div className="flex items-center gap-2 mb-3">
-                        <Globe className="w-4 h-4 text-indigo-600" />
+                        <Globe className="w-4 h-4 text-emerald-600" />
                         <span className="font-medium text-gray-900 text-sm">
                           Contato & Redes Sociais
                         </span>
@@ -710,7 +722,7 @@ export default function ProfilePage() {
                       whileTap={{ scale: 0.98 }}
                       type="submit"
                       disabled={isActionLoading}
-                      className="w-full sm:w-auto sm:min-w-[200px] flex justify-center items-center gap-2 py-3 px-6 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-colors shadow-lg"
+                      className="w-full sm:w-auto sm:min-w-[200px] flex justify-center items-center gap-2 py-3 px-6 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-purple-600 hover:from-emerald-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-colors shadow-lg"
                     >
                       {isActionLoading ? (
                         <LoaderCircle className="w-5 h-5 animate-spin" />
@@ -757,7 +769,7 @@ export default function ProfilePage() {
 
                   <div className="flex flex-col items-center w-full gap-2">
                     <div className="flex flex-row items-center justify-between w-full p-2 gap-2 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
-                      <span className="text-indigo-600 font-mono text-sm break-all">
+                      <span className="text-emerald-600 font-mono text-sm break-all">
                         {publicUrl}
                       </span>
                       <motion.button
@@ -825,7 +837,7 @@ const StripeConnectSection = ({
           whileTap={{ scale: 0.95 }}
           onClick={handleConnect}
           disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-colors shadow-lg w-full sm:w-auto"
+          className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-gradient-to-r from-emerald-600 to-purple-600 text-white hover:from-emerald-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-colors shadow-lg w-full sm:w-auto"
         >
           {isLoading ? (
             <LoaderCircle className="w-5 h-5 animate-spin" />
@@ -847,7 +859,7 @@ const StripeConnectSection = ({
           whileTap={{ scale: 0.95 }}
           onClick={handleConnect}
           disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-colors shadow-lg w-full sm:w-auto"
+          className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-gradient-to-r from-emerald-500 to-purple-500 text-white hover:from-emerald-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-colors shadow-lg w-full sm:w-auto"
         >
           {isLoading ? (
             <LoaderCircle className="w-5 h-5 animate-spin" />

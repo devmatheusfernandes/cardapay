@@ -20,7 +20,7 @@ export default function MobileMenu({
     { text: "FAQ", href: "#faq" },
     { text: "Contato", href: "#contact" },
   ];
-  
+
   const router = useRouter();
 
   return (
@@ -57,31 +57,31 @@ export default function MobileMenu({
                   key={item.text}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-slate-900 font-bold text-lg hover:text-indigo-600 transition-colors"
+                  className="text-slate-900 font-bold text-lg hover:text-emerald-600 transition-colors"
                 >
                   {item.text}
                 </a>
               ))}
             </nav>
-            
+
             <div className="mt-auto space-y-3 flex flex-col items-center">
               <button
                 onClick={() => {
                   setIsMenuOpen(false);
                   router.push("/sign-in");
                 }}
-                className="w-full px-4 py-2 rounded-lg bg-white text-indigo-500 font-medium hover:bg-indigo-100 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 rounded-lg bg-white text-emerald-500 font-medium hover:bg-emerald-100 flex items-center justify-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Entrar</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setIsMenuOpen(false);
                   router.push("/sign-up");
                 }}
-                className="w-full px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Criar Conta</span>
@@ -92,7 +92,7 @@ export default function MobileMenu({
                   setIsMenuOpen(false);
                   router.push("/track");
                 }}
-                className="w-full px-4 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-700 flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 flex items-center justify-center gap-2"
               >
                 <PackageSearch className="w-4 h-4" />
                 <span>Acompanhar pedido</span>

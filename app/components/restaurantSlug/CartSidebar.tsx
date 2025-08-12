@@ -1,14 +1,25 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useCart } from '@/lib/context/CartContext';
-import { X, Plus, Minus, Trash2, LoaderCircle, Truck, Store, ShoppingCart } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { loadStripe } from '@stripe/stripe-js';
-import { AddressForm } from './AddressForm';
+import { useState } from "react";
+import { useCart } from "@/lib/context/CartContext";
+import {
+  X,
+  Plus,
+  Minus,
+  Trash2,
+  LoaderCircle,
+  Truck,
+  Store,
+  ShoppingCart,
+} from "lucide-react";
+import { toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import { loadStripe } from "@stripe/stripe-js";
+import { AddressForm } from "./AddressForm";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -16,8 +27,21 @@ interface CartSidebarProps {
   restaurantId: string;
 }
 
-export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps) {
-  const { cartItems, updateQuantity, removeItem, cartTotal, clearCart, isDelivery, deliveryAddress, setDeliveryOption } = useCart();
+export function CartSidebar({
+  isOpen,
+  onClose,
+  restaurantId,
+}: CartSidebarProps) {
+  const {
+    cartItems,
+    updateQuantity,
+    removeItem,
+    cartTotal,
+    clearCart,
+    isDelivery,
+    deliveryAddress,
+    setDeliveryOption,
+  } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleCheckout = async () => {
@@ -26,31 +50,31 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
       return;
     }
     setIsCheckingOut(true);
-    const toastId = toast.loading('Preparando seu pedido...');
+    const toastId = toast.loading("Preparando seu pedido...");
 
     try {
-      const response = await fetch('/api/checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          cartItems, 
+      const response = await fetch("/api/checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cartItems,
           restaurantId,
           isDelivery,
-          deliveryAddress
+          deliveryAddress,
         }),
       });
 
       const { sessionId } = await response.json();
       clearCart();
-      if (!response.ok) throw new Error('Falha ao criar a sessão de checkout.');
+      if (!response.ok) throw new Error("Falha ao criar a sessão de checkout.");
 
       const stripe = await stripePromise;
       if (stripe) await stripe.redirectToCheckout({ sessionId });
-      
+
       toast.dismiss(toastId);
     } catch (error) {
       console.error(error);
-      toast.error('Não foi possível ir para o pagamento.', { id: toastId });
+      toast.error("Não foi possível ir para o pagamento.", { id: toastId });
       setIsCheckingOut(false);
     }
   };
@@ -59,47 +83,51 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
             onClick={onClose}
           />
-          
-          <motion.div 
-            initial={{ x: '100%' }}
+
+          <motion.div
+            initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-xl z-50 flex flex-col"
           >
             <header className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900">Seu Pedido</h2>
-              <button 
+              <button
                 onClick={onClose}
                 className="p-2 rounded-full text-gray-500 hover:bg-gray-50 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </header>
-            
+
             {cartItems.length > 0 ? (
               <>
                 <div className="flex-grow p-6 overflow-y-auto">
                   <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl mb-6">
-                    <button 
+                    <button
                       onClick={() => setDeliveryOption(false)}
                       className={`flex items-center justify-center gap-2 p-3 rounded-lg text-sm font-semibold transition-colors ${
-                        !isDelivery ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-50'
+                        !isDelivery
+                          ? "bg-white shadow-sm text-gray-900"
+                          : "text-gray-500 hover:bg-gray-50"
                       }`}
                     >
                       <Store className="w-5 h-5" /> Retirada
                     </button>
-                    <button 
+                    <button
                       onClick={() => setDeliveryOption(true)}
                       className={`flex items-center justify-center gap-2 p-3 rounded-lg text-sm font-semibold transition-colors ${
-                        isDelivery ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-50'
+                        isDelivery
+                          ? "bg-white shadow-sm text-gray-900"
+                          : "text-gray-500 hover:bg-gray-50"
                       }`}
                     >
                       <Truck className="w-5 h-5" /> Entrega
@@ -111,8 +139,8 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                   )}
 
                   <div className="space-y-4">
-                    {cartItems.map(item => (
-                      <motion.div 
+                    {cartItems.map((item) => (
+                      <motion.div
                         key={item.cartItemId}
                         layout
                         initial={{ opacity: 0, y: 20 }}
@@ -120,47 +148,69 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                         exit={{ opacity: 0, x: -20 }}
                         className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg"
                       >
-                        <img 
-                          src={item.imageUrl || 'https://placehold.co/100x100/EAEAEA/1A1A1A?text=Item'} 
-                          alt={item.name} 
+                        <img
+                          src={
+                            item.imageUrl ||
+                            "https://placehold.co/100x100/EAEAEA/1A1A1A?text=Item"
+                          }
+                          alt={item.name}
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                         <div className="flex-grow">
-                          <p className="font-semibold text-gray-900">{item.name}</p>
-                          
+                          <p className="font-semibold text-gray-900">
+                            {item.name}
+                          </p>
+
                           <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-                            {item.options.size && <span>{item.options.size.name}</span>}
-                            {item.options.addons && item.options.addons.map(addon => (
-                              <div key={addon.id}>+ {addon.name}</div>
-                            ))}
+                            {item.options.size && (
+                              <span>{item.options.size.name}</span>
+                            )}
+                            {item.options.addons &&
+                              item.options.addons.map((addon) => (
+                                <div key={addon.id}>+ {addon.name}</div>
+                              ))}
                           </div>
-                          
-                           {/* ATENÇÃO: Usando o preço final do item */}
-                          <p className="text-sm font-semibold text-indigo-600 mt-2">R$ {item.finalPrice.toFixed(2)}</p>
+
+                          {/* ATENÇÃO: Usando o preço final do item */}
+                          <p className="text-sm font-semibold text-emerald-600 mt-2">
+                            R$ {item.finalPrice.toFixed(2)}
+                          </p>
                         </div>
                         <div className="flex flex-col items-end justify-between h-full">
-                          <button 
+                          <button
                             // ATENÇÃO: Usando cartItemId para remover o item
                             onClick={() => removeItem(item.cartItemId)}
                             className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                           >
-                            <Trash2 className="w-4 h-4"/>
+                            <Trash2 className="w-4 h-4" />
                           </button>
                           <div className="flex items-center gap-1 bg-white rounded-full p-0.5 border">
-                            <button 
+                            <button
                               // ATENÇÃO: Usando cartItemId para atualizar a quantidade
-                              onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                              onClick={() =>
+                                updateQuantity(
+                                  item.cartItemId,
+                                  item.quantity - 1
+                                )
+                              }
                               className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
                             >
-                              <Minus className="w-3 h-3"/>
+                              <Minus className="w-3 h-3" />
                             </button>
-                            <span className="font-semibold text-sm w-6 text-center text-slate-800">{item.quantity}</span>
-                            <button 
+                            <span className="font-semibold text-sm w-6 text-center text-slate-800">
+                              {item.quantity}
+                            </span>
+                            <button
                               // ATENÇÃO: Usando cartItemId para atualizar a quantidade
-                              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                              onClick={() =>
+                                updateQuantity(
+                                  item.cartItemId,
+                                  item.quantity + 1
+                                )
+                              }
                               className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
                             >
-                              <Plus className="w-3 h-3"/>
+                              <Plus className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
@@ -168,16 +218,18 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                     ))}
                   </div>
                 </div>
-                
+
                 <footer className="p-6 border-t border-gray-100 bg-white">
                   <div className="flex justify-between items-center mb-4">
                     <span className="font-medium text-gray-700">Subtotal</span>
-                    <span className="font-bold text-gray-900">R$ {cartTotal.toFixed(2)}</span>
+                    <span className="font-bold text-gray-900">
+                      R$ {cartTotal.toFixed(2)}
+                    </span>
                   </div>
-                  <button 
-                    onClick={handleCheckout} 
+                  <button
+                    onClick={handleCheckout}
                     disabled={isCheckingOut}
-                    className="w-full py-3.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     {isCheckingOut ? (
                       <LoaderCircle className="w-5 h-5 animate-spin" />
@@ -188,7 +240,7 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                       </>
                     )}
                   </button>
-                  <button 
+                  <button
                     onClick={clearCart}
                     className="w-full mt-3 text-sm text-center text-gray-500 hover:text-red-600 transition-colors"
                   >
@@ -201,13 +253,15 @@ export function CartSidebar({ isOpen, onClose, restaurantId }: CartSidebarProps)
                 <div className="w-24 h-24 text-gray-300 mb-4">
                   <ShoppingCart className="w-full h-full" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700">Seu carrinho está vazio!</h3>
+                <h3 className="text-xl font-semibold text-gray-700">
+                  Seu carrinho está vazio!
+                </h3>
                 <p className="text-gray-500 mt-2 max-w-xs">
                   Adicione alguns itens do menu para começar seu pedido.
                 </p>
-                <button 
+                <button
                   onClick={onClose}
-                  className="mt-6 px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+                  className="mt-6 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
                 >
                   Continuar Comprando
                 </button>

@@ -1,23 +1,25 @@
-'use client';
+"use client";
 
-import { useEffect, Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { CartProvider, useCart } from '@/lib/context/CartContext';
-import { CheckCircle, ExternalLink } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { CartProvider, useCart } from "@/lib/context/CartContext";
+import { CheckCircle, ExternalLink } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SuccessPageWrapper() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"
-        />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full"
+          />
+        </div>
+      }
+    >
       <CartProvider>
         <SuccessPage />
       </CartProvider>
@@ -28,7 +30,7 @@ export default function SuccessPageWrapper() {
 function SuccessPage() {
   const { clearCart } = useCart();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
     if (sessionId) {
@@ -55,9 +57,9 @@ function SuccessPage() {
       opacity: 1,
       transition: {
         when: "beforeChildren" as const,
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const itemVariants = {
@@ -68,9 +70,9 @@ function SuccessPage() {
       transition: {
         type: "spring" as const,
         stiffness: 300,
-        damping: 24
-      }
-    }
+        damping: 24,
+      },
+    },
   };
 
   return (
@@ -80,38 +82,43 @@ function SuccessPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="bg-teal-100 p-6 sm:p-10 rounded-2xl shadow-xl max-w-md w-full mx-auto"
+          className="bg-emerald-100 p-6 sm:p-10 rounded-2xl shadow-xl max-w-md w-full mx-auto"
         >
           <motion.div variants={itemVariants}>
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring" as const, stiffness: 260, damping: 20 }}
+              transition={{
+                type: "spring" as const,
+                stiffness: 260,
+                damping: 20,
+              }}
               className="mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6"
             >
               <CheckCircle className="w-16 h-16 text-green-500" />
             </motion.div>
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             variants={itemVariants}
             className="text-nowrap text-2xl sm:text-3xl font-bold text-slate-800 mb-3 text-center"
           >
             Pagamento Aprovado!
           </motion.h1>
 
-          <motion.p 
+          <motion.p
             variants={itemVariants}
             className="text-slate-600 mb-8 text-md text-center my-4"
           >
-            Seu pedido foi enviado para o restaurante. Você pode acompanhar o status usando o link abaixo.
+            Seu pedido foi enviado para o restaurante. Você pode acompanhar o
+            status usando o link abaixo.
           </motion.p>
 
           {sessionId && (
             <motion.div variants={itemVariants}>
-              <Link 
+              <Link
                 href={`/track/${sessionId}`}
-                className="group relative inline-flex items-center justify-center w-full py-4 px-6 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:from-teal-600 hover:to-teal-700"
+                className="group relative inline-flex items-center justify-center w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:from-emerald-600 hover:to-emerald-700"
               >
                 <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
                 <ExternalLink className="w-5 h-5 mr-2" />
@@ -121,8 +128,8 @@ function SuccessPage() {
           )}
 
           <motion.div variants={itemVariants} className="mt-6">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="inline-block text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-slate-800 hover:after:w-full after:transition-all after:duration-300"
             >
               Voltar para a página inicial

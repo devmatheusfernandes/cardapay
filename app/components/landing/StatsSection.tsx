@@ -19,7 +19,7 @@ export default function StatsSection({ stats }: StatsSectionProps) {
     >
       {stats.map((stat, i) => (
         <div key={i} className="text-center">
-          <div className="text-3xl font-bold text-indigo-600">
+          <div className="text-3xl font-bold text-emerald-600">
             {stat.number}
           </div>
           <div className="text-slate-600 mt-1">{stat.label}</div>
@@ -28,5 +28,3 @@ export default function StatsSection({ stats }: StatsSectionProps) {
     </motion.div>
   );
 }
-
-

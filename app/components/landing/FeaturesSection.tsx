@@ -15,12 +15,9 @@ import { useState, useEffect } from "react";
 import Image, { StaticImageData } from "next/image";
 
 //Images
-import Feature01 from "@/public/images/app-pic.jpg";
-import Feature02 from "@/public/images/hero-02.png";
-import Feature03 from "@/public/images/hero-03.jpg";
-import Feature04 from "@/public/images/hero-01.png";
-import Feature05 from "@/public/images/hero-04.jpg";
-import Feature06 from "@/public/images/hero-05.jpg";
+import Feature01 from "@/public/images/landing/features/OnlineMenu.jpg";
+import Feature02 from "@/public/images/landing/features/SafePayment.jpg";
+import Feature03 from "@/public/images/landing/features/ActivityReport.jpg";
 
 interface FeatureItem {
   icon: LucideIcon;
@@ -65,35 +62,6 @@ export default function FeaturesSection() {
       ],
       image: Feature03,
     },
-    {
-      icon: Smartphone,
-      title: "App Mobile Nativo",
-      desc: "Gerencie seu restaurante de qualquer lugar com nosso app mobile.",
-      features: ["iOS e Android", "Notificações push", "Modo offline"],
-      image: Feature04,
-    },
-    {
-      icon: Users,
-      title: "Gestão de Clientes",
-      desc: "Crie programas de fidelidade e envie promoções personalizadas para seus clientes.",
-      features: [
-        "Cadastro de clientes",
-        "Histórico de pedidos",
-        "Segmentação de público",
-      ],
-      image: Feature05,
-    },
-    {
-      icon: TrendingUp,
-      title: "Otimização de Vendas",
-      desc: "Ferramentas para aumentar seu ticket médio e otimizar o fluxo de pedidos.",
-      features: [
-        "Upsell e Cross-sell",
-        "Sugestões inteligentes",
-        "Integração com delivery",
-      ],
-      image: Feature06,
-    },
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -130,7 +98,7 @@ export default function FeaturesSection() {
           viewport={{ once: true }}
           className="text-center mb-8 block lg:hidden"
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-indigo-600 mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-emerald-600 mb-4">
             Tudo que seu restaurante precisa
           </h2>
           <p className="text-sm md:text-lg text-slate-600">
@@ -147,9 +115,9 @@ export default function FeaturesSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-8 hidden lg:block"
+              className="text-center mb-8 hidden lg:block mt-8"
             >
-              <h2 className="text-3xl font-bold text-indigo-600 mb-4">
+              <h2 className="text-3xl font-bold text-emerald-600 mb-4">
                 Tudo que seu restaurante precisa
               </h2>
               <p className="text-lg text-slate-600">
@@ -157,7 +125,7 @@ export default function FeaturesSection() {
                 alimentício
               </p>
             </motion.div>
-            
+
             <div className="relative flex-grow">
               {features.map((feature, index) => (
                 <motion.div
@@ -169,11 +137,13 @@ export default function FeaturesSection() {
                   animate={{ opacity: index === currentIndex ? 1 : 0 }}
                   transition={{ duration: 0.9 }}
                 >
-                  <feature.icon className="w-8 h-8 text-indigo-600 mb-4" />
+                  <feature.icon className="w-8 h-8 text-emerald-600 mb-4" />
                   <h3 className="text-lg md:text-xl font-semibold text-slate-900 mb-2 text-center">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-600 mb-4 text-center text-xs md:text-sm">{feature.desc}</p>
+                  <p className="text-slate-600 mb-4 text-center text-xs md:text-sm">
+                    {feature.desc}
+                  </p>
                   <ul className="space-y-2 w-full px-2">
                     {feature.features.map((item, idx) => (
                       <li
@@ -191,9 +161,9 @@ export default function FeaturesSection() {
 
             {/* Mobile Navigation Arrows */}
             <div className="flex justify-between mt-4 lg:hidden">
-              <button 
+              <button
                 onClick={prevSlide}
-                className="p-2 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition"
+                className="p-2 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition"
                 aria-label="Previous feature"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -206,14 +176,16 @@ export default function FeaturesSection() {
                       setCurrentIndex(idx);
                       setIsAutoPlaying(false);
                     }}
-                    className={`w-2 h-2 rounded-full ${currentIndex === idx ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                    className={`w-2 h-2 rounded-full ${
+                      currentIndex === idx ? "bg-emerald-600" : "bg-slate-300"
+                    }`}
                     aria-label={`Go to feature ${idx + 1}`}
                   />
                 ))}
               </div>
-              <button 
+              <button
                 onClick={nextSlide}
-                className="p-2 rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition"
+                className="p-2 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition"
                 aria-label="Next feature"
               >
                 <ChevronRight className="w-5 h-5" />

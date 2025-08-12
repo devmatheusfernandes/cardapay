@@ -48,6 +48,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import OrderDetailsModal from "@/app/components/track/OrderDetailsModal";
 import { Order } from "@/lib/types/track/order";
+import { MenuItem } from "@/lib/hooks/useMenu";
 
 const BackButton = () => (
   <Link
@@ -57,7 +58,7 @@ const BackButton = () => (
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
     >
       <ChevronLeft className="w-8 h-8" />
       <span className="text-md font-medium">Voltar</span>
@@ -94,8 +95,8 @@ const statusConfig = {
   Pending: {
     icon: Clock,
     text: "Seu pedido foi recebido.",
-    color: "text-indigo-500",
-    bgColor: "bg-indigo-200/50",
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-200/50",
   },
   Confirmed: {
     icon: Check,
@@ -190,6 +191,24 @@ export default function OrderTrackingPage() {
   const [existingReview, setExistingReview] = useState<Review | null>(null);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+  const loadMenuItems = async (restaurantId: string) => {
+    if (!restaurantId) return;
+    try {
+      const q = query(
+        collection(db, "menuItems"),
+        where("ownerId", "==", restaurantId)
+      );
+      const querySnapshot = await getDocs(q);
+      const items = querySnapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as MenuItem)
+      );
+      setMenuItems(items);
+    } catch (error) {
+      console.error("Erro ao buscar itens do cardápio:", error);
+    }
+  };
 
   useEffect(() => {
     if (!orderId) {
@@ -238,6 +257,10 @@ export default function OrderTrackingPage() {
 
           setOrder(typedOrderData);
           setFailedPayment(null);
+
+          if (typedOrderData.restaurantId) {
+            await loadMenuItems(typedOrderData.restaurantId);
+          }
 
           if (!restaurant && typedOrderData.restaurantId) {
             await loadRestaurantData(typedOrderData.restaurantId);
@@ -554,7 +577,7 @@ Por favor, me ajudem a resolver esta situação.`;
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Descreva sua experiência..."
-              className="w-full flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+              className="w-full flex-grow p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
               rows={5}
             ></textarea>
           </div>
@@ -568,7 +591,7 @@ Por favor, me ajudem a resolver esta situação.`;
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-emerald-600 rounded-lg shadow-sm hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed"
               disabled={rating === 0}
             >
               {existingReview ? "Atualizar" : "Enviar"} Avaliação
@@ -587,7 +610,7 @@ Por favor, me ajudem a resolver esta situação.`;
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full"
+          className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full"
         />
       </div>
     );
@@ -602,26 +625,27 @@ Por favor, me ajudem a resolver esta situação.`;
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">
       <BackButton />
-{order && (
-  <button
-    onClick={() => setIsDetailsModalOpen(true)}
-    className="fixed top-4 right-4 z-30 flex items-center justify-center rounded-full bg-white/80 py-2 px-2 shadow-xs backdrop-blur-sm transition-all hover:shadow-lg hover:bg-white md:px-4"
-    aria-label="Ver detalhes do pedido"
-  >
-    {/* O texto "Detalhes" só aparece em telas médias (md) ou maiores */}
-    <span className="hidden font-medium text-slate-700 md:inline">
-      Detalhes
-    </span>
-    
-    {/* Ícone, com uma pequena margem à esquerda quando o texto estiver visível */}
-    <ReceiptText className="h-6 w-6 text-indigo-600 md:ml-2" />
-  </button>
-)}
+      {order && (
+        <button
+          onClick={() => setIsDetailsModalOpen(true)}
+          className="fixed top-4 right-4 z-30 flex items-center justify-center rounded-full bg-white/80 py-2 px-2 shadow-xs backdrop-blur-sm transition-all hover:shadow-lg hover:bg-white md:px-4"
+          aria-label="Ver detalhes do pedido"
+        >
+          {/* O texto "Detalhes" só aparece em telas médias (md) ou maiores */}
+          <span className="hidden font-medium text-slate-700 md:inline">
+            Detalhes
+          </span>
+
+          {/* Ícone, com uma pequena margem à esquerda quando o texto estiver visível */}
+          <ReceiptText className="h-6 w-6 text-emerald-600 md:ml-2" />
+        </button>
+      )}
 
       <OrderDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
         order={order}
+        menuItems={menuItems}
       />
 
       <div
@@ -651,7 +675,6 @@ Por favor, me ajudem a resolver esta situação.`;
                   : "bg-white"
               }`}
             >
-              
               {/* Exibição de Pagamento com Falha */}
               {failedPayment && (
                 <motion.div
@@ -917,7 +940,7 @@ Por favor, me ajudem a resolver esta situação.`;
                         className="flex flex-col items-center mt-6 p-4 rounded-lg"
                       >
                         <p className="font-semibold text-slate-700 flex items-center justify-center gap-2">
-                          <Key className="w-5 h-5 text-indigo-500" /> Código de
+                          <Key className="w-5 h-5 text-emerald-500" /> Código de
                           Confirmação
                         </p>
                         <p className="text-sm text-slate-500 mt-1">
@@ -952,7 +975,7 @@ Por favor, me ajudem a resolver esta situação.`;
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleOpenRating}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg shadow-sm hover:bg-emerald-700 transition-colors cursor-pointer"
                       >
                         <Star className="w-4 h-4" />
                         {order.isReviewed
@@ -966,7 +989,6 @@ Por favor, me ajudem a resolver esta situação.`;
             </div>
           </div>
 
-          {/* Lado de Trás - Formulário de Avaliação */}
           <div
             className="absolute inset-0 w-full h-full"
             style={{

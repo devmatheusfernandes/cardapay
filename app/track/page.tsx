@@ -15,7 +15,7 @@ const BackButton = () => (
     <motion.button
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
     >
       <ChevronLeft className="w-8 h-8" />
       <span className="text-md font-medium">Voltar</span>
@@ -62,9 +62,9 @@ export default function TrackOrderInputPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center"
+              className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center"
             >
-              <Search className="w-8 h-8 text-indigo-600" />
+              <Search className="w-8 h-8 text-emerald-600" />
             </motion.div>
           </div>
           <h1 className="text-3xl font-bold text-slate-800">Rastrear Pedido</h1>
@@ -86,7 +86,7 @@ export default function TrackOrderInputPage() {
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
                 placeholder="Ex: ABC123"
-                className="w-full px-4 py-3 pl-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-700"
+                className="w-full px-4 py-3 pl-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-slate-700"
                 autoFocus
               />
               <Search className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
@@ -103,7 +103,7 @@ export default function TrackOrderInputPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-all"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
             >
               {isLoading ? (
                 <motion.span
@@ -130,14 +130,14 @@ export default function TrackOrderInputPage() {
           Não sabe o ID do pedido?{" "}
           <Link
             href="/help"
-            className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline transition"
+            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
           >
             Obter ajuda
           </Link>{" "}
           ou{" "}
           <Link
             href="/last-orders"
-            className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline transition"
+            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
           >
             Ver última compra
           </Link>

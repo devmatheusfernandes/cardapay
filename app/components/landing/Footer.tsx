@@ -21,7 +21,10 @@ interface UteisIcon {
 
 const Footer: FC = () => {
   const contactItems: ContactItem[] = [
-    { icon: <MapPin className="w-5 h-5" />, text: "Rua Exemplo, 123, Cidade, Estado" },
+    {
+      icon: <MapPin className="w-5 h-5" />,
+      text: "Rua Exemplo, 123, Cidade, Estado",
+    },
     { icon: <Smartphone className="w-5 h-5" />, text: "(XX) XXXX-XXXX" },
     { icon: <Clock className="w-5 h-5" />, text: "Seg-Sex: 9h-18h" },
   ];
@@ -40,7 +43,6 @@ const Footer: FC = () => {
   return (
     <footer id="contact" className="bg-slate-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
-        
         {/* Logo e descrição */}
         <div className="col-span-full md:col-span-1">
           <motion.div
@@ -50,7 +52,7 @@ const Footer: FC = () => {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 mb-4"
           >
-            <Utensils className="w-8 h-8 text-indigo-600" />
+            <Utensils className="w-8 h-8 text-emerald-600" />
             <span className="text-2xl font-bold">Cardapay</span>
           </motion.div>
           <p className="text-slate-400">
@@ -61,12 +63,15 @@ const Footer: FC = () => {
 
         {/* Contato */}
         <div>
-          <h4 className="text-xl font-semibold text-indigo-600 mb-4">
+          <h4 className="text-xl font-semibold text-emerald-600 mb-4">
             Contato
           </h4>
           <ul className="space-y-2">
             {contactItems.map((item, index) => (
-              <li key={index} className="flex items-center gap-2 text-slate-400">
+              <li
+                key={index}
+                className="flex items-center gap-2 text-slate-400"
+              >
                 {item.icon}
                 <span>{item.text}</span>
               </li>
@@ -76,7 +81,7 @@ const Footer: FC = () => {
 
         {/* Redes Sociais */}
         <div>
-          <h4 className="text-xl font-semibold text-indigo-600 mb-4">
+          <h4 className="text-xl font-semibold text-emerald-600 mb-4">
             Redes Sociais
           </h4>
           <div className="flex space-x-4 flex-col">
@@ -93,9 +98,7 @@ const Footer: FC = () => {
         </div>
 
         <div>
-          <h4 className="text-xl font-semibold text-indigo-600 mb-4">
-            Utéis
-          </h4>
+          <h4 className="text-xl font-semibold text-emerald-600 mb-4">Utéis</h4>
           <div className="flex space-x-4 flex-col">
             {uteisItems.map((uteis, index) => (
               <a
@@ -108,7 +111,6 @@ const Footer: FC = () => {
             ))}
           </div>
         </div>
-
       </div>
 
       {/* Rodapé */}

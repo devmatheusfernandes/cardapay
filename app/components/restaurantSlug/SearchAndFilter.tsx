@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { Search } from "lucide-react";
 
 interface SearchAndFilterProps {
   searchQuery: string;
@@ -9,13 +9,13 @@ interface SearchAndFilterProps {
   scrollToCategory: (category: string) => void;
 }
 
-export function SearchAndFilter({ 
-  searchQuery, 
-  setSearchQuery, 
-  categories, 
-  activeCategory, 
-  setActiveCategory, 
-  scrollToCategory 
+export function SearchAndFilter({
+  searchQuery,
+  setSearchQuery,
+  categories,
+  activeCategory,
+  setActiveCategory,
+  scrollToCategory,
 }: SearchAndFilterProps) {
   return (
     // Make the component sticky within its grid column on large screens
@@ -27,29 +27,39 @@ export function SearchAndFilter({
         <input
           type="text"
           placeholder="Procurar..."
-          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      
+
       {/* Vertical list of category filters */}
       <div className="flex flex-col space-y-2">
-        <h3 className="px-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">Categorias</h3>
+        <h3 className="px-3 text-sm font-semibold text-gray-500 uppercase tracking-wider">
+          Categorias
+        </h3>
         <button
           onClick={() => setActiveCategory(null)}
-          className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${!activeCategory ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:bg-gray-100'}`}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            !activeCategory
+              ? "bg-emerald-100 text-emerald-700"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
         >
           Todas
         </button>
-        {categories.map(category => (
+        {categories.map((category) => (
           <button
             key={category}
             onClick={() => {
               setActiveCategory(category);
               scrollToCategory(category);
             }}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category ? 'bg-indigo-100 text-indigo-700' : 'text-gray-700 hover:bg-gray-100'}`}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeCategory === category
+                ? "bg-emerald-100 text-emerald-700"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
           >
             {category}
           </button>

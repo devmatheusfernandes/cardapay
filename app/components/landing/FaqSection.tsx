@@ -26,7 +26,7 @@ export default function FaqSection({
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-indigo-600 mb-4">
+          <h2 className="text-4xl font-bold text-emerald-600 mb-4">
             Perguntas Frequentes
           </h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
@@ -47,13 +47,13 @@ export default function FaqSection({
               onClick={() => toggleFaq(index)}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-indigo-900">
+                <h3 className="text-lg font-semibold text-emerald-900">
                   {faq.question}
                 </h3>
                 {activeFaq === index ? (
-                  <ChevronUp className="w-5 h-5 text-indigo-600" />
+                  <ChevronUp className="w-5 h-5 text-emerald-600" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-indigo-600" />
+                  <ChevronDown className="w-5 h-5 text-emerald-600" />
                 )}
               </div>
               <AnimatePresence>
@@ -76,5 +76,3 @@ export default function FaqSection({
     </section>
   );
 }
-
-

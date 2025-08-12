@@ -18,6 +18,7 @@ export interface OrderItem {
 }
 
 export interface Order {
+  source: string;
   id: string;
   status:
     | "Pending"

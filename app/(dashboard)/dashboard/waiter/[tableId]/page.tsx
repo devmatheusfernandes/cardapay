@@ -109,7 +109,7 @@ function SeatSelectionModal({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Ex: Ponto da carne, molho à parte..."
-            className="w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            className="w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
             rows={3}
             maxLength={200}
           />
@@ -127,9 +127,9 @@ function SeatSelectionModal({
               <button
                 key={seat.id}
                 onClick={() => handleSeatSelect(seat.id)}
-                className="w-full flex items-center justify-center gap-3 p-3 border-2 rounded-lg hover:bg-indigo-50 hover:border-indigo-500 transition-all"
+                className="w-full flex items-center justify-center gap-3 p-3 border-2 rounded-lg hover:bg-emerald-50 hover:border-emerald-500 transition-all"
               >
-                <User className="w-4 h-4 text-indigo-600" />
+                <User className="w-4 h-4 text-emerald-600" />
                 <span className="font-medium text-gray-800">
                   Pessoa {seat.id}
                 </span>
@@ -189,7 +189,7 @@ function WaiterMenuItemCard({ item, onAddToCart }: WaiterMenuItemCardProps) {
         <div className="flex-grow">
           <div className="flex justify-between items-start gap-2">
             <h3 className="text-base font-bold text-gray-800">{item.name}</h3>
-            <p className="text-base font-semibold text-indigo-600 whitespace-nowrap">
+            <p className="text-base font-semibold text-emerald-600 whitespace-nowrap">
               {hasVaryingPrices ? `A partir de ${displayPrice}` : displayPrice}
             </p>
           </div>
@@ -203,7 +203,7 @@ function WaiterMenuItemCard({ item, onAddToCart }: WaiterMenuItemCardProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onAddToCart(item)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all"
           >
             <Plus className="w-4 h-4" />
             Adicionar
@@ -320,7 +320,7 @@ function ItemOptionsModal({
                 {item.sizes.map((size) => (
                   <label
                     key={size.id}
-                    className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 transition-all cursor-pointer"
+                    className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 transition-all cursor-pointer"
                   >
                     <span className="font-medium">{size.name}</span>
                     <div className="flex items-center gap-4">
@@ -332,7 +332,7 @@ function ItemOptionsModal({
                         name="size"
                         checked={selectedSize?.id === size.id}
                         onChange={() => setSelectedSize(size)}
-                        className="form-radio h-5 w-5 text-indigo-600"
+                        className="form-radio h-5 w-5 text-emerald-600"
                       />
                     </div>
                   </label>
@@ -350,7 +350,7 @@ function ItemOptionsModal({
                 </h3>
                 <div className="space-y-2 mt-2">
                   {/* Opção para Nenhuma Borda */}
-                  <label className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 transition-all cursor-pointer">
+                  <label className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 transition-all cursor-pointer">
                     <span className="font-medium">Nenhuma</span>
                     <div className="flex items-center gap-4">
                       <input
@@ -358,7 +358,7 @@ function ItemOptionsModal({
                         name="stuffedCrust"
                         checked={!selectedStuffedCrust}
                         onChange={() => setSelectedStuffedCrust(undefined)}
-                        className="form-radio h-5 w-5 text-indigo-600"
+                        className="form-radio h-5 w-5 text-emerald-600"
                       />
                     </div>
                   </label>
@@ -366,7 +366,7 @@ function ItemOptionsModal({
                   {item.stuffedCrust.options.map((crust) => (
                     <label
                       key={crust.id}
-                      className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 transition-all cursor-pointer"
+                      className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 transition-all cursor-pointer"
                     >
                       <span className="font-medium">{crust.name}</span>
                       <div className="flex items-center gap-4">
@@ -378,7 +378,7 @@ function ItemOptionsModal({
                           name="stuffedCrust"
                           checked={selectedStuffedCrust?.id === crust.id}
                           onChange={() => setSelectedStuffedCrust(crust)}
-                          className="form-radio h-5 w-5 text-indigo-600"
+                          className="form-radio h-5 w-5 text-emerald-600"
                         />
                       </div>
                     </label>
@@ -397,7 +397,7 @@ function ItemOptionsModal({
                 {item.addons.map((addon) => (
                   <label
                     key={addon.id}
-                    className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 transition-all cursor-pointer"
+                    className="flex justify-between items-center p-3 rounded-lg border has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 transition-all cursor-pointer"
                   >
                     <span className="font-medium">{addon.name}</span>
                     <div className="flex items-center gap-4">
@@ -408,7 +408,7 @@ function ItemOptionsModal({
                         type="checkbox"
                         checked={selectedAddons.some((a) => a.id === addon.id)}
                         onChange={() => handleAddonClick(addon)}
-                        className="form-checkbox h-5 w-5 text-indigo-600 rounded"
+                        className="form-checkbox h-5 w-5 text-emerald-600 rounded"
                       />
                     </div>
                   </label>
@@ -457,7 +457,7 @@ function ItemOptionsModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: Ponto da carne, molho à parte..."
-              className="w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              className="w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
               rows={3}
               maxLength={200}
             />
@@ -470,7 +470,7 @@ function ItemOptionsModal({
         <footer className="p-6 mt-auto border-t">
           <button
             onClick={handleAddToCartClick}
-            className="w-full bg-indigo-600 text-white rounded-lg py-3 font-semibold flex justify-between items-center hover:bg-indigo-700 transition-colors px-6"
+            className="w-full bg-emerald-600 text-white rounded-lg py-3 font-semibold flex justify-between items-center hover:bg-emerald-700 transition-colors px-6"
           >
             <span>Adicionar</span>
             <span>R${finalPrice.toFixed(2)}</span>
@@ -598,7 +598,7 @@ export default function TablePage() {
   if (menuLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <LoaderCircle className="w-12 h-12 text-indigo-600 animate-spin" />
+        <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
       </div>
     );
   }
@@ -610,7 +610,7 @@ export default function TablePage() {
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => router.push("/dashboard/waiter")}
-            className="text-slate-600 hover:text-indigo-600"
+            className="text-slate-600 hover:text-emerald-600"
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
@@ -627,7 +627,7 @@ export default function TablePage() {
               </h2>
               <button
                 onClick={addSeat}
-                className="flex items-center gap-2 text-indigo-600 font-semibold"
+                className="flex items-center gap-2 text-emerald-600 font-semibold"
               >
                 <PlusCircle className="w-5 h-5" /> Adicionar Pessoa
               </button>
@@ -769,14 +769,14 @@ function OrderItemCard({
   const removed = item.removedIngredients || [];
 
   return (
-    <div className="flex justify-between items-start p-3 rounded-md bg-indigo-50 border border-indigo-100">
+    <div className="flex justify-between items-start p-3 rounded-md bg-emerald-50 border border-emerald-100">
       <div className="flex-grow">
         <div className="flex items-start gap-2 mb-2">
-          <span className="font-bold text-indigo-800 bg-indigo-200 px-2 py-0.5 rounded-full text-xs min-w-fit">
+          <span className="font-bold text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded-full text-xs min-w-fit">
             {item.quantity}x
           </span>
           <div className="flex-grow">
-            <span className="font-semibold text-indigo-800">{item.name}</span>
+            <span className="font-semibold text-emerald-800">{item.name}</span>
             {!item.submitted && (
               <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
                 (Novo)

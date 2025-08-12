@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { TypeAnimation } from "react-type-animation";
-import Hero02 from "@/public/images/hero6.jpg";
+import Hero from "@/public/images/landing/hero.png";
 
 interface HeroSectionProps {
   scrollY: number;
@@ -14,13 +14,7 @@ export default function HeroSection({ scrollY }: HeroSectionProps) {
         className="absolute inset-0 z-0"
         style={{ transform: `translateY(${scrollY * 0.5}px)` }}
       >
-        <Image
-          src={Hero02}
-          alt="Hero"
-          fill
-          style={{ objectFit: "cover" }}
-          priority
-        />
+        <Image src={Hero} alt="Hero" fill className="object-cover" priority />
       </div>
       <div className="relative z-10 w-full mx-auto px-6 py-20 text-center">
         <motion.h1
@@ -44,12 +38,11 @@ export default function HeroSection({ scrollY }: HeroSectionProps) {
             repeat={Infinity}
             style={{
               display: "inline-block",
-              color: "#3F51B5",
-              minWidth: "300px", // Good for preventing layout shift
-              textAlign: "center", // THE FIX: Change "left" to "center"
-              fontWeight: 'bold'
+              minWidth: "300px",
+              textAlign: "center",
+              fontWeight: "bold",
             }}
-            className="text-indigo-600"
+            className="text-emerald-500"
           />
         </motion.h1>
       </div>

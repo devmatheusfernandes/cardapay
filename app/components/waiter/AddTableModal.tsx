@@ -1,9 +1,9 @@
 // app/dashboard/waiter/components/AddTableModal.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Modal from '@/app/components/ui/Modal';
-import { toast } from 'react-hot-toast';
+import { useState } from "react";
+import Modal from "@/app/components/ui/Modal";
+import { toast } from "react-hot-toast";
 
 interface AddTableModalProps {
   isOpen: boolean;
@@ -12,13 +12,18 @@ interface AddTableModalProps {
   existingTableIds: number[];
 }
 
-export default function AddTableModal({ isOpen, onClose, onAddTable, existingTableIds }: AddTableModalProps) {
-  const [tableNumber, setTableNumber] = useState('');
+export default function AddTableModal({
+  isOpen,
+  onClose,
+  onAddTable,
+  existingTableIds,
+}: AddTableModalProps) {
+  const [tableNumber, setTableNumber] = useState("");
 
   const handleSubmit = () => {
     const id = parseInt(tableNumber, 10);
     if (!id || id <= 0) {
-      toast.error('Por favor, insira um número de mesa válido.');
+      toast.error("Por favor, insira um número de mesa válido.");
       return;
     }
     if (existingTableIds.includes(id)) {
@@ -26,7 +31,7 @@ export default function AddTableModal({ isOpen, onClose, onAddTable, existingTab
       return;
     }
     onAddTable(id);
-    setTableNumber('');
+    setTableNumber("");
     onClose();
   };
 
@@ -34,7 +39,10 @@ export default function AddTableModal({ isOpen, onClose, onAddTable, existingTab
     <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Nova Mesa">
       <div className="space-y-4">
         <div>
-          <label htmlFor="table-number" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="table-number"
+            className="block text-sm font-medium text-gray-700"
+          >
             Número da Mesa
           </label>
           <input
@@ -42,7 +50,7 @@ export default function AddTableModal({ isOpen, onClose, onAddTable, existingTab
             id="table-number"
             value={tableNumber}
             onChange={(e) => setTableNumber(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             placeholder="Ex: 13"
             autoFocus
           />
@@ -58,7 +66,7 @@ export default function AddTableModal({ isOpen, onClose, onAddTable, existingTab
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+            className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700"
           >
             Adicionar Mesa
           </button>

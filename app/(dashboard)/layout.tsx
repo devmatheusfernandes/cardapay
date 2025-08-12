@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { ReactNode, useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
-import Sidebar from '@/app/components/shared/Sidebar';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
-import { LoaderCircle } from 'lucide-react';
+import { ReactNode, useEffect } from "react";
+import { Toaster } from "react-hot-toast";
+import Sidebar from "@/app/components/shared/Sidebar";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import { LoaderCircle } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     // If loading is finished and there's no user, redirect to sign-in
     if (!loading && !user) {
-      router.push('/sign-in');
+      router.push("/sign-in");
     }
   }, [user, loading, router]); // Dependencies ensure this runs when auth state changes
 
@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-            <LoaderCircle className="w-12 h-12 text-rose-600 animate-spin" />
+          <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
         </div>
       </div>
     );

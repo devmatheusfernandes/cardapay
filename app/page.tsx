@@ -18,10 +18,10 @@ const plans = [
   {
     id: "monthly",
     name: "Plano Mensal",
-    price: 59.90,
+    price: 59.9,
     interval: "month",
     intervalCount: 1,
-    description: "Pagamento mensal recorrente por 1 ano",
+    description: "Pagamento mensal",
     features: [
       "Código QR personalizado",
       "Pedidos online integrados",
@@ -33,10 +33,10 @@ const plans = [
   {
     id: "semiannual",
     name: "Plano Semestral",
-    price: 49.90,
+    price: 49.9,
     interval: "month",
     intervalCount: 6,
-    description: "Pagamento semestral (6 meses) por 1 ano",
+    description: "Pagamento semestral",
     savings: "Economize R$ 60,00 em relação ao mensal",
     features: [
       "Tudo do Plano Mensal",
@@ -111,13 +111,13 @@ export default function LandingPage() {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-const navItems = [
-  { text: "Sobre Nós", href: "#about" },
-  { text: "Recursos", href: "#features" },
-  { text: "Preços", href: "#pricing" },
-  { text: "FAQ", href: "#faq" },
-  { text: "Contato", href: "#contact" },
-];
+  const navItems = [
+    { text: "Sobre Nós", href: "#about" },
+    { text: "Recursos", href: "#features" },
+    { text: "Preços", href: "#pricing" },
+    { text: "FAQ", href: "#faq" },
+    { text: "Contato", href: "#contact" },
+  ];
 
   // Animation variants
   const containerVariants = {
@@ -130,42 +130,13 @@ const navItems = [
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: -15 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring" as const, stiffness: 300, damping: 24 },
-    },
-    hover: {
-      scale: 1.05,
-      color: "#d97706",
-      transition: { duration: 0.2 },
-    },
-    tap: { scale: 0.95 },
-  };
-
-  const buttonVariants = {
-    hover: {
-      scale: 1.05,
-      boxShadow: "0px 5px 15px rgba(217, 119, 6, 0.4)",
-      transition: { duration: 0.1 },
-    },
-    tap: { scale: 0.98 },
-  };
-
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <MobileMenu
-        isMenuOpen={isMenuOpen}
-        setIsMenuOpen={setIsMenuOpen}
-      />
+      <MobileMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
       <Header
         setIsMenuOpen={setIsMenuOpen}
         navItems={navItems}
         containerVariants={containerVariants}
-        itemVariants={itemVariants}
-        buttonVariants={buttonVariants}
       />
       <HeroSection scrollY={scrollY} />
       <IntroSection stats={stats} />
@@ -179,11 +150,11 @@ const navItems = [
           {scrollY > 400 && (
             <motion.button
               onClick={() => setIsMenuOpen(true)}
-              className="fixed bottom-4 right-5 z-50 bg-indigo-600 text-white p-4 rounded-full flex items-center justify-center"
+              className="fixed bottom-4 right-5 z-50 bg-emerald-600 text-white p-4 rounded-full flex items-center justify-center"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
               aria-label="Abrir menu"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -194,5 +165,3 @@ const navItems = [
     </div>
   );
 }
-
-

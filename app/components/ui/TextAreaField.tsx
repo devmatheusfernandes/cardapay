@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 type TextAreaFieldProps = {
   /** Icon component to display inside the textarea */
@@ -11,26 +11,20 @@ type TextAreaFieldProps = {
 
 const TextAreaField = React.forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
   (
-    { 
-      icon: Icon, 
-      rows = 3, 
-      containerClassName = '', 
-      className = '', 
-      ...props 
-    }, 
+    { icon: Icon, rows = 3, containerClassName = "", className = "", ...props },
     ref
   ) => (
     <div className={`relative ${containerClassName}`}>
-      <Icon 
-        className="absolute w-5 h-5 text-slate-400 top-3 left-3" 
-        aria-hidden="true" 
+      <Icon
+        className="absolute w-5 h-5 text-slate-400 top-3 left-3"
+        aria-hidden="true"
       />
       <textarea
         ref={ref}
         rows={rows}
         {...props}
         className={`w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg 
-                   focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+                   focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 
                    transition-all duration-200 outline-none resize-y
                    placeholder:text-slate-400 ${className}`}
       />
@@ -38,5 +32,5 @@ const TextAreaField = React.forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
   )
 );
 
-TextAreaField.displayName = 'TextAreaField';
+TextAreaField.displayName = "TextAreaField";
 export default TextAreaField;

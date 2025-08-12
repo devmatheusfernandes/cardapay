@@ -24,7 +24,10 @@ export default function IntroSection({ stats }: IntroSectionProps) {
   }, [isInView, controls]);
 
   return (
-    <section id="about" className="bg-slate-50 flex items-center justify-center overflow-hidden pt-0 md:pt-16">
+    <section
+      id="about"
+      className="bg-slate-50 flex items-center justify-center overflow-hidden pt-0 md:pt-16"
+    >
       {/* Hero Content */}
       <div className="relative z-20 max-w-4xl mx-auto px-6 py-20 text-center">
         <motion.h1
@@ -33,7 +36,9 @@ export default function IntroSection({ stats }: IntroSectionProps) {
           transition={{ duration: 0.8 }}
           className="text-3xl md:text-6xl font-bold text-slate-900 mb-6"
         >
-          <p className="flex flex-row gap-2 justify-center">Revolução <span className="block text-indigo-600">Digital</span></p>
+          <p className="flex flex-row gap-2 justify-center">
+            Revolução <span className="block text-emerald-600">Digital</span>
+          </p>
           para Restaurantes
         </motion.h1>
 
@@ -44,7 +49,8 @@ export default function IntroSection({ stats }: IntroSectionProps) {
           className="text-xl text-slate-600 max-w-2xl mx-auto mb-8"
         >
           Transforme seu restaurante com cardápios digitais inteligentes,
-          pagamentos integrados e relatórios que impulsionam suas vendas.
+          pagamentos integrados, use no seu restaurante com sua equipe e receba
+          relatórios que impulsionam suas vendas.
         </motion.p>
 
         <motion.div
@@ -53,10 +59,16 @@ export default function IntroSection({ stats }: IntroSectionProps) {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <button onClick={() => router.push("/sign-up")} className="px-8 py-4 rounded-xl bg-indigo-600 text-white font-semibold text-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+          <button
+            onClick={() => router.push("/sign-up")}
+            className="px-8 py-4 rounded-xl bg-emerald-600 text-white font-semibold text-lg shadow-lg hover:bg-emerald-700 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+          >
             Começar Gratuitamente
           </button>
-          <button onClick={() => router.push("/demo")} className="px-8 py-4 rounded-xl border-2 border-indigo-600 text-indigo-600 hover:text-white font-semibold text-lg hover:bg-indigo-600 transition-all duration-300">
+          <button
+            onClick={() => router.push("/demo")}
+            className="px-8 py-4 rounded-xl border-2 border-emerald-600 text-emerald-600 hover:text-white font-semibold text-lg hover:bg-emerald-600 transition-all duration-300"
+          >
             Ver Demonstração
           </button>
         </motion.div>
@@ -91,7 +103,7 @@ export default function IntroSection({ stats }: IntroSectionProps) {
               }}
               className="text-center"
             >
-              <div className="text-3xl font-bold text-indigo-600 h-12 flex items-center justify-center">
+              <div className="text-3xl font-bold text-emerald-600 h-12 flex items-center justify-center">
                 <SmartNumberDisplay value={stat.number} />
               </div>
               <div className="text-slate-600 mt-1">{stat.label}</div>
@@ -110,7 +122,7 @@ const SmartNumberDisplay = ({ value }: { value: string }) => {
   useEffect(() => {
     // Check if the value contains non-numeric characters that shouldn't be animated
     const hasNonNumeric = /[^0-9]/.test(value);
-    
+
     if (hasNonNumeric) {
       // Handle special cases
       if (value === "24/7") {
@@ -123,10 +135,10 @@ const SmartNumberDisplay = ({ value }: { value: string }) => {
           const [, numStr, suffix] = match;
           const number = parseInt(numStr, 10);
           const duration = Math.min(2000, number * 10); // Cap duration at 2 seconds
-          
+
           let current = 0;
           const increment = Math.max(1, Math.floor(number / (duration / 16))); // 60fps
-          
+
           const timer = setInterval(() => {
             current += increment;
             if (current >= number) {
@@ -135,7 +147,7 @@ const SmartNumberDisplay = ({ value }: { value: string }) => {
             }
             setDisplayValue(`${current}${suffix}`);
           }, 16);
-          
+
           return () => clearInterval(timer);
         } else {
           // Fallback for other non-numeric formats
@@ -146,10 +158,10 @@ const SmartNumberDisplay = ({ value }: { value: string }) => {
       // Regular number animation
       const number = parseInt(value, 10);
       const duration = Math.min(2000, number * 10); // Cap duration at 2 seconds
-      
+
       let current = 0;
       const increment = Math.max(1, Math.floor(number / (duration / 16))); // 60fps
-      
+
       const timer = setInterval(() => {
         current += increment;
         if (current >= number) {
@@ -158,13 +170,13 @@ const SmartNumberDisplay = ({ value }: { value: string }) => {
         }
         setDisplayValue(current.toString());
       }, 16);
-      
+
       return () => clearInterval(timer);
     }
   }, [value]);
 
   return (
-    <motion.span 
+    <motion.span
       animate={controls}
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}

@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { SetStateAction, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../../lib/firebase';
-import { LogIn, Mail, Lock, ChevronLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import InputField from '@/app/components/ui/InputField';
+import { SetStateAction, useState } from "react";
+import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../lib/firebase";
+import { LogIn, Mail, Lock, ChevronLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import InputField from "@/app/components/ui/InputField";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -23,17 +23,17 @@ export default function SignInPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard/profile');
+      router.push("/dashboard/profile");
     } catch (err: any) {
-      let errorMessage = 'Falha ao entrar. Verifique suas credenciais.';
+      let errorMessage = "Falha ao entrar. Verifique suas credenciais.";
       switch (err.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-        case 'auth/invalid-credential':
-          errorMessage = 'E-mail ou senha inválidos.';
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+          errorMessage = "E-mail ou senha inválidos.";
           break;
-        case 'auth/invalid-email':
-          errorMessage = 'Por favor, insira um e-mail válido.';
+        case "auth/invalid-email":
+          errorMessage = "Por favor, insira um e-mail válido.";
           break;
       }
       setError(errorMessage);
@@ -43,11 +43,14 @@ export default function SignInPage() {
   };
 
   const BackButton = () => (
-    <Link href="/" className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer">
+    <Link
+      href="/"
+      className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer"
+    >
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-indigo-600 transition-colors"
+        className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
       >
         <ChevronLeft className="w-8 h-8" />
         <span className="text-md font-medium">Voltar</span>
@@ -56,10 +59,9 @@ export default function SignInPage() {
   );
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-slate-50 text-slate-900 px-4">
-      
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4">
       <BackButton />
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -77,13 +79,16 @@ export default function SignInPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center"
+              className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center"
             >
-              <LogIn className="w-8 h-8 text-indigo-600" />
+              <LogIn className="w-8 h-8 text-emerald-600" />
             </motion.div>
           </div>
           <h1 className="text-3xl font-bold text-slate-800">Cardapay</h1>
-          <p className="mt-2 text-slate-600">Bem-vindo de volta! <br/> Faça login para gerenciar seu restaurante.</p>
+          <p className="mt-2 text-slate-600">
+            Bem-vindo de volta! <br /> Faça login para gerenciar seu
+            restaurante.
+          </p>
         </motion.div>
 
         <form onSubmit={handleSignIn} className="space-y-6">
@@ -100,7 +105,9 @@ export default function SignInPage() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e: { target: { value: SetStateAction<string>; }; }) => setEmail(e.target.value)}
+              onChange={(e: { target: { value: SetStateAction<string> } }) =>
+                setEmail(e.target.value)
+              }
               placeholder="Endereço de e-mail"
             />
           </motion.div>
@@ -122,12 +129,12 @@ export default function SignInPage() {
               placeholder="Senha"
             />
           </motion.div>
-          
+
           <AnimatePresence>
             {error && (
-              <motion.p 
+              <motion.p
                 initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
+                animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden text-sm text-center text-red-500"
@@ -147,7 +154,7 @@ export default function SignInPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-all"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
             >
               {isLoading ? (
                 <motion.span
@@ -171,10 +178,10 @@ export default function SignInPage() {
           transition={{ delay: 0.6 }}
           className="mt-8 text-sm text-center text-slate-600"
         >
-          Não tem uma conta?{' '}
-          <Link 
-            href="/sign-up" 
-            className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline transition"
+          Não tem uma conta?{" "}
+          <Link
+            href="/sign-up"
+            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
           >
             Cadastre-se agora
           </Link>

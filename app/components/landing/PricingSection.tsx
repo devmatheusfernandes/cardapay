@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Star, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Plan {
   id: string;
@@ -18,6 +19,8 @@ interface PricingSectionProps {
 }
 
 export default function PricingSection({ plans }: PricingSectionProps) {
+  const router = useRouter();
+
   return (
     <section id="pricing" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
@@ -27,7 +30,7 @@ export default function PricingSection({ plans }: PricingSectionProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-indigo-600 mb-4">
+          <h2 className="text-4xl font-bold text-emerald-600 mb-4">
             Planos Flexíveis para o seu Negócio
           </h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
@@ -44,15 +47,15 @@ export default function PricingSection({ plans }: PricingSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ delay: i * 0.1 }}
-              className={`bg-slate-50 p-8 pt-18 pb-14 rounded-lg shadow-md border-2 flex flex-col ${
+              className={`bg-slate-50 p-8 pt-18 pb-14 rounded-xl shadow-md border-2 flex flex-col ${
                 plan.recommended
-                  ? "border-indigo-600 transform scale-105"
+                  ? "border-emerald-600 transform scale-105"
                   : "border-transparent"
               }
                   hover:shadow-xl transition-all duration-300 relative`}
             >
               {plan.recommended && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase flex items-center gap-1">
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase flex items-center gap-1">
                   <Star className="w-4 h-4" /> Mais Popular
                 </span>
               )}
@@ -60,10 +63,11 @@ export default function PricingSection({ plans }: PricingSectionProps) {
                 {plan.name}
               </h3>
               <p className="text-slate-600 mb-4">{plan.description}</p>
-              <div className="text-5xl font-bold text-indigo-600 mb-4">
-                R$ {plan.price.toLocaleString("pt-BR", {
+              <div className="text-5xl font-bold text-emerald-600 mb-4">
+                R${" "}
+                {plan.price.toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
+                  maximumFractionDigits: 2,
                 })}
                 <span className="text-xl text-slate-500">
                   /{plan.interval === "month" ? "mês" : "ano"}
@@ -83,9 +87,10 @@ export default function PricingSection({ plans }: PricingSectionProps) {
                 ))}
               </ul>
               <button
+                onClick={() => router.push("./sign-up")}
                 className={`w-full mt-auto py-3 rounded-lg font-semibold text-lg ${
                   plan.recommended
-                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
                     : "bg-slate-200 text-slate-800 hover:bg-slate-300"
                 } transition-colors duration-300`}
               >
