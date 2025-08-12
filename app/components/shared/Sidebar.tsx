@@ -27,10 +27,16 @@ import { useEffect, useState } from "react";
 const navItems = [
   // Perfil Section
   {
-    href: "/dashboard/profile",
+    href: "/dashboard",
     icon: User,
     label: "Perfil",
     isMainItem: true,
+  },
+  {
+    href: "/dashboard/profile",
+    icon: CoinsIcon,
+    label: "Meu Negócio",
+    isSubItem: true,
   },
   {
     href: "/dashboard/subscription",
