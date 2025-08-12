@@ -51,7 +51,7 @@ import { Order } from "@/lib/types/track/order";
 
 const BackButton = () => (
   <Link
-    href="/"
+    href="/track"
     className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer z-10"
   >
     <motion.button

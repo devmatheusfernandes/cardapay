@@ -37,7 +37,7 @@ export default function TrackOrderInputPage() {
     }
 
     setIsLoading(true);
-    router.push(`/track/${orderId.trim()}`);
+    router.push(`track/${orderId.trim()}`);
   }
 
   return (
