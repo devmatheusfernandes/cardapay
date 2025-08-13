@@ -17,8 +17,8 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { MenuItem, SizeOption, AddonOption, StuffedCrustOption } from './useMenuWaiter';
-import { Order, OrderSeat } from './useOrders';
+import { MenuItem, SizeOption, StuffedCrustOption } from './useMenuWaiter';
+import { AddonOption, Order, OrderSeat } from './useOrders';
 import { useTablePaymentStatus } from './useTablePaymentStatus';
 
 // Interface atualizada para incluir opções de borda recheada e ingredientes removidos

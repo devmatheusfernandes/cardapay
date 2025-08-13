@@ -8,12 +8,12 @@ import Modal from "@/app/components/ui/Modal";
 import TextAreaField from "@/app/components/ui/TextAreaField";
 import ActionButton from "@/app/components/shared/ActionButton";
 import {
-  AddonOption,
   MenuItem,
   SizeOption,
   StuffedCrustOption,
 } from "@/lib/hooks/useMenuWaiter";
 import { SelectedOptions } from "@/lib/context/CartContext";
+import { AddonOption } from "@/lib/hooks/useOrders";
 
 interface ItemOptionsModalProps {
   item: MenuItem | null;
