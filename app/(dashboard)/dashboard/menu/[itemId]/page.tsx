@@ -10,7 +10,6 @@ import {
   MenuItemData,
   MenuTemplate,
   SizeOption,
-  AddonOption,
   StuffedCrustOption,
   DietaryTag,
   SpicinessLevel,
@@ -27,6 +26,7 @@ import {
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid"; // Instale: npm install uuid @types/uuid
 import toast from "react-hot-toast";
+import { AddonOption } from "@/lib/hooks/useOrders";
 
 // --- ESTADO INICIAL PARA UM NOVO ITEM ---
 const initialItemData: MenuItemData = {
