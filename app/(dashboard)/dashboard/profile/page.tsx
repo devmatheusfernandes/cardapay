@@ -212,7 +212,7 @@ export default function ProfilePage() {
   return (
     <SubscriptionGuard>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8 pb-24">
-        <div className="max-w-6xl mx-auto space-y-4">
+        <div className="w-full mx-auto space-y-4">
           <motion.header
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -220,7 +220,7 @@ export default function ProfilePage() {
             className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4"
           >
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-600">
+              <h1 className="text-3xl sm:text-4xl font-bold text-emerald-900 bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-600">
                 Perfil do Estabelecimento
               </h1>
               <p className="text-sm sm:text-base text-gray-500 mt-2">
@@ -229,11 +229,9 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={toggleEditMode}
-              className={`flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
                 isEditing
                   ? "bg-red-100 text-red-700 hover:bg-red-200"
                   : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
@@ -250,7 +248,7 @@ export default function ProfilePage() {
                   Editar perfil
                 </>
               )}
-            </motion.button>
+            </button>
           </motion.header>
 
           <AnimatePresence>
@@ -258,7 +256,7 @@ export default function ProfilePage() {
               variants={cardVariants}
               initial="hidden"
               animate="visible"
-              className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+              className="bg-emerald-50 rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
             >
               <form
                 onSubmit={handleSubmit}
@@ -556,7 +554,7 @@ export default function ProfilePage() {
                         return (
                           <div
                             key={day}
-                            className="text-center p-2 bg-gray-50 rounded-lg"
+                            className="text-center p-2 bg-emerald-100 rounded-lg"
                           >
                             <div className="text-xs font-medium text-gray-700 mb-1">
                               {label}
@@ -755,7 +753,7 @@ export default function ProfilePage() {
                 initial="hidden"
                 animate="visible"
                 transition={{ delay: 0.2 }}
-                className="bg-white w-full rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8"
+                className="bg-emerald-100 w-full rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8"
               >
                 <div className="space-y-6">
                   <div>
@@ -768,7 +766,7 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="flex flex-col items-center w-full gap-2">
-                    <div className="flex flex-row items-center justify-between w-full p-2 gap-2 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto">
+                    <div className="flex flex-row items-center justify-between w-full p-2 gap-2 bg-emerald-50 rounded-lg border border-gray-200 overflow-x-auto">
                       <span className="text-emerald-600 font-mono text-sm break-all">
                         {publicUrl}
                       </span>
@@ -776,7 +774,7 @@ export default function ProfilePage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleCopyUrl}
-                        className="flex-shrink-0 inline-flex items-center justify-center gap-2 py-2 px-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+                        className="flex-shrink-0 inline-flex items-center justify-center gap-2 py-2 px-2 rounded-lg border border-gray-200 bg-emerald-100 text-teal-700 hover:bg-gray-50 transition-colors shadow-sm"
                       >
                         <Copy className="w-4 h-4" />
                       </motion.button>
@@ -876,7 +874,7 @@ const StripeConnectSection = ({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="inline-flex items-center gap-2 py-2 px-4 rounded-lg bg-green-50 border border-green-100 text-green-700 font-medium"
+          className="inline-flex items-center gap-2 py-2 px-4 rounded-lg bg-emerald-200 border border-green-100 text-green-700 font-medium"
         >
           <CheckCircle className="w-5 h-5 text-green-500" />
           <span>Payments Connected</span>
@@ -888,7 +886,7 @@ const StripeConnectSection = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl w-full shadow-lg border border-gray-200 p-6 sm:p-8">
+    <div className="bg-emerald-100 rounded-2xl w-full shadow-lg border border-gray-200 p-6 sm:p-8">
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Payment Setup</h2>

@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react"; // Adicionado o useState
+import { useState } from "react";
 import { useSubscription, SubscriptionData } from "@/lib/hooks/useSubscription";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,10 +12,9 @@ import {
   DollarSign,
   BadgePercent,
   Zap,
-  X, // Ícone para fechar o modal
+  X,
 } from "lucide-react";
 
-// --- NOVO: Componente do Modal de Confirmação ---
 const ConfirmationModal = ({
   isOpen,
   onClose,
@@ -88,7 +86,6 @@ const ConfirmationModal = ({
   );
 };
 
-// --- Tipos e Constantes para o componente de UI (sem alterações) ---
 interface Plan {
   id: "monthly" | "semiannual" | "annual";
   name: string;
@@ -148,7 +145,6 @@ const plans: Plan[] = [
   },
 ];
 
-// --- Constantes de Animação (sem alterações) ---
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -164,7 +160,6 @@ const cardHover = {
 const buttonHover = { scale: 1.03 };
 const buttonTap = { scale: 0.98 };
 
-// --- Funções de Utilidade/Renderização (sem alterações) ---
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -172,6 +167,7 @@ const formatDate = (dateString: string) => {
     year: "numeric",
   });
 };
+
 const getPlanName = (planType?: string) => {
   switch (planType) {
     case "monthly":
@@ -184,6 +180,7 @@ const getPlanName = (planType?: string) => {
       return "Premium";
   }
 };
+
 const getStatusBadge = (status: SubscriptionData["status"]) => {
   if (!status) return null;
   const statusConfig = {
@@ -222,7 +219,6 @@ const getStatusBadge = (status: SubscriptionData["status"]) => {
   );
 };
 
-// --- Componente Principal ---
 export default function SubscriptionPage() {
   const {
     subscription,
@@ -233,7 +229,6 @@ export default function SubscriptionPage() {
     handleActivateNow,
   } = useSubscription();
 
-  // NOVO: Estado para controlar o modal de confirmação
   const [isActivateModalOpen, setIsActivateModalOpen] = useState(false);
 
   if (isLoading) {
@@ -250,13 +245,12 @@ export default function SubscriptionPage() {
 
   return (
     <>
-      {/* O modal agora é renderizado aqui */}
       <ConfirmationModal
         isOpen={isActivateModalOpen}
         onClose={() => setIsActivateModalOpen(false)}
         onConfirm={async () => {
           await handleActivateNow();
-          setIsActivateModalOpen(false); // Fecha o modal após a confirmação
+          setIsActivateModalOpen(false);
         }}
         isLoading={loadingStates.activate}
         title="Ativar Assinatura?"
@@ -267,19 +261,19 @@ export default function SubscriptionPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="min-h-screen bg-gradient-to-b from-emerald-50 to-white py-12 px-4 sm:px-6 lg:px-8"
+        className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-8 pb-22 px-4 sm:px-6 lg:px-8"
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full mx-auto space-y-4">
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-12"
+            className="flex flex-col justify-between items-start"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-3 bg-clip-text">
+            <h1 className="text-3xl sm:text-4xl font-bold text-emerald-900 bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-600">
               Sua Assinatura
             </h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-gray-500 mt-2">
               Gerencie sua assinatura e acesse todos os recursos premium da
               plataforma
             </p>
@@ -294,7 +288,7 @@ export default function SubscriptionPage() {
             {/* Bloco de Status da Assinatura */}
             <motion.div
               variants={itemVariants}
-              className="bg-white rounded-xl shadow-lg overflow-hidden"
+              className="bg-emerald-50 mt-2 rounded-xl shadow-xs overflow-hidden"
             >
               <div className="p-6 md:p-8">
                 <h2 className="text-2xl font-bold text-slate-800 mb-6">
@@ -342,7 +336,6 @@ export default function SubscriptionPage() {
                           <motion.button
                             whileHover={buttonHover}
                             whileTap={buttonTap}
-                            // ATUALIZADO: Abre o modal em vez de chamar a função diretamente
                             onClick={() => setIsActivateModalOpen(true)}
                             disabled={loadingStates.activate}
                             className="flex-1 flex justify-center items-center gap-2 py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 disabled:opacity-50 transition"
@@ -361,7 +354,7 @@ export default function SubscriptionPage() {
                             whileTap={buttonTap}
                             onClick={handleManageSubscription}
                             disabled={loadingStates.manage}
-                            className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition"
+                            className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-emerald-100 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-emerald-100 hover:bg-gray-50 disabled:opacity-50 transition"
                           >
                             {loadingStates.manage && (
                               <LoaderCircle className="w-5 h-5 animate-spin" />

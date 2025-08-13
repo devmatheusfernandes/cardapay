@@ -62,9 +62,9 @@ const navSections: NavSection[] = [
     mainHref: "/dashboard/orders",
     subItems: [
       { href: "/dashboard/kitchen", icon: ChefHat, label: "Cozinha" },
-      { href: "/dashboard/orders/online", icon: Laptop, label: "Do site" },
+      { href: "/dashboard/orders", icon: Laptop, label: "Do site" },
       {
-        href: "/dashboard/orders/waiter",
+        href: "/dashboard/waiter",
         icon: ClipboardList,
         label: "Do garçom",
       },
@@ -107,8 +107,6 @@ const Sidebar = () => {
     item: NavItem | NavSection;
     isSubItem?: boolean;
   }) => {
-    // ✨ CORREÇÃO APLICADA AQUI ✨
-    // Usamos um type guard ('in') para o TypeScript saber qual propriedade usar.
     const label = "label" in item ? item.label : item.title;
     const href = "href" in item ? item.href : item.mainHref;
     const isActive =
@@ -119,10 +117,10 @@ const Sidebar = () => {
         href={href}
         className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative ${
           isActive
-            ? "bg-gradient-to-r from-emerald-500 to-purple-600 text-white shadow-lg shadow-emerald-500/25"
+            ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25"
             : isSubItem
-            ? "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-            : "text-slate-700 hover:bg-slate-100"
+            ? "text-slate-500 hover:bg-emerald-100 hover:text-slate-700"
+            : "text-slate-700 hover:bg-emerald-100"
         } ${isCollapsed ? "justify-center" : ""}`}
       >
         <item.icon className={isCollapsed ? "w-6 h-6" : "w-5 h-5"} />
@@ -150,11 +148,10 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* --- DESKTOP SIDEBAR --- */}
       <motion.aside
         animate={{ width: isCollapsed ? 80 : 280 }}
         transition={{ type: "spring", stiffness: 200, damping: 25 }}
-        className="hidden md:flex flex-shrink-0 bg-white border-r border-slate-200/80 flex-col h-screen sticky top-0"
+        className="hidden md:flex flex-shrink-0 bg-emerald-50 border-r border-slate-200/80 flex-col h-screen sticky top-0"
       >
         <div className="h-20 flex items-center justify-between px-4 border-b border-slate-200/80">
           <AnimatePresence>
@@ -167,7 +164,7 @@ const Sidebar = () => {
               >
                 <Link
                   href="/dashboard/menu"
-                  className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-purple-600 bg-clip-text text-transparent"
+                  className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
                 >
                   Cardapay
                 </Link>
@@ -229,7 +226,7 @@ const Sidebar = () => {
       </motion.aside>
 
       {/* --- MOBILE BOTTOM NAVIGATION --- */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-emerald-50 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden z-40">
         <div className="flex justify-around items-center h-20">
           {[
             { href: "/dashboard", icon: User, label: "Perfil" },

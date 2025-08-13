@@ -5,27 +5,12 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../../lib/firebase";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import { UserPlus, Mail, Lock, User, Phone, ChevronLeft } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { UserPlus, Mail, Lock, User, Phone } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import InputField from "@/app/components/ui/InputField";
-import { toast, Toaster } from "react-hot-toast";
-
-const BackButton = () => (
-  <Link
-    href="/"
-    className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer"
-  >
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
-    >
-      <ChevronLeft className="w-8 h-8" />
-      <span className="text-md font-medium">Voltar</span>
-    </motion.button>
-  </Link>
-);
+import { toast } from "react-hot-toast";
+import BackButton from "@/app/components/shared/BackButton";
 
 const generateDriverCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -88,14 +73,13 @@ export default function DriverSignUpPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen py-18 md:py-0 bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4 relative">
-      <BackButton />
-      <Toaster position="top-center" />
+      <BackButton pathLink={"/"} />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl border border-slate-100"
+        className="w-full max-w-md p-8 space-y-8 bg-emerald-100 rounded-2xl shadow-xs border border-slate-100"
       >
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -113,7 +97,7 @@ export default function DriverSignUpPage() {
               <UserPlus className="w-8 h-8 text-emerald-600" />
             </motion.div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800">
+          <h1 className="text-3xl font-bold text-emerald-900">
             Cadastro de Entregador
           </h1>
           <p className="mt-2 text-slate-600">

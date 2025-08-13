@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useCallback } from "react";
 import {
   onAuthStateChanged,
@@ -63,7 +62,7 @@ const EmailVerificationStatus = ({ isVerified }: { isVerified: boolean }) => {
 
   if (isVerified) {
     return (
-      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+      <span className="w-fit flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
         <ShieldCheck className="w-4 h-4" />
         Verificado
       </span>
@@ -71,7 +70,7 @@ const EmailVerificationStatus = ({ isVerified }: { isVerified: boolean }) => {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2 sm:mt-0">
+    <div className="w-fit flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2 sm:mt-0">
       <span className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
         <ShieldAlert className="w-4 h-4" />
         Não Verificado
@@ -117,7 +116,7 @@ const SubscriptionStatusBadge = ({
   switch (subscription.status) {
     case "active":
       return (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+        <div className="p-3 bg-emerald-100 border border-emerald-200 rounded-lg">
           <p className="font-semibold text-emerald-800 flex items-center gap-2">
             <Crown className="w-5 h-5" /> Assinatura Ativa
           </p>
@@ -128,7 +127,7 @@ const SubscriptionStatusBadge = ({
       );
     case "trialing":
       return (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="p-3 bg-blue-100 border border-blue-200 rounded-lg">
           <p className="font-semibold text-blue-800 flex items-center gap-2">
             <Gift className="w-5 h-5" /> Período de Teste
           </p>
@@ -139,7 +138,7 @@ const SubscriptionStatusBadge = ({
       );
     case "past_due":
       return (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-3 bg-red-100 border border-red-200 rounded-lg">
           <p className="font-semibold text-red-800 flex items-center gap-2">
             <ShieldAlert className="w-5 h-5" /> Pagamento Pendente
           </p>
@@ -150,7 +149,7 @@ const SubscriptionStatusBadge = ({
       );
     case "canceled":
       return (
-        <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
           <p className="font-semibold text-gray-800">Assinatura Cancelada</p>
           <p className="text-sm text-gray-600 mt-1">
             Seu acesso termina em {formatDate(subscription.periodEnd)}.
@@ -288,28 +287,20 @@ export default function DashboardPage() {
   const handleSignOut = async () => {
     setLoading(true);
     await auth.signOut();
-    router.push("/");
-  };
-
-  const formatBirthDate = (dateString: string | null) => {
-    if (!dateString) return "Não informado";
-    const [year, month, day] = dateString.split("-");
-    return `${day}/${month}/${year}`;
+    router.push("/sign-in");
   };
 
   if (loading) {
-    return <Loading variant="spinner" />;
+    return <Loading />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-4 pb-22 px-4 sm:px-6 lg:px-8">
       {userProfile && (
         <ProfileSetupModal
           isOpen={isSetupModalOpen}
           onSubmit={handleProfileSave}
-          onClose={() => {
-            // Não permitir fechar o modal de setup inicial
-          }}
+          onClose={() => {}}
           title="🎉 Bem-vindo! Complete seu perfil"
           initialData={{
             name: userProfile.name || "",
@@ -331,15 +322,15 @@ export default function DashboardPage() {
       )}
 
       {userProfile && !isSetupModalOpen && (
-        <div className="flex flex-col items-center p-4 py-8 md:p-8">
+        <div className="flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="w-full max-w-2xl"
+            className="w-full"
           >
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
+              <h1 className="text-3xl md:text-4xl font-bold text-emerald-800">
                 Seu Perfil
               </h1>
               <button
@@ -351,7 +342,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 space-y-6">
+            <div className="bg-emerald-50 rounded-2xl shadow-xs border border-slate-100 p-8 space-y-6">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-full flex-shrink-0 flex items-center justify-center text-white text-4xl font-bold">
                   {userProfile.name ? (
@@ -368,7 +359,7 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex-shrink-0 flex items-center gap-2 py-2 px-4 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition"
+                  className="flex items-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-colors bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                 >
                   <Edit className="w-4 h-4" />
                   Editar Perfil

@@ -1,7 +1,5 @@
 // app/(dashboard)/dashboard/menu/page.tsx
-
 "use client";
-
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -13,7 +11,7 @@ import {
   Search,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMenu, MenuItem } from "../../../../lib/hooks/useMenu";
+import { useMenu, MenuItem } from "@/lib/hooks/useMenu";
 import Modal from "@/app/components/ui/Modal";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
 
@@ -168,8 +166,6 @@ export default function MenuPage() {
     </SubscriptionGuard>
   );
 }
-
-// --- Componentes Reutilizáveis (sem alterações significativas) ---
 
 const EmptyState = ({ onAddItem }: { onAddItem: () => void }) => (
   <div className="text-center py-20 px-6">

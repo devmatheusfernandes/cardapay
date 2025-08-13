@@ -31,7 +31,6 @@ const Loading: React.FC<LoadingProps> = ({
   const [isLottieLoaded, setIsLottieLoaded] = useState(false);
   const [animationJson, setAnimationJson] = useState<object | null>(null);
 
-  // Animações Lottie padrão (simuladas - você pode substituir por JSONs reais)
   const defaultAnimations = {
     spinner: {
       v: "5.7.4",
@@ -238,32 +237,36 @@ const Loading: React.FC<LoadingProps> = ({
     : `flex items-center justify-center p-4 ${className}`;
 
   return (
-    <div className={containerClasses}>
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          {isLottieLoaded ? (
-            <div
-              ref={animationContainer}
-              style={{ width: size, height: size }}
-              className="flex items-center justify-center"
-            />
-          ) : (
-            <div
-              className="flex items-center justify-center"
-              style={{ width: size, height: size }}
-            >
-              <CSSFallback />
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center">
+        <div className={containerClasses}>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              {isLottieLoaded ? (
+                <div
+                  ref={animationContainer}
+                  style={{ width: size, height: size }}
+                  className="flex items-center justify-center"
+                />
+              ) : (
+                <div
+                  className="flex items-center justify-center"
+                  style={{ width: size, height: size }}
+                >
+                  <CSSFallback />
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {text && (
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-700 animate-pulse">
-              {text}
-            </p>
+            {text && (
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-700 animate-pulse">
+                  {text}
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

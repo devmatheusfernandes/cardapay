@@ -4,10 +4,12 @@ import { SetStateAction, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
-import { LogIn, Mail, Lock, ChevronLeft } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { LogIn, Mail, Lock } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import InputField from "@/app/components/ui/InputField";
+import BackButton from "@/app/components/shared/BackButton";
+import toast from "react-hot-toast";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -23,7 +25,7 @@ export default function SignInPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard/profile");
+      router.push("/dashboard");
     } catch (err: any) {
       let errorMessage = "Falha ao entrar. Verifique suas credenciais.";
       switch (err.code) {
@@ -42,31 +44,23 @@ export default function SignInPage() {
     }
   };
 
-  const BackButton = () => (
-    <Link
-      href="/"
-      className="absolute top-4 left-4 md:top-6 md:left-6 cursor-pointer"
-    >
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="cursor-pointer flex items-center gap-1 text-slate-600 hover:text-emerald-600 transition-colors"
-      >
-        <ChevronLeft className="w-8 h-8" />
-        <span className="text-md font-medium">Voltar</span>
-      </motion.button>
-    </Link>
-  );
+  if (error) {
+    toast.error(error, {
+      id: "sign-in-error",
+      duration: 4000,
+      position: "top-center",
+    });
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4">
-      <BackButton />
+      <BackButton pathLink={"/"} />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl border border-slate-100"
+        className="w-full max-w-md p-8 space-y-8 bg-emerald-100 rounded-2xl shadow-xs border border-slate-100"
       >
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -84,8 +78,8 @@ export default function SignInPage() {
               <LogIn className="w-8 h-8 text-emerald-600" />
             </motion.div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800">Cardapay</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="text-3xl font-bold text-emerald-900">Cardapay</h1>
+          <p className="mt-2 text-slate-800">
             Bem-vindo de volta! <br /> Faça login para gerenciar seu
             restaurante.
           </p>
@@ -130,20 +124,6 @@ export default function SignInPage() {
             />
           </motion.div>
 
-          <AnimatePresence>
-            {error && (
-              <motion.p
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden text-sm text-center text-red-500"
-              >
-                {error}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -154,7 +134,7 @@ export default function SignInPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
+              className="cursor-pointer w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
             >
               {isLoading ? (
                 <motion.span
