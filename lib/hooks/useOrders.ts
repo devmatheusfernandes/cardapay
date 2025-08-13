@@ -10,7 +10,9 @@ export interface SizeOption { id: string; name: string; price: number; }
 export interface AddonOption { id: string; name: string; price: number; }
 export interface StuffedCrustOption { id: string; name: string; price: number; }
 
-// 1. NOVA INTERFACE para representar as opções como são salvas no Firebase (apenas IDs).
+// Em lib/hooks/useOrders.ts
+
+// A interface para opções salvas como IDs (geralmente de fontes mais simples como um pedido online)
 export interface OrderOptions {
   size?: string;
   addons?: string[];
@@ -19,17 +21,25 @@ export interface OrderOptions {
   notes?: string;
 }
 
-// 2. INTERFACE ATUALIZADA para OrderItem, usando a nova interface OrderOptions.
+// INTERFACE CORRIGIDA para OrderItem
 export interface OrderItem {
   productId: string;
   name: string;
   quantity: number;
-  price: number;
-  notes?: string;
+  price: number; // Preço final unitário do item com todas as opções
+
+  // Opções salvas como IDs
+  options?: OrderOptions;
+
+  // Opções salvas como objetos completos (geralmente de fontes ricas como o app do garçom)
+  selectedSize?: SizeOption;
+  selectedStuffedCrust?: StuffedCrustOption;
+  selectedAddons?: AddonOption[];
+  removedIngredients?: string[];
+  
+  // A propriedade 'notes' pode ser parte de 'options' ou estar no nível principal
+  notes?: string; 
   seat?: number;
-  options?: OrderOptions; // Usa a nova interface de opções
-  unitPrice: number; // Adicionado
-  personName?: string; // Adicionado
 }
 
 export interface OrderSeat {

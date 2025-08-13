@@ -265,15 +265,17 @@ export default function TablePage() {
                         - Novos Itens
                       </span>
                     </h3>
-                    <button
-                      onClick={() => handleOpenEditNameModal(seat)}
-                      className="p-1 text-slate-400 hover:text-slate-600 rounded-md transition-colors"
-                      aria-label={`Editar nome de ${
-                        seat.name || `Pessoa ${seat.id}`
-                      }`}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
+                    {!tableState.isInPayment && (
+                      <button
+                        onClick={() => handleOpenEditNameModal(seat)}
+                        className="p-1 text-slate-400 hover:text-slate-600 rounded-md transition-colors"
+                        aria-label={`Editar nome de ${
+                          seat.name || `Pessoa ${seat.id}`
+                        }`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <div className="space-y-2">
                     {seat.items.filter((i) => !i.submitted).length === 0 && (

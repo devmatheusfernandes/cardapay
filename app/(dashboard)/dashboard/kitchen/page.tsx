@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { useOrders, Order, OrderItem } from "@/lib/hooks/useOrders";
+import {
+  useOrders,
+  Order,
+  OrderItem,
+  AddonOption,
+} from "@/lib/hooks/useOrders";
 import { useMenu, MenuItem } from "@/lib/hooks/useMenu";
 import {
   LoaderCircle,
@@ -182,7 +187,6 @@ const KitchenOrderCard = ({
 };
 
 // --- COMPONENTE "RESOLVER" PARA EXIBIR OS DETALHES DE CADA ITEM ---
-// Componente corrigido para OrderItemDetailsResolver
 const OrderItemDetailsResolver = ({
   item,
   fullMenuItem,
@@ -193,6 +197,7 @@ const OrderItemDetailsResolver = ({
   orderSource?: string;
 }) => {
   if (!fullMenuItem) {
+    // ... (código para item não encontrado permanece o mesmo)
     return (
       <div className="border-l-2 border-red-300 pl-3 text-red-600">
         <div className="flex items-center gap-2">
@@ -211,68 +216,45 @@ const OrderItemDetailsResolver = ({
   // --- LÓGICA DE NORMALIZAÇÃO CORRIGIDA ---
   const options = item.options;
 
-  // Normalização do tamanho
+  // Normalização do Tamanho
   const sizeDetails =
     item.selectedSize ||
     (options?.size
       ? fullMenuItem.sizes?.find((s) => s.id === options.size)
       : undefined);
 
-  // CORREÇÃO: Normalização da borda recheada
-  // Primeiro, verifica se existe selectedStuffedCrust no item
-  let crustDetails = item.selectedStuffedCrust;
+  // Normalização da Borda
+  const crustDetails =
+    item.selectedStuffedCrust ||
+    (options?.stuffedCrust && fullMenuItem.stuffedCrust?.options
+      ? fullMenuItem.stuffedCrust.options.find(
+          (c) =>
+            c.id === options.stuffedCrust || c.name === options.stuffedCrust
+        )
+      : undefined);
 
-  // Se não existir, tenta encontrar através das options
-  if (!crustDetails && options?.stuffedCrust) {
-    // Verifica se stuffedCrust está disponível no item do menu
-    if (
-      fullMenuItem.stuffedCrust?.available &&
-      fullMenuItem.stuffedCrust.options
-    ) {
-      crustDetails = fullMenuItem.stuffedCrust.options.find(
-        (c) => c.id === options.stuffedCrust || c.name === options.stuffedCrust
-      );
-    }
-  }
+  // Normalização dos Adicionais
+  const addonDetails =
+    item.selectedAddons ||
+    (options?.addons
+      ? options.addons
+          .map((addonId) => fullMenuItem.addons?.find((a) => a.id === addonId))
+          .filter((a): a is AddonOption => !!a)
+      : []);
 
-  // CORREÇÃO: Normalização dos adicionais
-  let addonDetails: any[] = [];
+  // Normalização dos Ingredientes Removidos
+  const removedIngredients =
+    item.removedIngredients || options?.removableIngredients || [];
 
-  // Primeiro, verifica se existe selectedAddons no item
-  if (item.selectedAddons && Array.isArray(item.selectedAddons)) {
-    addonDetails = item.selectedAddons;
-  }
-  // Se não existir, tenta encontrar através das options
-  else if (options?.addons && Array.isArray(options.addons)) {
-    addonDetails = options.addons
-      .map((addonId) => fullMenuItem.addons?.find((a) => a.id === addonId))
-      .filter(Boolean);
-  }
-
-  // CORREÇÃO: Normalização dos ingredientes removidos
-  let removedIngredients: string[] = [];
-
-  // Primeiro, verifica se existe removedIngredients no item
-  if (item.removedIngredients && Array.isArray(item.removedIngredients)) {
-    removedIngredients = item.removedIngredients;
-  }
-  // Se não existir, tenta encontrar através das options
-  else if (
-    options?.removableIngredients &&
-    Array.isArray(options.removableIngredients)
-  ) {
-    removedIngredients = options.removableIngredients;
-  }
-
-  // Normalização das observações
+  // Normalização das Observações
   const notes = item.notes || options?.notes;
 
   // Verifica se é um item padrão (sem customizações)
   const isStandard =
     !sizeDetails &&
     !crustDetails &&
-    (!addonDetails || addonDetails.length === 0) &&
-    (!removedIngredients || removedIngredients.length === 0) &&
+    addonDetails.length === 0 &&
+    removedIngredients.length === 0 &&
     !notes;
 
   return (
@@ -316,18 +298,18 @@ const OrderItemDetailsResolver = ({
               </div>
             )}
 
-            {addonDetails && addonDetails.length > 0 && (
+            {addonDetails.length > 0 && (
               <div className="text-xs">
                 <span className="text-green-700 font-medium flex items-center gap-1.5">
                   <Plus className="w-3 h-3 text-green-500" /> Adicionar:
                 </span>
                 <span className="ml-4 text-green-600">
-                  {addonDetails.map((a) => a?.name).join(", ")}
+                  {addonDetails.map((a) => a.name).join(", ")}
                 </span>
               </div>
             )}
 
-            {removedIngredients && removedIngredients.length > 0 && (
+            {removedIngredients.length > 0 && (
               <div className="text-xs">
                 <span className="text-red-700 font-medium flex items-center gap-1.5">
                   <Ban className="w-3 h-3 text-red-500" /> Remover:
