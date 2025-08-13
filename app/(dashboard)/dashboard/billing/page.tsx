@@ -2,110 +2,103 @@
 
 import { useRouter } from "next/navigation";
 import { useBills, Bill } from "@/lib/hooks/useBills";
-import { LoaderCircle, FileText, ChevronRight, CreditCard } from "lucide-react";
+import { FileText, ChevronRight, CreditCard } from "lucide-react";
 import TimeAgo from "react-timeago";
+import ptBrStrings from "react-timeago/lib/language-strings/pt-br";
+import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import { motion } from "framer-motion";
-import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
 
+// Componentes do Design System
+import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
+import {
+  SectionContainer,
+  SubContainer,
+} from "@/app/components/shared/Container";
+import PageHeader from "@/app/components/shared/PageHeader";
+import Loading from "@/app/components/shared/Loading";
+
+const formatter = buildFormatter(ptBrStrings);
+
+// Componente para um item da lista de contas
+const BillItem = ({ bill, onClick }: { bill: Bill; onClick: () => void }) => {
+  const isPaid = bill.status === "Completed";
+  const itemColor = isPaid ? "green" : "emerald";
+
+  return (
+    <motion.div
+      onClick={onClick}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, boxShadow: "0 4px 10px -1px rgb(0 0 0 / 0.1)" }}
+      className="cursor-pointer"
+    >
+      <SubContainer className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-lg bg-${itemColor}-100`}>
+            <FileText className={`w-5 h-5 text-${itemColor}-600`} />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">Mesa {bill.tableId}</p>
+            <p className="text-sm text-slate-500">
+              Fechada{" "}
+              <TimeAgo date={bill.createdAt.toDate()} formatter={formatter} />
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className={`font-bold text-lg text-${itemColor}-600`}>
+            R$ {bill.totalAmount.toFixed(2).replace(".", ",")}
+          </span>
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </div>
+      </SubContainer>
+    </motion.div>
+  );
+};
+
+// Componente principal da página
 export default function BillingHistoryPage() {
   const router = useRouter();
   const { bills, isLoading } = useBills();
 
-  const handleBillClick = (billId: string) => {
-    router.push(`/dashboard/billing/${billId}`);
-  };
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
-      </div>
-    );
+    return <Loading fullScreen text="Carregando histórico de contas..." />;
   }
 
   return (
     <SubscriptionGuard>
-      <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
-        <div className="flex items-center gap-4 mb-8">
-          <FileText className="w-8 h-8 text-slate-700" />
-          <h1 className="text-3xl font-bold text-slate-800">
-            Histórico de Contas
-          </h1>
-        </div>
+      <SectionContainer>
+        <PageHeader
+          title="Histórico de Contas"
+          subtitle="Visualize os detalhes de todas as contas pagas."
+        />
 
-        {bills.length === 0 ? (
-          <div className="flex-grow flex items-center justify-center">
-            <div className="text-center">
-              <CreditCard className="mx-auto h-20 w-20 text-slate-300" />
-              <h2 className="mt-4 text-2xl font-semibold text-slate-700">
-                Nenhuma conta encontrada
-              </h2>
-              <p className="mt-1 text-slate-500">
-                As contas fechadas das mesas aparecerão aqui.
-              </p>
+        <main className="mt-8">
+          {bills.length === 0 ? (
+            <div className="flex items-center justify-center pt-16">
+              <SubContainer className="text-center p-10 max-w-md">
+                <CreditCard className="mx-auto h-16 w-16 text-slate-400" />
+                <h2 className="mt-4 text-2xl font-semibold text-slate-700">
+                  Nenhuma conta encontrada
+                </h2>
+                <p className="mt-1 text-slate-500">
+                  O histórico de contas fechadas das mesas aparecerá aqui.
+                </p>
+              </SubContainer>
             </div>
-          </div>
-        ) : (
-          <div className="flex-grow overflow-y-auto pr-2">
+          ) : (
             <div className="space-y-3">
               {bills.map((bill) => (
-                <motion.button
+                <BillItem
                   key={bill.id}
-                  onClick={() => handleBillClick(bill.id)}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{
-                    scale: 1.01,
-                    boxShadow:
-                      "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-                  }}
-                  className="w-full flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-left"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* LÓGICA DE COR ATUALIZADA */}
-                    <div
-                      className={`p-3 rounded-lg ${
-                        bill.status === "Completed"
-                          ? "bg-green-100"
-                          : "bg-emerald-100"
-                      }`}
-                    >
-                      <FileText
-                        className={`w-5 h-5 ${
-                          bill.status === "Completed"
-                            ? "text-green-600"
-                            : "text-emerald-600"
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800">
-                        Mesa {bill.tableId}
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        Fechada <TimeAgo date={bill.createdAt.toDate()} />
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {/* LÓGICA DE COR ATUALIZADA */}
-                    <span
-                      className={`font-bold text-lg ${
-                        bill.status === "Completed"
-                          ? "text-green-600"
-                          : "text-emerald-600"
-                      }`}
-                    >
-                      ${bill.totalAmount.toFixed(2)}
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-slate-400" />
-                  </div>
-                </motion.button>
+                  bill={bill}
+                  onClick={() => router.push(`/dashboard/billing/${bill.id}`)}
+                />
               ))}
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </main>
+      </SectionContainer>
     </SubscriptionGuard>
   );
 }

@@ -14,6 +14,11 @@ import {
   Zap,
   X,
 } from "lucide-react";
+import {
+  SectionContainer,
+  SubContainer,
+} from "@/app/components/shared/Container";
+import PageHeader from "@/app/components/shared/PageHeader";
 
 const ConfirmationModal = ({
   isOpen,
@@ -149,14 +154,17 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
+
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
   visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
 };
+
 const cardHover = {
   scale: 1.02,
   boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
 };
+
 const buttonHover = { scale: 1.03 };
 const buttonTap = { scale: 0.98 };
 
@@ -233,13 +241,11 @@ export default function SubscriptionPage() {
 
   if (isLoading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex items-center justify-center h-screen"
-      >
-        <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
-      </motion.div>
+      <SectionContainer>
+        <div className="flex items-center justify-center h-screen">
+          <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
+        </div>
+      </SectionContainer>
     );
   }
 
@@ -257,27 +263,12 @@ export default function SubscriptionPage() {
         message="Ao confirmar, seu período de teste será encerrado e a primeira cobrança será efetuada imediatamente. Você terá acesso completo ao plano."
       />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-8 pb-22 px-4 sm:px-6 lg:px-8"
-      >
+      <SectionContainer>
         <div className="w-full mx-auto space-y-4">
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col justify-between items-start"
-          >
-            <h1 className="text-3xl sm:text-4xl font-bold text-emerald-900 bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-600">
-              Sua Assinatura
-            </h1>
-            <p className="text-sm sm:text-base text-gray-500 mt-2">
-              Gerencie sua assinatura e acesse todos os recursos premium da
-              plataforma
-            </p>
-          </motion.div>
+          <PageHeader
+            title="Sua Assinatura"
+            subtitle="Gerencie sua assinatura e acesse todos os recursos premium da plataforma"
+          />
 
           <motion.div
             variants={containerVariants}
@@ -285,105 +276,102 @@ export default function SubscriptionPage() {
             animate="visible"
             className="space-y-8"
           >
-            {/* Bloco de Status da Assinatura */}
-            <motion.div
-              variants={itemVariants}
-              className="bg-emerald-50 mt-2 rounded-xl shadow-xs overflow-hidden"
-            >
-              <div className="p-6 md:p-8">
-                <h2 className="text-2xl font-bold text-slate-800 mb-6">
-                  Status da Assinatura
-                </h2>
-                <AnimatePresence mode="wait">
-                  {subscription.status ? (
-                    <motion.div
-                      key="has-subscription"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="space-y-6"
-                    >
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-slate-600">Status:</span>
-                        {getStatusBadge(subscription.status)}
-                        {subscription.planType && (
-                          <span className="text-slate-600">
-                            Plano:{" "}
-                            <strong>
-                              {getPlanName(subscription.planType)}
-                            </strong>
-                          </span>
-                        )}
-                      </div>
-
-                      {subscription.currentPeriodEnd && (
-                        <div className="flex items-center gap-3">
-                          <Calendar className="w-5 h-5 text-slate-500" />
-                          <span className="text-slate-600">
-                            {subscription.status === "canceled"
-                              ? "Acesso válido até: "
-                              : "Próxima cobrança: "}
-                            <strong>
-                              {formatDate(subscription.currentPeriodEnd)}
-                            </strong>
-                          </span>
+            {/* Status da Assinatura */}
+            <motion.div variants={itemVariants}>
+              <SubContainer className="mt-2">
+                <div className="p-6 md:p-8">
+                  <h2 className="text-2xl font-bold text-slate-800 mb-6">
+                    Status da Assinatura
+                  </h2>
+                  <AnimatePresence mode="wait">
+                    {subscription.status ? (
+                      <motion.div
+                        key="has-subscription"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="space-y-6"
+                      >
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="text-slate-600">Status:</span>
+                          {getStatusBadge(subscription.status)}
+                          {subscription.planType && (
+                            <span className="text-slate-600">
+                              Plano:{" "}
+                              <strong>
+                                {getPlanName(subscription.planType)}
+                              </strong>
+                            </span>
+                          )}
                         </div>
-                      )}
 
-                      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
-                        {/* Botão de Ativar Agora (só aparece em 'trialing') */}
-                        {subscription.status === "trialing" && (
-                          <motion.button
-                            whileHover={buttonHover}
-                            whileTap={buttonTap}
-                            onClick={() => setIsActivateModalOpen(true)}
-                            disabled={loadingStates.activate}
-                            className="flex-1 flex justify-center items-center gap-2 py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 disabled:opacity-50 transition"
-                          >
-                            <Zap className="w-5 h-5" />
-                            Ativar Agora
-                          </motion.button>
+                        {subscription.currentPeriodEnd && (
+                          <div className="flex items-center gap-3">
+                            <Calendar className="w-5 h-5 text-slate-500" />
+                            <span className="text-slate-600">
+                              {subscription.status === "canceled"
+                                ? "Acesso válido até: "
+                                : "Próxima cobrança: "}
+                              <strong>
+                                {formatDate(subscription.currentPeriodEnd)}
+                              </strong>
+                            </span>
+                          </div>
                         )}
 
-                        {/* Botão de Gerenciar */}
-                        {["active", "trialing"].includes(
-                          subscription.status
-                        ) && (
-                          <motion.button
-                            whileHover={buttonHover}
-                            whileTap={buttonTap}
-                            onClick={handleManageSubscription}
-                            disabled={loadingStates.manage}
-                            className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-emerald-100 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-emerald-100 hover:bg-gray-50 disabled:opacity-50 transition"
-                          >
-                            {loadingStates.manage && (
-                              <LoaderCircle className="w-5 h-5 animate-spin" />
-                            )}
-                            <CreditCard className="w-5 h-5" />
-                            Gerenciar Assinatura
-                          </motion.button>
-                        )}
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="no-subscription"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-center py-6"
-                    >
-                      <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                      <p className="text-slate-600">
-                        Você ainda não possui uma assinatura ativa
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+                          {subscription.status === "trialing" && (
+                            <motion.button
+                              whileHover={buttonHover}
+                              whileTap={buttonTap}
+                              onClick={() => setIsActivateModalOpen(true)}
+                              disabled={loadingStates.activate}
+                              className="flex-1 flex justify-center items-center gap-2 py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 disabled:opacity-50 transition"
+                            >
+                              <Zap className="w-5 h-5" />
+                              Ativar Agora
+                            </motion.button>
+                          )}
+
+                          {["active", "trialing"].includes(
+                            subscription.status
+                          ) && (
+                            <motion.button
+                              whileHover={buttonHover}
+                              whileTap={buttonTap}
+                              onClick={handleManageSubscription}
+                              disabled={loadingStates.manage}
+                              className="flex-1 flex justify-center items-center gap-2 py-3 px-4 border border-emerald-100 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-emerald-100 hover:bg-gray-50 disabled:opacity-50 transition"
+                            >
+                              {loadingStates.manage && (
+                                <LoaderCircle className="w-5 h-5 animate-spin" />
+                              )}
+                              <CreditCard className="w-5 h-5" />
+                              Gerenciar Assinatura
+                            </motion.button>
+                          )}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="no-subscription"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-center py-6"
+                      >
+                        <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                        <p className="text-slate-600">
+                          Você ainda não possui uma assinatura ativa
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </SubContainer>
             </motion.div>
 
-            {/* Bloco de Planos */}
+            {/* Planos */}
             {(!subscription.status || subscription.status === "canceled") && (
               <motion.div
                 variants={itemVariants}
@@ -391,102 +379,108 @@ export default function SubscriptionPage() {
                 initial="hidden"
                 animate="visible"
               >
-                <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
-                  Escolha um Novo Plano
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {plans.map((plan) => (
-                    <motion.div
-                      key={plan.id}
-                      whileHover={cardHover}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className={`relative bg-white rounded-xl shadow-lg overflow-hidden border-2 ${
-                        plan.recommended
-                          ? "border-emerald-400"
-                          : "border-transparent"
-                      }`}
-                    >
-                      {plan.recommended && (
-                        <div className="absolute top-0 right-0 bg-gradient-to-r from-emerald-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-bl-lg">
-                          RECOMENDADO
-                        </div>
-                      )}
-
-                      <div className="p-6 flex flex-col h-full">
-                        <div className="text-center mb-6">
-                          <div className="w-16 h-16 bg-gradient-to-r from-emerald-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Crown className="w-8 h-8 text-emerald-600" />
-                          </div>
-                          <h3 className="text-xl font-bold text-slate-800 mb-2">
-                            {plan.name}
-                          </h3>
-                          <p className="text-slate-600 text-sm mb-3">
-                            {plan.description}
-                          </p>
-
-                          <div className="flex items-center justify-center gap-2 mb-4">
-                            <DollarSign className="w-6 h-6 text-emerald-600" />
-                            <span className="text-2xl font-bold text-emerald-600">
-                              R$ {plan.price.toFixed(2).replace(".", ",")}
-                            </span>
-                            <span className="text-slate-500">
-                              {plan.interval === "month" ? "/mês" : "/ano"}
-                            </span>
-                          </div>
-
-                          {plan.savings && (
-                            <motion.div
-                              initial={{ scale: 0.9 }}
-                              animate={{ scale: 1 }}
-                              className="inline-flex items-center justify-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs mb-4"
-                            >
-                              <BadgePercent className="w-4 h-4" />
-                              {plan.savings}
-                            </motion.div>
+                <SubContainer variant="white">
+                  <div className="p-6 md:p-8">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
+                      Escolha um Novo Plano
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {plans.map((plan) => (
+                        <motion.div
+                          key={plan.id}
+                          whileHover={cardHover}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className={`relative bg-white rounded-xl shadow-lg overflow-hidden border-2 ${
+                            plan.recommended
+                              ? "border-emerald-400"
+                              : "border-transparent"
+                          }`}
+                        >
+                          {plan.recommended && (
+                            <div className="absolute top-0 right-0 bg-gradient-to-r from-emerald-600 to-pink-600 text-white text-xs font-bold px-4 py-2 rounded-bl-lg">
+                              RECOMENDADO
+                            </div>
                           )}
-                        </div>
 
-                        <div className="space-y-3 mb-6">
-                          {plan.features.map((feature, index) => (
-                            <motion.div
-                              key={index}
-                              whileHover={{ x: 5 }}
-                              className="flex items-center gap-3"
-                            >
-                              <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                              <span className="text-slate-700">{feature}</span>
-                            </motion.div>
-                          ))}
-                        </div>
+                          <div className="p-6 flex flex-col h-full">
+                            <div className="text-center mb-6">
+                              <div className="w-16 h-16 bg-gradient-to-r from-emerald-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Crown className="w-8 h-8 text-emerald-600" />
+                              </div>
+                              <h3 className="text-xl font-bold text-slate-800 mb-2">
+                                {plan.name}
+                              </h3>
+                              <p className="text-slate-600 text-sm mb-3">
+                                {plan.description}
+                              </p>
 
-                        <div className="mt-auto">
-                          <motion.button
-                            whileHover={buttonHover}
-                            whileTap={buttonTap}
-                            onClick={() => handleSubscribe(plan.id)}
-                            disabled={loadingStates[plan.id]}
-                            className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-pink-600 hover:from-emerald-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition"
-                          >
-                            {loadingStates[plan.id] && (
-                              <LoaderCircle className="w-5 h-5 animate-spin" />
-                            )}
-                            <Crown className="w-5 h-5" />
-                            {loadingStates[plan.id]
-                              ? "Processando..."
-                              : "Assinar Agora"}
-                          </motion.button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                              <div className="flex items-center justify-center gap-2 mb-4">
+                                <DollarSign className="w-6 h-6 text-emerald-600" />
+                                <span className="text-2xl font-bold text-emerald-600">
+                                  R$ {plan.price.toFixed(2).replace(".", ",")}
+                                </span>
+                                <span className="text-slate-500">
+                                  {plan.interval === "month" ? "/mês" : "/ano"}
+                                </span>
+                              </div>
+
+                              {plan.savings && (
+                                <motion.div
+                                  initial={{ scale: 0.9 }}
+                                  animate={{ scale: 1 }}
+                                  className="inline-flex items-center justify-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs mb-4"
+                                >
+                                  <BadgePercent className="w-4 h-4" />
+                                  {plan.savings}
+                                </motion.div>
+                              )}
+                            </div>
+
+                            <div className="space-y-3 mb-6">
+                              {plan.features.map((feature, index) => (
+                                <motion.div
+                                  key={index}
+                                  whileHover={{ x: 5 }}
+                                  className="flex items-center gap-3"
+                                >
+                                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                  <span className="text-slate-700">
+                                    {feature}
+                                  </span>
+                                </motion.div>
+                              ))}
+                            </div>
+
+                            <div className="mt-auto">
+                              <motion.button
+                                whileHover={buttonHover}
+                                whileTap={buttonTap}
+                                onClick={() => handleSubscribe(plan.id)}
+                                disabled={loadingStates[plan.id]}
+                                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-pink-600 hover:from-emerald-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition"
+                              >
+                                {loadingStates[plan.id] && (
+                                  <LoaderCircle className="w-5 h-5 animate-spin" />
+                                )}
+                                <Crown className="w-5 h-5" />
+                                {loadingStates[plan.id]
+                                  ? "Processando..."
+                                  : "Assinar Agora"}
+                              </motion.button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </SubContainer>
               </motion.div>
             )}
           </motion.div>
         </div>
-      </motion.div>
+      </SectionContainer>
     </>
   );
 }

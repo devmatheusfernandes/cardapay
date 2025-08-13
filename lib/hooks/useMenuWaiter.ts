@@ -4,12 +4,14 @@ import { db, auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 export interface SizeOption {
+  description: any;
   id: string;
   name: string;
   price: number;
 }
 
 export interface AddonOption {
+  description: any;
   id: string;
   name: string;
   price: number;
@@ -22,6 +24,8 @@ export interface StuffedCrustOption {
 }
 
 export interface StuffedCrust {
+  price: any;
+  description: ReactNode;
   available: boolean; // Padronizado para 'available'
   options: StuffedCrustOption[];
 }

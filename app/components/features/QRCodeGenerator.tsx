@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Download } from "lucide-react";
-import { motion } from "framer-motion";
+import ActionButton from "../shared/ActionButton";
 
 interface QRCodeGeneratorProps {
   url: string;
@@ -45,15 +45,13 @@ const QRCodeGenerator = ({ url }: QRCodeGeneratorProps) => {
             includeMargin={false}
           />
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <ActionButton
+          label="Download PNG"
+          icon={<Download />}
           onClick={handleDownload}
-          className="inline-flex items-center gap-2 py-2 px-4 bg-teal-600 text-white rounded-lg shadow-sm hover:bg-slate-700 transition"
-        >
-          <Download className="w-5 h-5" />
-          Download PNG
-        </motion.button>
+          variant="primary"
+          size="md"
+        />
       </div>
     </div>
   );

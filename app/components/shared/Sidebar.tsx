@@ -59,7 +59,7 @@ const navSections: NavSection[] = [
   {
     title: "Pedidos",
     icon: ShoppingCart,
-    mainHref: "/dashboard/orders",
+    mainHref: "/dashboard/pedidos",
     subItems: [
       { href: "/dashboard/kitchen", icon: ChefHat, label: "Cozinha" },
       { href: "/dashboard/orders", icon: Laptop, label: "Do site" },

@@ -23,6 +23,10 @@ import { useTablePaymentStatus } from './useTablePaymentStatus';
 
 // Interface atualizada para incluir opções de borda recheada e ingredientes removidos
 export interface WaiterOrderItem {
+  size: any;
+  id(id: any): void;
+  addons: boolean;
+  stuffedCrust: any;
   productId: string;
   name: string;
   quantity: number;

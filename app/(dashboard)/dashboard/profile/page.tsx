@@ -7,7 +7,7 @@ import {
   StripeAccountStatus,
   WorkingHours,
   SocialMedia,
-} from "../../../../lib/hooks/useRestaurantProfile";
+} from "@/lib/hooks/useRestaurantProfile";
 import { auth } from "@/lib/firebase";
 import {
   LoaderCircle,
@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import QRCodeGenerator from "@/app/components/features/QRCodeGenerator";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
+import PageHeader from "@/app/components/shared/PageHeader";
 
 const defaultWorkingHours: WorkingHours = {
   monday: { open: "09:00", close: "22:00", closed: false },
@@ -213,43 +214,19 @@ export default function ProfilePage() {
     <SubscriptionGuard>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8 pb-24">
         <div className="w-full mx-auto space-y-4">
-          <motion.header
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4"
-          >
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-emerald-900 bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-600">
-                Perfil do Estabelecimento
-              </h1>
-              <p className="text-sm sm:text-base text-gray-500 mt-2">
-                Gerencie o perfil público do seu estabelecimento e as
-                configurações.
-              </p>
-            </div>
-
-            <button
-              onClick={toggleEditMode}
-              className={`flex items-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-colors ${
-                isEditing
-                  ? "bg-red-100 text-red-700 hover:bg-red-200"
-                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-              }`}
-            >
-              {isEditing ? (
-                <>
-                  <X className="w-4 h-4" />
-                  Cancelar
-                </>
-              ) : (
-                <>
-                  <Edit className="w-4 h-4" />
-                  Editar perfil
-                </>
-              )}
-            </button>
-          </motion.header>
+          <PageHeader
+            title="Perfil do Estabelecimento"
+            subtitle="Gerencie o perfil público do seu estabelecimento e as configurações."
+            actionButton={{
+              label: "Editar perfil",
+              activeLabel: "Cancelar",
+              onClick: toggleEditMode,
+              icon: <Edit className="w-4 h-4" />,
+              activeIcon: <X className="w-4 h-4" />,
+              variant: "primary",
+              isActive: isEditing,
+            }}
+          />
 
           <AnimatePresence>
             <motion.div

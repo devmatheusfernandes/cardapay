@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, useCallback } from "react";
 import {
   onAuthStateChanged,
@@ -8,7 +9,6 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../../lib/firebase";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   User,
   Mail,
@@ -20,10 +20,18 @@ import {
   ShieldAlert,
   Crown,
 } from "lucide-react";
+
+// --- Imported Components ---
+import {
+  SectionContainer,
+  SubContainer,
+} from "@/app/components/shared/Container";
+import PageHeader from "@/app/components/shared/PageHeader";
+import ActionButton from "@/app/components/shared/ActionButton";
+import Loading from "@/app/components/shared/Loading";
 import ProfileSetupModal, {
   ProfileData,
 } from "@/app/components/profile/ProfileSetupModal";
-import Loading from "@/app/components/shared/Loading";
 
 // Interface para o perfil do usuário
 interface UserProfile {
@@ -291,16 +299,16 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return <Loading />;
+    return <Loading variant="spinner" />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-4 pb-22 px-4 sm:px-6 lg:px-8">
+    <SectionContainer>
       {userProfile && (
         <ProfileSetupModal
           isOpen={isSetupModalOpen}
           onSubmit={handleProfileSave}
-          onClose={() => {}}
+          onClose={() => {}} // Impede o fechamento do modal de setup inicial
           title="🎉 Bem-vindo! Complete seu perfil"
           initialData={{
             name: userProfile.name || "",
@@ -322,76 +330,70 @@ export default function DashboardPage() {
       )}
 
       {userProfile && !isSetupModalOpen && (
-        <div className="flex flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="w-full"
+        <div className="w-full mx-auto">
+          <PageHeader
+            title="Seu Perfil"
+            className="w-full mb-8"
+            actionButton={{
+              label: "Sair",
+              icon: <LogOut />,
+              onClick: handleSignOut,
+              variant: "secondary",
+            }}
+          />
+
+          <SubContainer
+            variant="default"
+            className="w-full p-6 sm:p-8 space-y-6"
           >
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-emerald-800">
-                Seu Perfil
-              </h1>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-slate-500 hover:text-red-500 transition-colors font-medium p-2 rounded-md"
-              >
-                <LogOut className="w-5 h-5" />
-                <span>Sair</span>
-              </button>
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-full flex-shrink-0 flex items-center justify-center text-white text-4xl font-bold">
+                {userProfile.name ? (
+                  userProfile.name.charAt(0).toUpperCase()
+                ) : (
+                  <User />
+                )}
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h2 className="text-2xl font-bold text-slate-800">
+                  {userProfile.name || "Usuário"}
+                </h2>
+                <p className="text-slate-500">Bem-vindo(a) de volta!</p>
+              </div>
+              <ActionButton
+                label="Editar Perfil"
+                icon={<Edit />}
+                onClick={() => setIsEditModalOpen(true)}
+                variant="primary"
+                size="md"
+              />
             </div>
 
-            <div className="bg-emerald-50 rounded-2xl shadow-xs border border-slate-100 p-8 space-y-6">
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-full flex-shrink-0 flex items-center justify-center text-white text-4xl font-bold">
-                  {userProfile.name ? (
-                    userProfile.name.charAt(0).toUpperCase()
-                  ) : (
-                    <User />
-                  )}
+            <SubscriptionStatusBadge subscription={subscription} />
+
+            <hr className="border-slate-200" />
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-slate-700">
+                Informações Pessoais
+              </h3>
+              <div className="flex items-start gap-4 text-slate-600">
+                <Mail className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-1" />
+                <div className="flex flex-col">
+                  <span>{userProfile.email}</span>
+                  <EmailVerificationStatus
+                    isVerified={userProfile.emailVerified}
+                  />
                 </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h2 className="text-2xl font-bold text-slate-800">
-                    {userProfile.name || "Usuário"}
-                  </h2>
-                  <p className="text-slate-500">Bem-vindo(a) de volta!</p>
-                </div>
-                <button
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="flex items-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-colors bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                >
-                  <Edit className="w-4 h-4" />
-                  Editar Perfil
-                </button>
               </div>
-
-              <SubscriptionStatusBadge subscription={subscription} />
-
-              <hr className="border-slate-200" />
-
-              <div className="space-y-4">
-                <h3 className="font-semibold text-slate-700">
-                  Informações Pessoais
-                </h3>
-                <div className="flex items-start gap-4 text-slate-600">
-                  <Mail className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-1" />
-                  <div className="flex flex-col">
-                    <span>{userProfile.email}</span>
-                    <EmailVerificationStatus
-                      isVerified={userProfile.emailVerified}
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-slate-600">
-                  <Phone className="w-5 h-5 text-emerald-500" />
-                  <span>{userProfile.phone || "Não informado"}</span>
-                </div>
+              <div className="flex items-center gap-4 text-slate-600">
+                <Phone className="w-5 h-5 text-emerald-500" />
+                <span>{userProfile.phone || "Não informado"}</span>
               </div>
             </div>
-          </motion.div>
+          </SubContainer>
         </div>
       )}
-    </div>
+    </SectionContainer>
   );
 }
