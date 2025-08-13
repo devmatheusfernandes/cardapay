@@ -11,7 +11,7 @@ export interface SizeOption {
 }
 
 export interface AddonOption {
-  description: any;
+  description: string;
   id: string;
   name: string;
   price: number;

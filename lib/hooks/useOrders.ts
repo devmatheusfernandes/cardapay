@@ -28,11 +28,14 @@ export interface OrderItem {
   notes?: string;
   seat?: number;
   options?: OrderOptions; // Usa a nova interface de opções
+  unitPrice: number; // Adicionado
+  personName?: string; // Adicionado
+}
 
-  selectedSize?: SizeOption;
-  selectedAddons?: AddonOption[];
-  selectedStuffedCrust?: StuffedCrustOption;
-  removedIngredients?: string[];
+export interface OrderSeat {
+  id: number;
+  name: string | null;
+  seat?: number
 }
 
 // 3. INTERFACE ATUALIZADA para Order, usando o novo OrderItem.
@@ -51,6 +54,8 @@ export interface Order {
   source?: 'waiter' | 'online' | 'waiter-bill';
   tableId?: string;
   paymentMethod?: 'together' | 'separated';
+  seatsInvolved?: OrderSeat[];
+  seats: any;
 }
 
 // --- FIM DAS ALTERAÇÕES ---
@@ -159,3 +164,4 @@ export const useOrders = () => {
 
   return { orders, isLoading: authLoading || isLoading, updateOrderStatus };
 };
+

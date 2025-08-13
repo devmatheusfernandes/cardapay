@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { MenuItem, SizeOption, AddonOption, StuffedCrustOption } from './useMenuWaiter';
-import { Order } from './useOrders';
+import { Order, OrderSeat } from './useOrders';
 import { useTablePaymentStatus } from './useTablePaymentStatus';
 
 // Interface atualizada para incluir opções de borda recheada e ingredientes removidos
@@ -38,6 +38,7 @@ export interface WaiterOrderItem {
 export interface Seat {
   id: number;
   items: WaiterOrderItem[];
+  name?: string | null;
 }
 
 export interface TableState {
@@ -486,7 +487,10 @@ export const useWaiter = (tableId: string) => {
         (sum, order) => sum + order.totalAmount, 
         0
       );
-
+      const seatsInvolved: OrderSeat[] = tableState.seats.map((seat) => ({
+        id: seat.id,
+        name: seat.name || null, // Garante que o nome seja salvo
+      }));
       // Criar registro de conta para pagamento
       const billData = {
         restaurantId: user.uid,
@@ -496,7 +500,8 @@ export const useWaiter = (tableId: string) => {
         paymentMethod: tableState.paymentMethod,
         status: 'pending',
         createdAt: serverTimestamp(), // ✅ serverTimestamp aqui também
-        seats: cleanFirebaseData(tableState.seats.filter(seat => seat.items.length > 0))
+        seats: cleanFirebaseData(tableState.seats.filter(seat => seat.items.length > 0)),
+        seatsInvolved: seatsInvolved,
       };
 
       const billDoc = await addDoc(collection(db, 'bills'), billData);
@@ -548,6 +553,18 @@ export const useWaiter = (tableId: string) => {
     }
   }, [user, kitchenOrders, clearTableState, tableId]);
 
+  const updateSeatName = (seatId: number, name: string) => {
+    setTableState((currentState) => {
+      const updatedSeats = currentState.seats.map((seat) => {
+        if (seat.id === seatId) {
+          return { ...seat, name: name }; // Atualiza o nome da pessoa correta
+        }
+        return seat;
+      });
+      return { ...currentState, seats: updatedSeats };
+    });
+  };
+
   return {
     isLoading,
     tableState,
@@ -560,6 +577,7 @@ export const useWaiter = (tableId: string) => {
     markAsDelivered,
     prepareFinalBill,
     finalizeBill,
-    calculateItemPrice
+    calculateItemPrice,
+    updateSeatName
   };
 };

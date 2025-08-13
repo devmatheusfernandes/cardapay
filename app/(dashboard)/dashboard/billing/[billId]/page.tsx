@@ -30,6 +30,8 @@ import BackButton from "@/app/components/shared/BackButton";
 
 // --- Componentes Locais ---
 
+// --- Componentes Locais ---
+
 const PaymentTerminal = ({ bill }: { bill: Order }) => {
   const [view, setView] = useState<"together" | "separated" | "split">(
     bill.paymentMethod || "together"
@@ -41,19 +43,59 @@ const PaymentTerminal = ({ bill }: { bill: Order }) => {
   const params = useParams();
   const billId = params.billId as string;
 
+  // NOVO: Criar um mapa de ID da pessoa para o nome para fácil acesso.
+  const seatNameMap = useMemo(() => {
+    const nameMap = new Map<number, string | null>();
+    if (bill.seatsInvolved) {
+      for (const seat of bill.seatsInvolved) {
+        nameMap.set(seat.id, seat.name);
+      }
+    }
+    return nameMap;
+  }, [bill.seatsInvolved]);
+
+  // Em seu componente PaymentTerminal
   const seatsData = useMemo(() => {
-    const seatsMap: Record<number, { items: OrderItem[]; total: number }> = {};
-    (bill.items || []).forEach((item) => {
-      const seatId = item.seat || 0;
-      if (!seatsMap[seatId]) seatsMap[seatId] = { items: [], total: 0 };
-      seatsMap[seatId].items.push(item);
-      seatsMap[seatId].total += item.price * item.quantity;
-    });
-    return Object.entries(seatsMap).map(([seatId, data]) => ({
-      seatId: parseInt(seatId, 10),
-      ...data,
+    // 1. A inicialização da lista de pessoas a partir de 'seatsInvolved' está CORRETA e permanece igual.
+    const allPeople = (bill.seatsInvolved || []).map((seat) => ({
+      seatId: seat.id,
+      name: seat.name,
+      items: [] as OrderItem[],
+      total: 0,
     }));
-  }, [bill]);
+
+    // Cria um mapa para acesso rápido e eficiente.
+    const peopleMap = new Map(allPeople.map((p) => [p.seatId, p]));
+
+    // 2. ALTERADO: Agora vamos ler do local correto: 'bill.seats'.
+    // Itera sobre cada 'seat' que contém os itens no documento do Firebase.
+    (bill.seats || []).forEach((seatWithItems: { id: number; items: any }) => {
+      // Encontra a pessoa correspondente no nosso mapa.
+      const person = peopleMap.get(seatWithItems.id);
+
+      if (person) {
+        // Itera sobre os itens DENTRO do 'seat' atual.
+        (seatWithItems.items || []).forEach((item: OrderItem) => {
+          person.items.push(item);
+          person.total += item.price * item.quantity;
+        });
+      }
+    });
+
+    // 3. Retorna a lista completa de pessoas com seus itens e totais devidamente preenchidos.
+    return allPeople;
+  }, [bill.seats, bill.seatsInvolved]);
+
+  // NOVO: Criar uma lista plana de todos os itens para a "Conta Total"
+  const allItemsFlat = useMemo(() => {
+    return (bill.seats || []).flatMap((seat: { items: any; id: any }) =>
+      // Adiciona o ID da pessoa a cada item para podermos identificar quem pediu
+      (seat.items || []).map((item: any) => ({
+        ...item,
+        seatId: seat.id,
+      }))
+    );
+  }, [bill.seats]);
 
   const handleFinalizePayment = async () => {
     if (bill.tableId && billId) {
@@ -74,11 +116,12 @@ const PaymentTerminal = ({ bill }: { bill: Order }) => {
       case "separated":
         return (
           <div className="space-y-4">
-            {seatsData.map(({ seatId, items, total }) => (
+            {/* ALTERADO: Usar o nome da pessoa no título do card */}
+            {seatsData.map(({ seatId, items, total, name }) => (
               <SubContainer key={seatId} variant="gray" className="p-4">
                 <h3 className="font-bold text-lg text-slate-800 mb-2 flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-emerald-600" /> Conta -
-                  Pessoa {seatId}
+                  <UserCheck className="w-5 h-5 text-emerald-600" /> Conta -{" "}
+                  {name || `Pessoa ${seatId}`}
                 </h3>
                 <div className="space-y-2 border-t pt-3 mt-2">
                   {(items || []).map((item, index) => (
@@ -128,27 +171,37 @@ const PaymentTerminal = ({ bill }: { bill: Order }) => {
             </SubContainer>
           </div>
         );
+      // DENTRO DO SEU COMPONENTE PaymentTerminal
+
+      // ...
       case "together":
       default:
         return (
           <div className="space-y-2 border-t border-b py-4">
-            {(bill.items || []).map((item, index) => (
-              <div key={index} className="flex justify-between">
-                <span className="text-slate-600">
-                  {item.quantity}x {item.name} (P{item.seat})
-                </span>
-                <span className="font-semibold">
-                  R$ {(item.price * item.quantity).toFixed(2)}
-                </span>
-              </div>
-            ))}
+            {allItemsFlat.map((item: any, index: number) => {
+              const personName = seatNameMap.get(item.seatId);
+              const displayName = personName || `Pessoa ${item.seatId}`;
+              return (
+                <div
+                  key={`${item.productId}-${index}`}
+                  className="flex justify-between"
+                >
+                  <span className="text-slate-600">
+                    {item.quantity}x {item.name}
+                  </span>
+                  <span className="font-semibold">
+                    R$ {(item.price * item.quantity).toFixed(2)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         );
     }
   };
 
   return (
-    <SubContainer variant="white" className="p-6 sm:p-8">
+    <SubContainer className="p-6 sm:p-8">
       {/* Seletor de visualização */}
       <div className="flex justify-center gap-1 bg-slate-100 p-1 rounded-lg mb-6 shadow-sm">
         <ActionButton
