@@ -5,12 +5,12 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Flame, Leaf } from "lucide-react";
 import {
-  AddonOption,
   SelectedOptions,
   SizeOption,
   StuffedCrustOption,
 } from "@/lib/context/CartContext";
 import { MenuItem } from "@/lib/types/restaurantSlug/types";
+import { AddonOption } from "@/lib/hooks/useOrders";
 
 interface ItemOptionsModalProps {
   item: MenuItem | null;

@@ -10,6 +10,7 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useRouter } from 'next/navigation';
+import { AddonOption } from './useOrders';
 
 // --- Interfaces para a Nova Estrutura de Dados ---
 
@@ -19,11 +20,6 @@ export interface SizeOption {
   price: number;
 }
 
-export interface AddonOption {
-  id: string;
-  name:string; // Queijo Extra, Bacon
-  price: number;
-}
 
 export interface StuffedCrustOption {
   id: string;

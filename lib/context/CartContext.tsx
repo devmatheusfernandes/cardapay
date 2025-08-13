@@ -10,7 +10,7 @@ import React, {
   useEffect,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { AddonOption } from "../hooks/useMenuWaiter";
+import { AddonOption } from "../hooks/useOrders";
 
 // --- Interfaces ---
 export interface SizeOption {

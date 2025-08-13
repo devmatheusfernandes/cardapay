@@ -2,6 +2,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { AddonOption } from './useOrders';
 
 export interface SizeOption {
   description: any;
@@ -9,14 +10,6 @@ export interface SizeOption {
   name: string;
   price: number;
 }
-
-export interface AddonOption {
-  description: string;
-  id: string;
-  name: string;
-  price: number;
-}
-
 export interface StuffedCrustOption {
   id: string;
   name: string;

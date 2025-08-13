@@ -1,17 +1,15 @@
 // lib/types.ts
 
+import { AddonOption } from "@/lib/hooks/useOrders";
+
 // Opções que podem ser selecionadas para um item
 export interface SizeOption {
   id: string;
   name: string;
   price: number;
+  description: string;
 }
 
-export interface AddonOption {
-  id: string;
-  name: string;
-  price: number;
-}
 
 export interface StuffedCrustOption {
   id: string;
