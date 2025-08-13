@@ -27,6 +27,8 @@ import TimeAgo from "react-timeago";
 import ptBrStrings from "react-timeago/lib/language-strings/pt-br";
 import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
+import { SectionContainer } from "@/app/components/shared/Container";
+import PageHeader from "@/app/components/shared/PageHeader";
 
 const formatter = buildFormatter(ptBrStrings);
 
@@ -50,15 +52,15 @@ export default function KitchenPage() {
 
   return (
     <SubscriptionGuard>
-      <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col bg-slate-50">
-        <div className="flex items-center gap-4 mb-8">
-          <ChefHat className="w-8 h-8 text-slate-700" />
-          <h1 className="text-3xl font-bold text-slate-800">Cozinha</h1>
-        </div>
+      <SectionContainer>
+        <PageHeader
+          title="Cozinha"
+          subtitle="Visualize os pedidos que chegam."
+        />
 
         {kitchenOrders.length === 0 ? (
           <div className="flex-grow flex items-center justify-center">
-            <div className="text-center">
+            <div className="text-center mt-12">
               <ChefHat className="mx-auto h-20 w-20 text-slate-300" />
               <h2 className="mt-4 text-2xl font-semibold text-slate-700">
                 Nenhum pedido na cozinha
@@ -82,7 +84,7 @@ export default function KitchenPage() {
             </div>
           </div>
         )}
-      </div>
+      </SectionContainer>
     </SubscriptionGuard>
   );
 }

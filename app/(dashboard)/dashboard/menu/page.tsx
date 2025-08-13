@@ -1,19 +1,22 @@
 // app/(dashboard)/dashboard/menu/page.tsx
 "use client";
+
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  LoaderCircle,
-  UtensilsCrossed,
-  Search,
-} from "lucide-react";
+import { Plus, Edit, Trash2, UtensilsCrossed, Search } from "lucide-react";
 import { motion } from "framer-motion";
+
+// Hook and Type Imports
 import { useMenu, MenuItem } from "@/lib/hooks/useMenu";
+
+// Custom Component Imports
 import Modal from "@/app/components/ui/Modal";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
+import ActionButton from "@/app/components/shared/ActionButton";
+import { SectionContainer } from "@/app/components/shared/Container";
+import Loading from "@/app/components/shared/Loading";
+import PageHeader from "@/app/components/shared/PageHeader";
+import InputField from "@/app/components/ui/InputField";
 
 export default function MenuPage() {
   const { menuItems, categories, isLoading, deleteItem, toggleInStock } =
@@ -76,48 +79,39 @@ export default function MenuPage() {
   }, [filteredMenuItems, categories, selectedCategory, searchTerm]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <LoaderCircle className="w-12 h-12 text-emerald-600 animate-spin" />
-      </div>
-    );
+    return <Loading fullScreen text="Carregando cardápio..." />;
   }
 
   return (
     <SubscriptionGuard>
-      <div className="p-4 sm:p-6 lg:p-8">
+      <SectionContainer>
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
-            <h1 className="text-3xl font-bold text-slate-800">
-              Gerenciamento do Cardápio
-            </h1>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleAddItem}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition w-full md:w-auto"
-            >
-              <Plus className="w-5 h-5" />
-              Adicionar Novo Item
-            </motion.button>
-          </div>
+          <PageHeader
+            title="Gerenciamento do Cardápio"
+            subtitle="Adicione, edite ou remova itens do seu cardápio."
+            className="mb-8"
+            actionButton={{
+              label: "Adicionar Novo Item",
+              onClick: handleAddItem,
+              icon: <Plus />,
+              variant: "primary",
+            }}
+          />
 
           {/* Controles de Busca e Filtro */}
           <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Buscar por um item do cardápio..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition"
-              />
-            </div>
+            <InputField
+              icon={Search}
+              type="text"
+              placeholder="Buscar por um item do cardápio..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              containerClassName="flex-grow"
+            />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full md:w-64 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition py-2 px-3"
+              className="w-full md:w-64 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition py-2 px-3 bg-white"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -162,13 +156,13 @@ export default function MenuPage() {
           itemName={itemToDelete?.name}
           isLoading={isActionLoading}
         />
-      </div>
+      </SectionContainer>
     </SubscriptionGuard>
   );
 }
 
 const EmptyState = ({ onAddItem }: { onAddItem: () => void }) => (
-  <div className="text-center py-20 px-6">
+  <div className="text-center py-20 px-6 bg-white rounded-lg shadow-sm">
     <UtensilsCrossed className="mx-auto h-16 w-16 text-slate-400" />
     <h3 className="mt-4 text-2xl font-semibold text-slate-800">
       Seu cardápio está vazio
@@ -177,15 +171,13 @@ const EmptyState = ({ onAddItem }: { onAddItem: () => void }) => (
       Comece adicionando seu primeiro prato ou bebida.
     </p>
     <div className="mt-6">
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+      <ActionButton
+        label="Adicionar Primeiro Item"
         onClick={onAddItem}
-        className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition"
-      >
-        <Plus className="w-5 h-5" />
-        Adicionar Primeiro Item
-      </motion.button>
+        icon={<Plus />}
+        variant="primary"
+        size="md"
+      />
     </div>
   </div>
 );
@@ -206,7 +198,7 @@ const MenuItemCard = ({
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.9 }}
-    className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col"
+    className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-shadow hover:shadow-2xl"
   >
     <img
       src={
@@ -247,31 +239,29 @@ const MenuItemCard = ({
     </div>
     <div className="p-4 bg-slate-50 flex justify-between items-center">
       <p className="text-lg font-semibold text-emerald-600">
-        {/* Lógica de preço corrigida abaixo */}
         {item.promoPrice ? (
           <>
             <span className="line-through text-slate-500 text-sm mr-2">
-              {/* Adicionamos (item.basePrice || 0) */}
               R${(item.basePrice || 0).toFixed(2).replace(".", ",")}
             </span>
-            {/* Adicionamos (item.promoPrice || 0) */}
             R${(item.promoPrice || 0).toFixed(2).replace(".", ",")}
           </>
         ) : (
           `R$${(item.basePrice || 0).toFixed(2).replace(".", ",")}`
         )}
-        {/* Adicionamos (item.basePrice || 0) aqui também */}
       </p>
       <div className="flex gap-2">
         <button
           onClick={() => onEdit(item)}
-          className="p-2 text-slate-500 hover:text-emerald-600 transition"
+          className="p-2 text-slate-500 hover:text-emerald-600 transition rounded-full hover:bg-slate-200"
+          aria-label={`Editar ${item.name}`}
         >
           <Edit className="w-5 h-5" />
         </button>
         <button
           onClick={() => onDelete(item)}
-          className="p-2 text-slate-500 hover:text-emerald-600 transition"
+          className="p-2 text-slate-500 hover:text-red-600 transition rounded-full hover:bg-red-100"
+          aria-label={`Excluir ${item.name}`}
         >
           <Trash2 className="w-5 h-5" />
         </button>
@@ -295,24 +285,22 @@ const DeleteConfirmationModal = ({
 }) => (
   <Modal isOpen={isOpen} onClose={onClose} title="Confirmar Exclusão" size="sm">
     <p className="text-slate-600 my-4">
-      Tem certeza de que deseja excluir o item "{itemName}"? Esta ação não pode
-      ser desfeita.
+      Tem certeza de que deseja excluir o item "<b>{itemName}</b>"? Esta ação
+      não pode ser desfeita.
     </p>
-    <div className="flex justify-end gap-4">
-      <button
+    <div className="flex justify-end gap-4 mt-6">
+      <ActionButton
+        label="Cancelar"
         onClick={onClose}
-        className="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition"
-      >
-        Cancelar
-      </button>
-      <button
-        onClick={onConfirm}
+        variant="secondary"
         disabled={isLoading}
-        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2 disabled:bg-red-400"
-      >
-        {isLoading && <LoaderCircle className="w-5 h-5 animate-spin" />}
-        {isLoading ? "Excluindo..." : "Excluir"}
-      </button>
+      />
+      <ActionButton
+        label={isLoading ? "Excluindo..." : "Excluir"}
+        onClick={onConfirm}
+        variant="danger"
+        isLoading={isLoading}
+      />
     </div>
   </Modal>
 );

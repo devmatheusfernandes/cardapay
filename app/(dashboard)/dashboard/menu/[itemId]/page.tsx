@@ -1,7 +1,5 @@
 // app/(dashboard)/dashboard/menu/[itemId]/page.tsx
-
 "use client";
-
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -16,7 +14,6 @@ import {
 } from "@/lib/hooks/useMenu";
 import {
   LoaderCircle,
-  ArrowLeft,
   Save,
   Trash2,
   UploadCloud,
@@ -24,9 +21,18 @@ import {
   XCircle,
   Copy,
 } from "lucide-react";
-import { v4 as uuidv4 } from "uuid"; // Instale: npm install uuid @types/uuid
+import { v4 as uuidv4 } from "uuid";
 import toast from "react-hot-toast";
 import { AddonOption } from "@/lib/hooks/useOrders";
+
+// --- Component Imports ---
+import {
+  SectionContainer,
+  SubContainer,
+} from "@/app/components/shared/Container";
+import ActionButton from "@/app/components/shared/ActionButton";
+import BackButton from "@/app/components/shared/BackButton";
+import Loading from "@/app/components/shared/Loading";
 
 // --- ESTADO INICIAL PARA UM NOVO ITEM ---
 const initialItemData: MenuItemData = {
@@ -159,63 +165,45 @@ export default function MenuItemFormPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <LoaderCircle className="h-12 w-12 animate-spin text-emerald-600" />
-      </div>
-    );
+    return <Loading variant="spinner" />;
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+    <SectionContainer>
+      <form onSubmit={handleSubmit} className="w-full mx-auto">
         {/* Cabeçalho Fixo */}
         <header className="sticky top-0 bg-slate-50/80 backdrop-blur-sm z-10 py-4 mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-900"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Voltar para o Cardápio
-              </button>
               <h1 className="text-3xl font-bold text-slate-800 mt-2">
                 {isNewItem ? "Adicionar Novo Item" : `Editando: ${item?.name}`}
               </h1>
             </div>
             <div className="flex items-center gap-3">
               {!isNewItem && (
-                <button
-                  type="button"
+                <ActionButton
+                  label=""
                   onClick={handleDelete}
                   disabled={isSaving}
-                  className="p-2 text-slate-500 hover:text-red-600 transition disabled:opacity-50"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                  variant="danger"
+                  icon={<Trash2 className="w-5 h-5" />}
+                />
               )}
-              <button
-                type="button"
+              <ActionButton
+                label="Salvar como Modelo"
                 onClick={handleSaveAsTemplate}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 text-sm bg-amber-500 text-white rounded-lg shadow-md hover:bg-amber-600 transition disabled:opacity-50"
-              >
-                <Copy className="w-4 h-4" /> Salvar como Modelo
-              </button>
-              <button
+                variant="warning"
+                icon={<Copy className="w-4 h-4" />}
+              />
+              <ActionButton
+                label={isSaving ? "Salvando..." : "Salvar"}
                 type="submit"
                 disabled={isSaving}
-                className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition disabled:bg-emerald-400"
-              >
-                {isSaving ? (
-                  <LoaderCircle className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Save className="w-5 h-5" />
-                )}
-                {isSaving ? "Salvando..." : "Salvar"}
-              </button>
+                isLoading={isSaving}
+                icon={<Save className="w-5 h-5" />}
+                variant="success"
+              />
             </div>
           </div>
         </header>
@@ -223,350 +211,360 @@ export default function MenuItemFormPage() {
         <main className="space-y-6">
           {/* --- Card de Carregar Modelo --- */}
           {isNewItem && menuTemplates.length > 0 && (
-            <Card title="Comece com um Modelo">
-              <div className="flex items-center gap-2">
-                <select
-                  defaultValue=""
-                  onChange={(e) => loadFromTemplate(e.target.value)}
-                  className="flex-grow p-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
-                >
-                  <option value="" disabled>
-                    Selecione um modelo para carregar...
-                  </option>
-                  {menuTemplates.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.templateName}
+            <SubContainer variant="white" className="p-6">
+              <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
+                Comece com um Modelo
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <select
+                    defaultValue=""
+                    onChange={(e) => loadFromTemplate(e.target.value)}
+                    className="flex-grow p-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="" disabled>
+                      Selecione um modelo para carregar...
                     </option>
-                  ))}
-                </select>
+                    {menuTemplates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.templateName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </Card>
+            </SubContainer>
           )}
 
           {/* --- Card: Informações Básicas --- */}
-          <Card title="1. Informações Básicas">
-            <ImageUploader
-              preview={imagePreview}
-              setPreview={setImagePreview}
-              setFile={setImageFile}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <InputField
-                label="Nome do Prato"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
+          <SubContainer variant="white" className="p-6">
+            <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
+              1. Informações Básicas
+            </h2>
+            <div className="space-y-4">
+              <ImageUploader
+                preview={imagePreview}
+                setPreview={setImagePreview}
+                setFile={setImageFile}
               />
-              <InputField
-                label="Categoria"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                placeholder="Ex: Pizza, Lanche, Sobremesa"
-                required
-              />
-            </div>
-            <TextAreaField
-              label="Descrição"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Ingredientes, modo de preparo, etc."
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <InputField
-                label="Preço Base (R$)"
-                name="basePrice"
-                type="number"
-                step="0.01"
-                value={formData.basePrice}
-                onChange={handleInputChange}
-                required
-              />
-              <InputField
-                label="Preço Promocional (R$)"
-                name="promoPrice"
-                type="number"
-                step="0.01"
-                value={formData.promoPrice || ""}
-                onChange={handleInputChange}
-                placeholder="Deixe em branco se não houver"
-              />
-            </div>
-          </Card>
-
-          {/* --- Card: Variações --- */}
-          <Card title="2. Variações do Prato">
-            {/* Gerenciador de Tamanhos */}
-            <DynamicListManager<SizeOption>
-              title="Tamanhos"
-              items={formData.sizes}
-              setItems={(items) =>
-                setFormData((prev) => ({ ...prev, sizes: items }))
-              }
-              newItemFactory={() => ({ id: uuidv4(), name: "", price: 0 })}
-              renderItem={(item, onChange) => (
-                <>
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => onChange("name", e.target.value)}
-                    placeholder="Nome (Ex: Pequena)"
-                    className="p-2 border rounded-md w-full"
-                  />
-                  <input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) =>
-                      onChange("price", parseFloat(e.target.value))
-                    }
-                    placeholder="Preço"
-                    className="p-2 border rounded-md w-full"
-                  />
-                </>
-              )}
-            />
-            {/* Gerenciador de Bordas Recheadas */}
-            <CheckboxWithDynamicList<StuffedCrustOption>
-              title="Opções da Borda"
-              checkboxLabel="Oferece borda recheada?"
-              isChecked={formData.stuffedCrust.available}
-              setIsChecked={(checked) =>
-                setFormData((p) => ({
-                  ...p,
-                  stuffedCrust: { ...p.stuffedCrust, available: checked },
-                }))
-              }
-              items={formData.stuffedCrust.options}
-              setItems={(items) =>
-                setFormData((p) => ({
-                  ...p,
-                  stuffedCrust: { ...p.stuffedCrust, options: items },
-                }))
-              }
-              newItemFactory={() => ({ id: uuidv4(), name: "", price: 0 })}
-              renderItem={(item, onChange) => (
-                <>
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => onChange("name", e.target.value)}
-                    placeholder="Sabor (Ex: Catupiry)"
-                    className="p-2 border rounded-md w-full"
-                  />
-                  <input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) =>
-                      onChange("price", parseFloat(e.target.value))
-                    }
-                    placeholder="Preço Adicional"
-                    className="p-2 border rounded-md w-full"
-                  />
-                </>
-              )}
-            />
-            {/* Outras Variações */}
-            <div className="mt-4">
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  name="allowMultipleFlavors"
-                  checked={formData.allowMultipleFlavors}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <InputField
+                  label="Nome do Prato"
+                  name="name"
+                  value={formData.name}
                   onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  required
                 />
-                Permitir múltiplos sabores (para pizza, açaí, etc.)
-              </label>
-            </div>
-          </Card>
-
-          {/* --- Card: Complementos e Ingredientes --- */}
-          <Card title="3. Complementos e Ingredientes">
-            {/* Gerenciador de Adicionais */}
-            <DynamicListManager<AddonOption>
-              title="Complementos / Adicionais"
-              items={formData.addons}
-              setItems={(items) =>
-                setFormData((prev) => ({ ...prev, addons: items }))
-              }
-              newItemFactory={() => ({ id: uuidv4(), name: "", price: 0 })}
-              renderItem={(item, onChange) => (
-                <>
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => onChange("name", e.target.value)}
-                    placeholder="Nome (Ex: Bacon, Ovo)"
-                    className="p-2 border rounded-md w-full"
-                  />
-                  <input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) =>
-                      onChange("price", parseFloat(e.target.value))
-                    }
-                    placeholder="Preço Adicional"
-                    className="p-2 border rounded-md w-full"
-                  />
-                </>
-              )}
-            />
-            {/* Gerenciador de Ingredientes a Remover */}
-            <DynamicListManager<string>
-              title="Ingredientes Removíveis"
-              items={formData.removableIngredients}
-              setItems={(items) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  removableIngredients: items,
-                }))
-              }
-              newItemFactory={() => ""}
-              renderItem={(item, onChange) => (
-                <input
-                  type="text"
-                  value={item}
-                  onChange={(e) => onChange(null, e.target.value)}
-                  placeholder="Ex: Cebola, Picles"
-                  className="p-2 border rounded-md w-full"
+                <InputField
+                  label="Categoria"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  placeholder="Ex: Pizza, Lanche, Sobremesa"
+                  required
                 />
-              )}
-            />
-          </Card>
-
-          {/* --- Card: Configurações Avançadas --- */}
-          <Card title="4. Configurações Avançadas">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField
-                label="Tempo Médio de Preparo (minutos)"
-                name="averagePrepTime"
-                type="number"
-                value={formData.averagePrepTime}
+              </div>
+              <TextAreaField
+                label="Descrição"
+                name="description"
+                value={formData.description}
                 onChange={handleInputChange}
+                placeholder="Ingredientes, modo de preparo, etc."
               />
-              <InputField
-                label="Quantidade em Estoque"
-                name="stock"
-                type="number"
-                value={formData.stock === null ? "" : formData.stock}
-                onChange={(e) =>
-                  setFormData((p) => ({
-                    ...p,
-                    stock:
-                      e.target.value === "" ? null : parseInt(e.target.value),
-                  }))
-                }
-                placeholder="Deixe em branco para ilimitado"
-              />
-            </div>
-            <div className="mt-4 space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  name="isDishOfDay"
-                  checked={formData.isDishOfDay}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <InputField
+                  label="Preço Base (R$)"
+                  name="basePrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.basePrice}
                   onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  required
                 />
-                Marcar como Prato do Dia / Promoção
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  name="isPopular"
-                  checked={formData.isPopular}
+                <InputField
+                  label="Preço Promocional (R$)"
+                  name="promoPrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.promoPrice || ""}
                   onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  placeholder="Deixe em branco se não houver"
                 />
-                Marcar como "Mais Pedido"
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  name="inStock"
-                  checked={formData.inStock}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                Disponível para venda (em estoque)
-              </label>
-            </div>
-          </Card>
-
-          {/* --- Card: Etiquetas e Filtros --- */}
-          <Card title="5. Etiquetas e Filtros">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Etiquetas de Dieta
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {(
-                  [
-                    "vegano",
-                    "vegetariano",
-                    "sem-gluten",
-                    "low-carb",
-                  ] as DietaryTag[]
-                ).map((tag) => (
-                  <label
-                    key={tag}
-                    className="flex items-center gap-2 capitalize"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.dietaryTags.includes(tag)}
-                      onChange={(e) => {
-                        const newTags = e.target.checked
-                          ? [...formData.dietaryTags, tag]
-                          : formData.dietaryTags.filter((t) => t !== tag);
-                        setFormData((p) => ({ ...p, dietaryTags: newTags }));
-                      }}
-                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    />
-                    {tag.replace("-", " ")}
-                  </label>
-                ))}
               </div>
             </div>
-            <div className="mt-4">
-              <SelectField
-                label="Nível de Picância"
-                name="spiciness"
-                value={formData.spiciness}
-                onChange={handleInputChange}
-                options={[
-                  { value: "nenhum", label: "Nenhum" },
-                  { value: "leve", label: "Leve" },
-                  { value: "médio", label: "Médio" },
-                  { value: "forte", label: "Forte" },
-                ]}
+          </SubContainer>
+
+          {/* --- Card: Variações --- */}
+          <SubContainer variant="white" className="p-6">
+            <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
+              2. Variações do Prato
+            </h2>
+            <div className="space-y-4">
+              <DynamicListManager<SizeOption>
+                title="Tamanhos"
+                items={formData.sizes}
+                setItems={(items) =>
+                  setFormData((prev) => ({ ...prev, sizes: items }))
+                }
+                newItemFactory={() => ({ id: uuidv4(), name: "", price: 0 })}
+                renderItem={(item, onChange) => (
+                  <>
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => onChange("name", e.target.value)}
+                      placeholder="Nome (Ex: Pequena)"
+                      className="p-2 border rounded-md w-full"
+                    />
+                    <input
+                      type="number"
+                      value={item.price}
+                      onChange={(e) =>
+                        onChange("price", parseFloat(e.target.value))
+                      }
+                      placeholder="Preço"
+                      className="p-2 border rounded-md w-full"
+                    />
+                  </>
+                )}
+              />
+              <CheckboxWithDynamicList<StuffedCrustOption>
+                title="Opções da Borda"
+                checkboxLabel="Oferece borda recheada?"
+                isChecked={formData.stuffedCrust.available}
+                setIsChecked={(checked) =>
+                  setFormData((p) => ({
+                    ...p,
+                    stuffedCrust: { ...p.stuffedCrust, available: checked },
+                  }))
+                }
+                items={formData.stuffedCrust.options}
+                setItems={(items) =>
+                  setFormData((p) => ({
+                    ...p,
+                    stuffedCrust: { ...p.stuffedCrust, options: items },
+                  }))
+                }
+                newItemFactory={() => ({ id: uuidv4(), name: "", price: 0 })}
+                renderItem={(item, onChange) => (
+                  <>
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => onChange("name", e.target.value)}
+                      placeholder="Sabor (Ex: Catupiry)"
+                      className="p-2 border rounded-md w-full"
+                    />
+                    <input
+                      type="number"
+                      value={item.price}
+                      onChange={(e) =>
+                        onChange("price", parseFloat(e.target.value))
+                      }
+                      placeholder="Preço Adicional"
+                      className="p-2 border rounded-md w-full"
+                    />
+                  </>
+                )}
+              />
+              <div className="mt-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    name="allowMultipleFlavors"
+                    checked={formData.allowMultipleFlavors}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  Permitir múltiplos sabores (para pizza, açaí, etc.)
+                </label>
+              </div>
+            </div>
+          </SubContainer>
+
+          {/* --- Card: Complementos e Ingredientes --- */}
+          <SubContainer variant="white" className="p-6">
+            <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
+              3. Complementos e Ingredientes
+            </h2>
+            <div className="space-y-4">
+              <DynamicListManager<AddonOption>
+                title="Complementos / Adicionais"
+                items={formData.addons}
+                setItems={(items) =>
+                  setFormData((prev) => ({ ...prev, addons: items }))
+                }
+                newItemFactory={() => ({ id: uuidv4(), name: "", price: 0 })}
+                renderItem={(item, onChange) => (
+                  <>
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => onChange("name", e.target.value)}
+                      placeholder="Nome (Ex: Bacon, Ovo)"
+                      className="p-2 border rounded-md w-full"
+                    />
+                    <input
+                      type="number"
+                      value={item.price}
+                      onChange={(e) =>
+                        onChange("price", parseFloat(e.target.value))
+                      }
+                      placeholder="Preço Adicional"
+                      className="p-2 border rounded-md w-full"
+                    />
+                  </>
+                )}
+              />
+              <DynamicListManager<string>
+                title="Ingredientes Removíveis"
+                items={formData.removableIngredients}
+                setItems={(items) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    removableIngredients: items,
+                  }))
+                }
+                newItemFactory={() => ""}
+                renderItem={(item, onChange) => (
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) => onChange(null, e.target.value)}
+                    placeholder="Ex: Cebola, Picles"
+                    className="p-2 border rounded-md w-full"
+                  />
+                )}
               />
             </div>
-          </Card>
+          </SubContainer>
+
+          {/* --- Card: Configurações Avançadas --- */}
+          <SubContainer variant="white" className="p-6">
+            <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
+              4. Configurações Avançadas
+            </h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Tempo Médio de Preparo (minutos)"
+                  name="averagePrepTime"
+                  type="number"
+                  value={formData.averagePrepTime}
+                  onChange={handleInputChange}
+                />
+                <InputField
+                  label="Quantidade em Estoque"
+                  name="stock"
+                  type="number"
+                  value={formData.stock === null ? "" : formData.stock}
+                  onChange={(e) =>
+                    setFormData((p) => ({
+                      ...p,
+                      stock:
+                        e.target.value === "" ? null : parseInt(e.target.value),
+                    }))
+                  }
+                  placeholder="Deixe em branco para ilimitado"
+                />
+              </div>
+              <div className="mt-4 space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    name="isDishOfDay"
+                    checked={formData.isDishOfDay}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  Marcar como Prato do Dia / Promoção
+                </label>
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    name="isPopular"
+                    checked={formData.isPopular}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  Marcar como "Mais Pedido"
+                </label>
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    name="inStock"
+                    checked={formData.inStock}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  Disponível para venda (em estoque)
+                </label>
+              </div>
+            </div>
+          </SubContainer>
+
+          {/* --- Card: Etiquetas e Filtros --- */}
+          <SubContainer variant="white" className="p-6">
+            <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
+              5. Etiquetas e Filtros
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Etiquetas de Dieta
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      "vegano",
+                      "vegetariano",
+                      "sem-gluten",
+                      "low-carb",
+                    ] as DietaryTag[]
+                  ).map((tag) => (
+                    <label
+                      key={tag}
+                      className="flex items-center gap-2 capitalize"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.dietaryTags.includes(tag)}
+                        onChange={(e) => {
+                          const newTags = e.target.checked
+                            ? [...formData.dietaryTags, tag]
+                            : formData.dietaryTags.filter((t) => t !== tag);
+                          setFormData((p) => ({ ...p, dietaryTags: newTags }));
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      {tag.replace("-", " ")}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4">
+                <SelectField
+                  label="Nível de Picância"
+                  name="spiciness"
+                  value={formData.spiciness}
+                  onChange={handleInputChange}
+                  options={[
+                    { value: "nenhum", label: "Nenhum" },
+                    { value: "leve", label: "Leve" },
+                    { value: "médio", label: "Médio" },
+                    { value: "forte", label: "Forte" },
+                  ]}
+                />
+              </div>
+            </div>
+          </SubContainer>
         </main>
       </form>
-    </div>
+    </SectionContainer>
   );
 }
 
 // --- COMPONENTES DE UI INTERNOS (para organização) ---
-
-const Card = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-    <h2 className="text-xl font-semibold text-slate-700 mb-4 border-b border-slate-200 pb-3">
-      {title}
-    </h2>
-    <div className="space-y-4">{children}</div>
-  </div>
-);
 
 const InputField = ({
   label,
@@ -718,7 +716,6 @@ function DynamicListManager<T extends ItemWithValue>({
       )
     );
 
-  // --- CÓDIGO MODIFICADO ABAIXO ---
   const updateItem = (
     idToUpdate: string,
     field: keyof T | null,
@@ -726,20 +723,16 @@ function DynamicListManager<T extends ItemWithValue>({
   ) => {
     setItems(
       items.map((item) => {
-        // Verifica primeiro se o item é um objeto e se o ID corresponde
-        if (
-          typeof item === "object" &&
-          item !== null &&
-          "id" in item &&
-          item.id === idToUpdate
-        ) {
-          return { ...item, [field!]: value };
+        const currentId = typeof item === "string" ? item : item.id;
+        if (currentId !== idToUpdate) {
+          return item;
         }
-        // Depois, verifica se é uma string e se corresponde
-        if (typeof item === "string" && item === idToUpdate) {
+        if (typeof item === "object" && item !== null && field) {
+          return { ...item, [field]: value };
+        }
+        if (typeof item === "string") {
           return value;
         }
-        // Se não for o item a ser atualizado, retorna ele mesmo
         return item;
       })
     );

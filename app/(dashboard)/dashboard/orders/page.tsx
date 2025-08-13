@@ -27,6 +27,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import TimeAgo from "react-timeago";
 import Modal from "@/app/components/ui/Modal";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
+import { SectionContainer } from "@/app/components/shared/Container";
+import PageHeader from "@/app/components/shared/PageHeader";
 
 const allOrderStatuses: Order["status"][] = [
   "Pending",
@@ -182,11 +184,12 @@ export default function OrdersPage() {
 
   return (
     <SubscriptionGuard>
-      <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
+      <SectionContainer>
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">
-            Gerenciamento de Pedidos
-          </h1>
+          <PageHeader
+            title="Gerenciamento de Pedidos"
+            subtitle="Visualize e gerencie todos os seus pedidos em um só lugar."
+          />
           <div className="flex items-center gap-2 bg-slate-200 p-1 rounded-lg">
             <FilterButton
               label="Todos"
@@ -248,7 +251,7 @@ export default function OrdersPage() {
           onConfirm={handleConfirmCancel}
           order={orderToCancel}
         />
-      </div>
+      </SectionContainer>
     </SubscriptionGuard>
   );
 }
@@ -272,7 +275,7 @@ const DaySection = ({
   onAssignDriverClick: (order: Order) => void;
   onCancelClick: (order: Order) => void;
 }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+  <div className="bg-emerald-50 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     <button
       onClick={onToggleExpand}
       className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"

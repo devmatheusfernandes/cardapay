@@ -72,7 +72,7 @@ const OrderCard: React.FC<{ card: OrderCardProps }> = ({ card }) => (
           "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
       }}
       whileTap={{ scale: 0.98 }}
-      className="bg-white rounded-2xl p-6 h-full flex flex-col cursor-pointer border border-slate-200/80 transition-shadow"
+      className="bg-emerald-50 rounded-2xl p-6 h-full flex flex-col cursor-pointer border border-emerald-200/80 transition-shadow"
     >
       <div className="flex justify-between items-start">
         <div

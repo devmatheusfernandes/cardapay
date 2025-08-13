@@ -3,8 +3,8 @@ import React from "react";
 import { LoaderCircle } from "lucide-react";
 
 interface ActionButtonProps {
-  label: string;
-  onClick: () => void;
+  label: any;
+  onClick?: () => void;
   icon?: React.ReactNode;
   variant?: "primary" | "secondary" | "danger" | "success" | "warning";
   size?: "sm" | "md" | "lg";
@@ -12,6 +12,7 @@ interface ActionButtonProps {
   disabled?: boolean;
   className?: string;
   fullWidth?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -24,6 +25,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   disabled = false,
   className = "",
   fullWidth = false,
+  type = "button",
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
@@ -76,6 +78,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
 
   return (
     <motion.button
+      type={type}
       whileHover={!disabled && !isLoading ? { scale: 1.02 } : undefined}
       whileTap={!disabled && !isLoading ? { scale: 0.98 } : undefined}
       onClick={onClick}
