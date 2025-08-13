@@ -37,7 +37,6 @@ export interface OrderItem {
 
 // 3. INTERFACE ATUALIZADA para Order, usando o novo OrderItem.
 export interface Order {
-  seatId: ReactNode;
   id: string;
   items: OrderItem[];
   totalAmount: number;
