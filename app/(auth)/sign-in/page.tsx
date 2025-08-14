@@ -1,6 +1,6 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
@@ -44,13 +44,15 @@ export default function SignInPage() {
     }
   };
 
-  if (error) {
-    toast.error(error, {
-      id: "sign-in-error",
-      duration: 4000,
-      position: "top-center",
-    });
-  }
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        id: "sign-in-error",
+        duration: 4000,
+        position: "top-center",
+      });
+    }
+  }, [error]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4">

@@ -15,7 +15,7 @@ import {
   getDocs,
   limit,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import {
   Clock,
   ChefHat,
@@ -374,6 +374,7 @@ export default function OrderTrackingPage() {
       rating,
       comment,
       createdAt: serverTimestamp(),
+      userId: auth.currentUser?.uid,
     };
 
     if (existingReview) {

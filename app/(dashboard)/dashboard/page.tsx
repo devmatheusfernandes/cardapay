@@ -21,7 +21,6 @@ import {
   Crown,
 } from "lucide-react";
 
-// --- Imported Components ---
 import {
   SectionContainer,
   SubContainer,
@@ -32,6 +31,7 @@ import Loading from "@/app/components/shared/Loading";
 import ProfileSetupModal, {
   ProfileData,
 } from "@/app/components/profile/ProfileSetupModal";
+import RestaurantOpen from "@/app/resourses/animation/RestaurantOpen.json";
 
 // Interface para o perfil do usuário
 interface UserProfile {
@@ -299,7 +299,7 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return <Loading variant="spinner" />;
+    return <Loading animationUrl={RestaurantOpen} size={240} />;
   }
 
   return (
@@ -308,7 +308,7 @@ export default function DashboardPage() {
         <ProfileSetupModal
           isOpen={isSetupModalOpen}
           onSubmit={handleProfileSave}
-          onClose={() => {}} // Impede o fechamento do modal de setup inicial
+          onClose={() => {}}
           title="🎉 Bem-vindo! Complete seu perfil"
           initialData={{
             name: userProfile.name || "",

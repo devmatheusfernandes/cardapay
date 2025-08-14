@@ -23,7 +23,7 @@ export default function Header({
   const router = useRouter();
   return (
     <header className={`absolute top-0 left-0 w-full z-50`}>
-      <div className="max-w-[95vw] mx-auto px-6 py-4">
+      <div className="max-w-[95vw] mx-auto px-0 md:px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo with animation */}
           <motion.div

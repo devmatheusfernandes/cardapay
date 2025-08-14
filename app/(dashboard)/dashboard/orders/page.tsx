@@ -283,7 +283,7 @@ const DaySection = ({
       <div className="flex items-center gap-3">
         <CalendarDays className="w-5 h-5 text-slate-400" />
         <h2 className="font-semibold text-slate-800">{day}</h2>
-        <span className="text-sm text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+        <span className="text-sm text-slate-500 bg-teal-100 px-2 py-1 rounded-full">
           {orders.length} pedido{orders.length !== 1 ? "s" : ""}
         </span>
       </div>

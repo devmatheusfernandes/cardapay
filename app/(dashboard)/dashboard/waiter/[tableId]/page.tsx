@@ -35,6 +35,7 @@ import ActionButton from "@/app/components/shared/ActionButton";
 import EditPersonNameModal, {
   PersonWithName,
 } from "@/app/components/waiter/EditPersonNameModal";
+import { SubContainer } from "@/app/components/shared/Container";
 
 const statusConfig = {
   "In Progress": {
@@ -225,11 +226,7 @@ export default function TablePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow min-h-0">
           <div className="lg:col-span-2 space-y-6 flex flex-col min-h-0">
-            <h2 className="text-2xl font-semibold text-slate-700">
-              Pedido da Mesa
-            </h2>
-
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="bg-emerald-50 p-4 rounded-lg">
               <h3 className="font-bold text-lg text-slate-800 mb-2">
                 Pedidos na Cozinha
               </h3>
@@ -252,18 +249,11 @@ export default function TablePage() {
 
             <div className="space-y-4 overflow-y-auto flex-grow pr-2">
               {tableState.seats.map((seat) => (
-                <div
-                  key={seat.id}
-                  className="bg-white p-4 rounded-lg shadow-sm border"
-                >
+                <div key={seat.id} className="bg-emerald-50 p-4 rounded-lg">
                   {/* 7. Atualizar o cabeçalho do card da pessoa */}
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="font-bold text-lg text-slate-800 truncate">
                       {seat.name || `Pessoa ${seat.id}`}
-                      <span className="font-normal text-base">
-                        {" "}
-                        - Novos Itens
-                      </span>
                     </h3>
                     {!tableState.isInPayment && (
                       <button
@@ -300,7 +290,7 @@ export default function TablePage() {
             </div>
           </div>
 
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm border flex flex-col gap-4 self-start">
+          <SubContainer className="flex flex-col gap-4 p-4">
             <h2 className="text-2xl font-semibold text-slate-700">Ações</h2>
             <ActionButton
               label="Adicionar do Cardápio"
@@ -318,7 +308,7 @@ export default function TablePage() {
               fullWidth
               disabled={tableState.isInPayment}
             />
-          </div>
+          </SubContainer>
         </div>
 
         <div className="mt-8 pt-6 border-t flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50">
@@ -328,7 +318,6 @@ export default function TablePage() {
               disabled={actionLoading || !hasNewItems}
               label="Enviar Novos Itens"
               icon={<Send className="w-5 h-5" />}
-              className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-300"
             />
           </div>
           <div className="text-right">
@@ -405,7 +394,7 @@ function OrderItemCard({
   const removed = item.removedIngredients || [];
 
   return (
-    <div className="flex justify-between items-start p-3 rounded-md bg-emerald-50 border border-emerald-100">
+    <div className="flex justify-between items-start p-3 rounded-md bg-emerald-100 border border-emerald-100">
       <div className="flex-grow">
         <div className="flex items-start gap-2 mb-2">
           <span className="font-bold text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded-full text-xs min-w-fit">
