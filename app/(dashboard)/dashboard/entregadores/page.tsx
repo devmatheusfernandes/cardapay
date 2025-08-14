@@ -96,7 +96,7 @@ export default function EntregadoresPage() {
   };
 
   if (isLoading) {
-    return <Loading fullScreen text="Carregando entregadores..." />;
+    return <Loading />;
   }
 
   return (

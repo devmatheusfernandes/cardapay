@@ -299,7 +299,7 @@ export default function BillingPage() {
   }, [billId]);
 
   if (isLoading) {
-    return <Loading fullScreen text="Carregando detalhes da conta..." />;
+    return <Loading />;
   }
 
   if (!bill) {

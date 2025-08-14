@@ -91,7 +91,7 @@ export default function AnalyticsPage() {
   const { analyticsData, isLoading, setPeriod, activePeriod } = useAnalytics();
 
   if (isLoading) {
-    return <Loading fullScreen text="Processando dados..." />;
+    return <Loading />;
   }
 
   if (!analyticsData || analyticsData.totalOrders === 0) {

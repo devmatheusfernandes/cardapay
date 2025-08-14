@@ -402,7 +402,7 @@ export default function BillingHistoryPage() {
   }, [bills, filters]);
 
   if (isLoading) {
-    return <Loading fullScreen text="Carregando histórico de contas..." />;
+    return <Loading />;
   }
 
   return (

@@ -79,7 +79,7 @@ export default function MenuPage() {
   }, [filteredMenuItems, categories, selectedCategory, searchTerm]);
 
   if (isLoading) {
-    return <Loading fullScreen text="Carregando cardápio..." />;
+    return <Loading />;
   }
 
   return (

@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <Loading variant="pulse" />
+          <Loading />
         </div>
       </div>
     );

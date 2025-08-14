@@ -102,7 +102,7 @@ export default function WaiterPage() {
   };
 
   if (isLoading) {
-    return <Loading fullScreen text="Carregando status das mesas..." />;
+    return <Loading />;
   }
 
   return (

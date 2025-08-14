@@ -299,7 +299,7 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return <Loading animationUrl={RestaurantOpen} size={240} />;
+    return <Loading />;
   }
 
   return (
