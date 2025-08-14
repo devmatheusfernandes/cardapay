@@ -1,34 +1,38 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useAllRestaurants } from '@/lib/hooks/useAllRestaurants';
-import { SectionContainer, SubContainer } from '@/app/components/shared/Container';
-import PageHeader from '@/app/components/shared/PageHeader';
-import Loading from '@/app/components/shared/Loading';
-import { motion } from 'framer-motion';
-import { MapPin, Store, Search } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
+import { useState, useMemo } from "react";
+import { useAllRestaurants } from "@/lib/hooks/useAllRestaurants";
+import {
+  SectionContainer,
+  SubContainer,
+} from "@/app/components/shared/Container";
+import PageHeader from "@/app/components/shared/PageHeader";
+import Loading from "@/app/components/shared/Loading";
+import { motion } from "framer-motion";
+import { MapPin, Store, Search } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function RestaurantsPage() {
   const { restaurants, isLoading, error } = useAllRestaurants();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Filter restaurants based on search term
   const filteredRestaurants = useMemo(() => {
     if (!searchTerm.trim()) return restaurants;
-    
-    return restaurants.filter(restaurant =>
-      restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      restaurant.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      restaurant.description?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    return restaurants.filter(
+      (restaurant) =>
+        restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        restaurant.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        restaurant.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [restaurants, searchTerm]);
 
   if (isLoading) {
     return (
       <SectionContainer>
-        <Loading variant="spinner"  />
+        <Loading />
       </SectionContainer>
     );
   }
@@ -55,7 +59,7 @@ export default function RestaurantsPage() {
         <PageHeader
           title="Restaurantes"
           subtitle={
-            searchTerm 
+            searchTerm
               ? `${filteredRestaurants.length} de ${restaurants.length} restaurantes encontrados`
               : `${restaurants.length} restaurantes cadastrados na plataforma`
           }
@@ -76,7 +80,9 @@ export default function RestaurantsPage() {
             </div>
             {searchTerm && (
               <p className="text-sm text-gray-500 mt-2">
-                {filteredRestaurants.length} restaurante{filteredRestaurants.length !== 1 ? 's' : ''} encontrado{filteredRestaurants.length !== 1 ? 's' : ''}
+                {filteredRestaurants.length} restaurante
+                {filteredRestaurants.length !== 1 ? "s" : ""} encontrado
+                {filteredRestaurants.length !== 1 ? "s" : ""}
               </p>
             )}
           </SubContainer>
@@ -85,20 +91,21 @@ export default function RestaurantsPage() {
         {filteredRestaurants.length === 0 ? (
           <SubContainer variant="white" className="p-8 text-center">
             <div className="text-gray-400 text-6xl mb-4">
-              {searchTerm ? '🔍' : '🍽️'}
+              {searchTerm ? "🔍" : "🍽️"}
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              {searchTerm ? 'Nenhum restaurante encontrado' : 'Nenhum restaurante encontrado'}
+              {searchTerm
+                ? "Nenhum restaurante encontrado"
+                : "Nenhum restaurante encontrado"}
             </h3>
             <p className="text-gray-500">
-              {searchTerm 
+              {searchTerm
                 ? `Nenhum restaurante encontrado para "${searchTerm}". Tente uma busca diferente.`
-                : 'Ainda não há restaurantes cadastrados na plataforma.'
-              }
+                : "Ainda não há restaurantes cadastrados na plataforma."}
             </p>
             {searchTerm && (
               <button
-                onClick={() => setSearchTerm('')}
+                onClick={() => setSearchTerm("")}
                 className="mt-4 text-emerald-600 hover:text-emerald-700 font-medium"
               >
                 Limpar busca
@@ -131,12 +138,18 @@ export default function RestaurantsPage() {
                             onError={(e) => {
                               // Fallback to store icon if image fails to load
                               const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.nextElementSibling?.classList.remove('hidden');
+                              target.style.display = "none";
+                              target.nextElementSibling?.classList.remove(
+                                "hidden"
+                              );
                             }}
                           />
                         ) : null}
-                        <Store className={`w-12 h-12 text-gray-400 ${restaurant.logoUrl ? 'hidden' : ''}`} />
+                        <Store
+                          className={`w-12 h-12 text-gray-400 ${
+                            restaurant.logoUrl ? "hidden" : ""
+                          }`}
+                        />
                       </div>
 
                       {/* Restaurant Name */}

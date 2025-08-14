@@ -71,7 +71,7 @@ export default function MenuModal({
         </div>
         {menuLoading ? (
           <div className="flex justify-center py-8">
-            <Loading variant="spinner" size={60} />
+            <Loading />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">

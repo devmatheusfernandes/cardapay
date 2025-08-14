@@ -165,7 +165,7 @@ export default function MenuItemFormPage() {
   };
 
   if (isLoading) {
-    return <Loading variant="spinner" />;
+    return <Loading />;
   }
 
   return (
