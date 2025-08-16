@@ -9,7 +9,7 @@ import Loading from "@/app/components/shared/Loading";
 
 interface RoleGuardProps {
   children: React.ReactNode;
-  allowedRoles: ("owner" | "waiter" | "driver")[];
+  allowedRoles: ("owner" | "waiter" | "driver" | "client")[];
   fallback?: React.ReactNode;
   redirectTo?: string;
 }
@@ -40,7 +40,7 @@ export default function RoleGuard({
         setIsLoading(true);
 
         // Check if user exists in any of the collections
-        const collections = ["users", "waiters", "drivers"];
+        const collections = ["users", "waiters", "drivers", "clients"];
         let role: string | null = null;
 
         for (const collection of collections) {
@@ -55,6 +55,8 @@ export default function RoleGuard({
               role = "waiter";
             } else if (collection === "drivers") {
               role = "driver";
+            } else if (collection === "clients") {
+              role = "client";
             }
             break;
           }
@@ -62,7 +64,12 @@ export default function RoleGuard({
 
         if (!role) {
           // User doesn't exist in any collection
-          router.push("/sign-up");
+          // Check if user is trying to access client routes and redirect accordingly
+          if (allowedRoles.includes("client")) {
+            router.push("/client-signup");
+          } else {
+            router.push("/sign-up");
+          }
           return;
         }
 
@@ -81,6 +88,8 @@ export default function RoleGuard({
               router.push("/driver/dashboard");
             } else if (role === "owner") {
               router.push("/dashboard");
+            } else if (role === "client") {
+              router.push("/client/dashboard");
             }
           }
           return;

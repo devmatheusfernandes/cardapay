@@ -27,6 +27,9 @@ const protectedRoutes = {
   // Driver dashboard routes
   '/driver/dashboard': ['driver'],
   
+  // Client dashboard routes
+  '/client/dashboard': ['client'],
+  
   // API routes that need authentication
   '/api/waiters': ['owner'],
   '/api/drivers': ['owner'],
@@ -51,6 +54,9 @@ function getUserRole(pathname: string): string | null {
   if (pathname.startsWith('/driver/')) {
     return 'driver'
   }
+  if (pathname.startsWith('/client/')) {
+    return 'client'
+  }
   if (pathname.startsWith('/dashboard/')) {
     return 'owner'
   }
@@ -72,6 +78,9 @@ function hasAccess(pathname: string, userRole: string | null): boolean {
   }
   if (pathname.startsWith('/driver/dashboard')) {
     return userRole === 'driver'
+  }
+  if (pathname.startsWith('/client/dashboard')) {
+    return userRole === 'client'
   }
   if (pathname.startsWith('/dashboard')) {
     return userRole === 'owner'
@@ -96,6 +105,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/waiter-signup') ||
     pathname.startsWith('/driver-login') ||
     pathname.startsWith('/driver-signup') ||
+    pathname.startsWith('/client-login') ||
+    pathname.startsWith('/client-signup') ||
     pathname.startsWith('/pricing') ||
     pathname.startsWith('/help') ||
     pathname.startsWith('/demo') ||
