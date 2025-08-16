@@ -24,6 +24,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import Modal from "@/app/components/ui/Modal";
 import InputField from "@/app/components/ui/InputField";
+import { useDriverSelfRemove } from "@/lib/hooks/useDriverSelfRemove";
 
 const useDriverProfile = () => {
   const [user, authLoading] = useAuthState(auth);
@@ -55,6 +56,7 @@ export default function DriverDashboardPage() {
     isLoading: deliveriesLoading,
     confirmDelivery,
   } = useDriverDeliveries();
+  const { removeSelfFromRestaurant, isRemoving } = useDriverSelfRemove();
   const [orderToConfirm, setOrderToConfirm] = useState<Order | null>(null);
   const router = useRouter();
 
@@ -89,6 +91,33 @@ export default function DriverDashboardPage() {
             <Package className="w-6 h-6" />
             <span>Bem vindo!</span>
           </h1>
+          {profile?.restaurantId && (
+            <button
+              onClick={async () => {
+                if (
+                  confirm(
+                    "Tem certeza que deseja se remover deste restaurante?"
+                  )
+                ) {
+                  try {
+                    await removeSelfFromRestaurant();
+                    router.push("/driver-login");
+                  } catch (error) {
+                    console.error("Falha ao remover do restaurante:", error);
+                  }
+                }
+              }}
+              disabled={isRemoving}
+              className="flex items-center gap-2 text-sm bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 mr-4"
+            >
+              {isRemoving ? (
+                <LoaderCircle className="w-4 h-4 animate-spin" />
+              ) : (
+                <Package className="w-4 h-4" />
+              )}
+              <span>{isRemoving ? "Removendo..." : "Sair do Restaurante"}</span>
+            </button>
+          )}
           <button
             onClick={handleSignOut}
             className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-600 transition-colors"

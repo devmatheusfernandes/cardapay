@@ -1,10 +1,15 @@
 "use client";
 
-import { ReactNode } from "react";
-import { useSubscription } from "@/lib/hooks/useSubscription";
+import { ReactNode, useState, useEffect } from "react";
 import { LoaderCircle, Crown, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { auth } from "@/lib/firebase";
+
+interface SubscriptionState {
+  status: string | null;
+  periodEnd: string | null;
+}
 
 interface SubscriptionGuardProps {
   children: ReactNode;
@@ -17,7 +22,43 @@ export default function SubscriptionGuard({
   fallback,
   requireActive = true,
 }: SubscriptionGuardProps) {
-  const { status, isActive, isLoading } = useSubscription();
+  const [subscription, setSubscription] = useState<SubscriptionState | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        if (!auth.currentUser) {
+          setIsLoading(false);
+          return;
+        }
+
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(
+          "/api/stripe-subscription/create-checkout",
+          {
+            headers: { Authorization: `Bearer ${idToken}` },
+          }
+        );
+
+        if (response.ok) {
+          const subData = await response.json();
+          setSubscription({
+            status: subData.status,
+            periodEnd: subData.currentPeriodEnd,
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar assinatura:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscription();
+  }, []);
 
   if (isLoading) {
     return (
@@ -26,6 +67,9 @@ export default function SubscriptionGuard({
       </div>
     );
   }
+
+  const isActive =
+    subscription?.status === "active" || subscription?.status === "trialing";
 
   if (!requireActive || isActive) {
     return <>{children}</>;
@@ -44,7 +88,7 @@ export default function SubscriptionGuard({
           className="bg-white p-8 rounded-lg shadow-md border border-slate-200 text-center"
         >
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            {status === "past_due" ? (
+            {subscription?.status === "past_due" ? (
               <AlertTriangle className="w-8 h-8 text-emerald-600" />
             ) : (
               <Crown className="w-8 h-8 text-emerald-600" />
@@ -52,12 +96,12 @@ export default function SubscriptionGuard({
           </div>
 
           <h2 className="text-xl font-bold text-slate-800 mb-2">
-            {status === "past_due"
+            {subscription?.status === "past_due"
               ? "Assinatura em Atraso"
               : "Assinatura Premium Necessária"}
           </h2>
           <p className="text-slate-600 mb-6">
-            {status === "past_due"
+            {subscription?.status === "past_due"
               ? "Atualize seu pagamento para continuar usando todos os recursos."
               : "Para acessar este recurso, você precisa de uma assinatura ativa."}
           </p>
@@ -67,7 +111,9 @@ export default function SubscriptionGuard({
             className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
           >
             <Crown className="w-5 h-5" />
-            {status === "past_due" ? "Atualizar Pagamento" : "Ver Planos"}
+            {subscription?.status === "past_due"
+              ? "Atualizar Pagamento"
+              : "Ver Planos"}
           </Link>
         </motion.div>
       </div>
@@ -77,18 +123,61 @@ export default function SubscriptionGuard({
 
 // Banner de status da assinatura para exibir avisos
 export function SubscriptionBanner() {
-  const { status, daysUntilExpiry } = useSubscription();
+  const [subscription, setSubscription] = useState<SubscriptionState | null>(
+    null
+  );
+  const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | undefined>();
 
-  if (status === "active" && (!daysUntilExpiry || daysUntilExpiry > 7)) {
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        if (!auth.currentUser) return;
+
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(
+          "/api/stripe-subscription/create-checkout",
+          {
+            headers: { Authorization: `Bearer ${idToken}` },
+          }
+        );
+
+        if (response.ok) {
+          const subData = await response.json();
+          setSubscription({
+            status: subData.status,
+            periodEnd: subData.currentPeriodEnd,
+          });
+
+          // Calculate days until expiry
+          if (subData.currentPeriodEnd) {
+            const expiryDate = new Date(subData.currentPeriodEnd);
+            const today = new Date();
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setDaysUntilExpiry(diffDays);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao buscar assinatura:", error);
+      }
+    };
+
+    fetchSubscription();
+  }, []);
+
+  if (
+    subscription?.status === "active" &&
+    (!daysUntilExpiry || daysUntilExpiry > 7)
+  ) {
     return null;
   }
 
-  if (!status || status === "canceled") {
+  if (!subscription?.status || subscription.status === "canceled") {
     return null;
   }
 
   const getBannerConfig = () => {
-    if (status === "past_due") {
+    if (subscription.status === "past_due") {
       return {
         color: "bg-red-50 border-red-200 text-red-700",
         icon: <AlertTriangle className="w-5 h-5 text-red-600" />,
@@ -100,7 +189,7 @@ export function SubscriptionBanner() {
     }
 
     if (
-      status === "active" &&
+      subscription.status === "active" &&
       daysUntilExpiry !== undefined &&
       daysUntilExpiry <= 7
     ) {

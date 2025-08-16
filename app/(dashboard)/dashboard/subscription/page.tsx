@@ -1,6 +1,5 @@
 "use client";
-import { useState } from "react";
-import { useSubscription, SubscriptionData } from "@/lib/hooks/useSubscription";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LoaderCircle,
@@ -19,6 +18,8 @@ import {
   SubContainer,
 } from "@/app/components/shared/Container";
 import PageHeader from "@/app/components/shared/PageHeader";
+import { auth } from "@/lib/firebase";
+import { toast } from "react-hot-toast";
 
 const ConfirmationModal = ({
   isOpen,
@@ -227,17 +228,116 @@ const getStatusBadge = (status: SubscriptionData["status"]) => {
   );
 };
 
-export default function SubscriptionPage() {
-  const {
-    subscription,
-    isLoading,
-    loadingStates,
-    handleSubscribe,
-    handleManageSubscription,
-    handleActivateNow,
-  } = useSubscription();
+interface SubscriptionData {
+  status: "active" | "canceled" | "past_due" | "trialing" | null;
+  currentPeriodEnd?: string;
+  stripeSubscriptionId?: string;
+  planType?: "monthly" | "semiannual" | "annual";
+}
 
+export default function SubscriptionPage() {
+  const [subscription, setSubscription] = useState<SubscriptionData>({
+    status: null,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingStates, setLoadingStates] = useState({
+    monthly: false,
+    semiannual: false,
+    annual: false,
+    manage: false,
+    activate: false,
+  });
   const [isActivateModalOpen, setIsActivateModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        if (!auth.currentUser) {
+          setIsLoading(false);
+          return;
+        }
+
+        const idToken = await auth.currentUser.getIdToken();
+        const response = await fetch(
+          "/api/stripe-subscription/create-checkout",
+          {
+            headers: { Authorization: `Bearer ${idToken}` },
+          }
+        );
+
+        if (response.ok) {
+          const subData = await response.json();
+          setSubscription({
+            status: subData.status || null,
+            currentPeriodEnd: subData.currentPeriodEnd,
+            stripeSubscriptionId: subData.stripeSubscriptionId,
+            planType: subData.planType,
+          });
+        } else {
+          setSubscription({ status: null });
+        }
+      } catch (error) {
+        console.error("Error fetching subscription:", error);
+        toast.error("Erro ao carregar dados da assinatura.");
+        setSubscription({ status: null });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscription();
+  }, []);
+
+  const handleAction = async (
+    actionId: string,
+    apiEndpoint: string,
+    payload: object = {}
+  ) => {
+    setLoadingStates((prev) => ({ ...prev, [actionId]: true }));
+    try {
+      if (!auth.currentUser) throw new Error("Você precisa estar logado.");
+
+      const idToken = await auth.currentUser.getIdToken();
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Ocorreu um erro.");
+
+      // Redireciona para URL se existir (para checkout e portal do cliente)
+      if (data.url) {
+        window.location.href = data.url;
+      }
+
+      // Exibe mensagem de sucesso se existir (para ativação)
+      if (data.message) {
+        toast.success(data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [actionId]: false }));
+    }
+  };
+
+  const handleSubscribe = (planId: "monthly" | "semiannual" | "annual") =>
+    handleAction(planId, "/api/stripe-subscription/create-checkout", {
+      planId,
+      skipTrial: false,
+    });
+
+  const handleManageSubscription = () =>
+    handleAction("manage", "/api/stripe-subscription/manage-subscription");
+
+  const handleActivateNow = async () => {
+    await handleAction("activate", "/api/stripe-subscription/activate-now");
+  };
 
   if (isLoading) {
     return (

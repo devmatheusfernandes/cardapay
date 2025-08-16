@@ -31,7 +31,6 @@ import Loading from "@/app/components/shared/Loading";
 import ProfileSetupModal, {
   ProfileData,
 } from "@/app/components/profile/ProfileSetupModal";
-import RestaurantOpen from "@/app/resourses/animation/RestaurantOpen.json";
 
 // Interface para o perfil do usuário
 interface UserProfile {

@@ -37,6 +37,7 @@ const Footer: FC = () => {
 
   const uteisItems: UteisIcon[] = [
     { label: "Sou entregador", href: "/driver-login" },
+    { label: "Sou garçom", href: "/waiter-login" },
     { label: "Acompanhar meu pedido", href: "/track" },
     { label: "Ver restaurantes", href: "/restaurants" },
   ];

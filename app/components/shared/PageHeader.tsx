@@ -11,10 +11,19 @@ interface ActionButton {
   activeIcon?: React.ReactNode;
 }
 
+interface SecondaryAction {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  variant?: "primary" | "secondary" | "danger";
+  disabled?: boolean;
+}
+
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actionButton?: ActionButton;
+  secondaryAction?: SecondaryAction;
   className?: string;
 }
 
@@ -22,6 +31,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
   actionButton,
+  secondaryAction,
   className = "",
 }) => {
   const getButtonStyles = (
@@ -63,22 +73,43 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         )}
       </div>
 
-      {actionButton && (
-        <button
-          onClick={actionButton.onClick}
-          className={getButtonStyles(
-            actionButton.variant,
-            actionButton.isActive
-          )}
-        >
-          {actionButton.isActive && actionButton.activeIcon
-            ? actionButton.activeIcon
-            : actionButton.icon}
-          {actionButton.isActive && actionButton.activeLabel
-            ? actionButton.activeLabel
-            : actionButton.label}
-        </button>
-      )}
+      <div className="flex gap-3">
+        {secondaryAction &&
+          (secondaryAction.href ? (
+            <a
+              href={secondaryAction.href}
+              className={getButtonStyles(secondaryAction.variant)}
+            >
+              {secondaryAction.label}
+            </a>
+          ) : (
+            <button
+              onClick={secondaryAction.onClick}
+              disabled={secondaryAction.disabled}
+              className={`${getButtonStyles(secondaryAction.variant)} ${
+                secondaryAction.disabled ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {secondaryAction.label}
+            </button>
+          ))}
+        {actionButton && (
+          <button
+            onClick={actionButton.onClick}
+            className={getButtonStyles(
+              actionButton.variant,
+              actionButton.isActive
+            )}
+          >
+            {actionButton.isActive && actionButton.activeIcon
+              ? actionButton.activeIcon
+              : actionButton.icon}
+            {actionButton.isActive && actionButton.activeLabel
+              ? actionButton.activeLabel
+              : actionButton.label}
+          </button>
+        )}
+      </div>
     </motion.header>
   );
 };

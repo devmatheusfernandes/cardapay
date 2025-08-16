@@ -75,7 +75,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
       return;
     }
 
-    console.log('🔍 useTableStatus: Iniciando listener para tableStates, usuário:', user.uid);
+    //console.log('🔍 useTableStatus: Iniciando listener para tableStates, usuário:', user.uid);
 
     const tableStatesQuery = query(
       collection(db, 'tableStates'),
@@ -83,7 +83,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
     );
 
     const unsubscribeTableStates = onSnapshot(tableStatesQuery, (querySnapshot) => {
-      console.log('📊 useTableStatus: TableStates snapshot recebido, documentos:', querySnapshot.size);
+      //console.log('📊 useTableStatus: TableStates snapshot recebido, documentos:', querySnapshot.size);
       
       const loadedTableStates: Record<string, TableState> = {};
       
@@ -91,11 +91,11 @@ export const useTableStatus = (physicalTableIds: number[]) => {
         const data = doc.data();
         const tableId = doc.id.replace(`${user.uid}_`, '');
         
-        console.log('📄 TableState encontrado:', {
-          docId: doc.id,
-          tableId: tableId,
-          data: data
-        });
+        // console.log('📄 TableState encontrado:', {
+        //   docId: doc.id,
+        //   tableId: tableId,
+        //   data: data
+        // });
         
         loadedTableStates[tableId] = {
           seats: data.seats || [{ id: 1, items: [] }],
@@ -105,7 +105,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
         };
       });
 
-      console.log('✅ TableStates carregados:', loadedTableStates);
+      //console.log('✅ TableStates carregados:', loadedTableStates);
       setTableStates(loadedTableStates);
     }, (error) => {
       console.error('❌ Error loading table states:', error);
@@ -121,7 +121,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
       return;
     }
 
-    console.log('🔍 useTableStatus: Iniciando listener para orders, usuário:', user.uid);
+    //console.log('🔍 useTableStatus: Iniciando listener para orders, usuário:', user.uid);
 
     const ordersQuery = query(
       collection(db, 'orders'),
@@ -129,7 +129,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
     );
 
     const unsubscribeOrders = onSnapshot(ordersQuery, (querySnapshot) => {
-      console.log('📋 useTableStatus: Orders snapshot recebido, documentos:', querySnapshot.size);
+      //console.log('📋 useTableStatus: Orders snapshot recebido, documentos:', querySnapshot.size);
       
       const fetchedOrders: Order[] = [];
       querySnapshot.forEach((doc) => {
@@ -142,7 +142,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
         order.source === 'waiter' && order.tableId
       );
 
-      console.log('📋 Pedidos de garçom filtrados:', waiterOrders.length);
+      //console.log('📋 Pedidos de garçom filtrados:', waiterOrders.length);
       setOrders(waiterOrders);
       setIsLoading(false);
     }, (error) => {
@@ -155,7 +155,7 @@ export const useTableStatus = (physicalTableIds: number[]) => {
 
   // Calcular status das mesas
   const tablesWithStatus = useMemo((): TableWithStatus[] => {
-    console.log('🧮 useTableStatus: Calculando status das mesas...');
+    //console.log('🧮 useTableStatus: Calculando status das mesas...');
     
     return physicalTableIds.map(tableId => {
       const tableIdStr = tableId.toString();
@@ -212,19 +212,19 @@ export const useTableStatus = (physicalTableIds: number[]) => {
         }
       }
       
-      // Log detalhado para debug
-      console.log(`🔍 Mesa ${tableId} - Status: ${status}`, {
-        hasUnsentItems,
-        hasPendingOrders,
-        hasReadyOrders,
-        hasDeliveredOrders,
-        isInPayment,
-        hasAnyActivity,
-        unsentItemsCount: unsentItems.length,
-        activeOrdersCount: pendingOrders.length + readyOrders.length,
-        totalOrders: tableOrders.length,
-        seatsWithItems: tableState?.seats?.filter(seat => seat.items?.length > 0)?.length || 0
-      });
+      // // Log detalhado para debug
+      // console.log(`🔍 Mesa ${tableId} - Status: ${status}`, {
+      //   hasUnsentItems,
+      //   hasPendingOrders,
+      //   hasReadyOrders,
+      //   hasDeliveredOrders,
+      //   isInPayment,
+      //   hasAnyActivity,
+      //   unsentItemsCount: unsentItems.length,
+      //   activeOrdersCount: pendingOrders.length + readyOrders.length,
+      //   totalOrders: tableOrders.length,
+      //   seatsWithItems: tableState?.seats?.filter(seat => seat.items?.length > 0)?.length || 0
+      // });
       
       return {
         id: tableId,

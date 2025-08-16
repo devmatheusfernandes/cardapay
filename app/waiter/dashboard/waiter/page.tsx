@@ -1,9 +1,10 @@
-// app/dashboard/waiter/page.tsx
+// app/waiter/dashboard/waiter/page.tsx
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTableStatus } from "@/lib/hooks/useTableStatus";
+import { useWaiterSelfRemove } from "@/lib/hooks/useWaiterSelfRemove";
 import {
   Square,
   Users,
@@ -16,7 +17,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 
 // --- Componentes do Design System ---
 import {
@@ -57,11 +59,45 @@ const Tag = ({
   </div>
 );
 
+// Hook personalizado para obter o perfil do garçom
+const useWaiterProfile = () => {
+  const [user, authLoading] = useAuthState(auth);
+  const [profile, setProfile] = useState<{
+    code: string;
+    restaurantId: string | null;
+    name: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading || !user) {
+      if (!authLoading) setIsLoading(false);
+      return;
+    }
+    const docRef = doc(db, "waiters", user.uid);
+    const unsubscribe = onSnapshot(docRef, (doc) => {
+      if (doc.exists())
+        setProfile(
+          doc.data() as {
+            code: string;
+            restaurantId: string | null;
+            name: string;
+          }
+        );
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user, authLoading]);
+  return { profile, isLoading: authLoading || isLoading };
+};
+
 // --- Componente Principal da Página ---
 
 export default function WaiterPage() {
   const router = useRouter();
   const [user] = useAuthState(auth);
+  const { profile, isLoading: profileLoading } = useWaiterProfile();
+  const { removeSelfFromRestaurant, isRemoving } = useWaiterSelfRemove();
   const [physicalTables, setPhysicalTables] = useState(
     Array.from({ length: 12 }, (_, i) => ({ id: i + 1 }))
   );
@@ -88,7 +124,7 @@ export default function WaiterPage() {
     if (tablesWithNotifications.includes(tableIdStr)) {
       setDismissedNotifications((prev) => [...prev, tableIdStr]);
     }
-    router.push(`/dashboard/waiter/${tableId}`);
+    router.push(`/waiter/dashboard/waiter/${tableId}`);
   };
 
   const handleAddTable = (tableId: number) => {
@@ -101,21 +137,62 @@ export default function WaiterPage() {
     setDismissedNotifications((prev) => [...prev, tableId]);
   };
 
-  if (isLoading) {
+  if (isLoading || profileLoading) {
     return <Loading />;
+  }
+
+  // Se o garçom não estiver associado a um restaurante, mostrar mensagem
+  if (!profile?.restaurantId) {
+    return (
+      <SectionContainer>
+        <div className="text-center py-16 px-6">
+          <Users className="mx-auto h-12 w-12 text-slate-400" />
+          <h3 className="mt-4 text-xl font-semibold text-slate-700">
+            Aguardando Associação
+          </h3>
+          <p className="mt-2 text-sm text-slate-500">
+            Seu código único:{" "}
+            <span className="font-mono font-bold text-emerald-600">
+              {profile?.code}
+            </span>
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Forneça este código ao proprietário do restaurante para ser
+            associado.
+          </p>
+        </div>
+      </SectionContainer>
+    );
   }
 
   return (
     <>
       <SectionContainer>
         <PageHeader
-          title="Gerenciamento de Mesas"
-          subtitle="Visualize o status de todas as mesas em tempo real."
+          title="Dashboard do Garçom"
+          subtitle={`Olá ${profile?.name}! Visualize o status de todas as mesas em tempo real.`}
           actionButton={{
             label: "Adicionar Mesa",
             icon: <PlusCircle />,
             onClick: () => setIsModalOpen(true),
             variant: "primary",
+          }}
+          secondaryAction={{
+            label: isRemoving ? "Removendo..." : "Sair do Restaurante",
+            onClick: async () => {
+              if (
+                confirm("Tem certeza que deseja se remover deste restaurante?")
+              ) {
+                try {
+                  await removeSelfFromRestaurant();
+                  router.push("/waiter-login");
+                } catch (error) {
+                  console.error("Falha ao remover do restaurante:", error);
+                }
+              }
+            },
+            variant: "danger",
+            disabled: isRemoving,
           }}
         />
 

@@ -4,7 +4,7 @@ import { db, auth } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
-export interface Driver {
+export interface Waiter {
   id: string;
   name: string;
   phone: string;
@@ -12,9 +12,9 @@ export interface Driver {
   restaurantId: string;
 }
 
-export const useDrivers = () => {
+export const useWaiters = () => {
   const [user, authLoading] = useAuthState(auth);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [waiters, setWaiters] = useState<Waiter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,20 +23,20 @@ export const useDrivers = () => {
       return;
     }
 
-    const q = query(collection(db, 'drivers'), where('restaurantId', '==', user.uid));
+    const q = query(collection(db, 'waiters'), where('restaurantId', '==', user.uid));
 
     const unsubscribe = onSnapshot(q,
       (querySnapshot) => {
-        const fetchedDrivers: Driver[] = [];
+        const fetchedWaiters: Waiter[] = [];
         querySnapshot.forEach((doc) => {
-          fetchedDrivers.push({ id: doc.id, ...doc.data() } as Driver);
+          fetchedWaiters.push({ id: doc.id, ...doc.data() } as Waiter);
         });
-        setDrivers(fetchedDrivers);
+        setWaiters(fetchedWaiters);
         setIsLoading(false);
       },
       (error) => {
-        console.error("Error fetching drivers:", error);
-        toast.error("Could not fetch drivers.");
+        console.error("Error fetching waiters:", error);
+        toast.error("Could not fetch waiters.");
         setIsLoading(false);
       }
     );
@@ -44,22 +44,27 @@ export const useDrivers = () => {
     return () => unsubscribe();
   }, [user, authLoading]);
 
-  // Função para associar um entregador usando a nova rota de API
-  const associateDriverByCode = async (code: string) => {
+  // Função para associar um garçom usando a nova rota de API
+  const associateWaiterByCode = async (code: string) => {
+    console.log("useWaiters: Starting waiter association for code:", code);
+    
     if (!user) {
       toast.error("You must be logged in.");
       return;
     }
     if (!code.trim()) {
-        toast.error("Please enter a driver code.");
+        toast.error("Please enter a waiter code.");
         return;
     }
 
-    const toastId = toast.loading('Adicionando entregador...');
+    const toastId = toast.loading('Adicionando garçom...');
     
     try {
+        console.log("useWaiters: Getting ID token...");
         const idToken = await user.getIdToken();
-        const response = await fetch('/api/drivers/associate', {
+        console.log("useWaiters: Making API request to /api/waiters/associate");
+        
+        const response = await fetch('/api/waiters/associate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -68,53 +73,57 @@ export const useDrivers = () => {
             body: JSON.stringify({ code }),
         });
 
+        console.log("useWaiters: API response status:", response.status);
         const result = await response.json();
+        console.log("useWaiters: API response:", result);
 
         if (!response.ok) {
-            throw new Error(result.error || "Failed to add driver.");
+            throw new Error(result.error || "Failed to add waiter.");
         }
 
         toast.success(result.message, { id: toastId });
+        console.log("useWaiters: Waiter association successful");
 
     } catch (error: any) {
-        console.error("Error associating driver:", error);
+        console.error("useWaiters: Error associating waiter:", error);
         toast.error(error.message, { id: toastId });
+        throw error; // Re-throw to let the calling component handle it
     }
   };
 
-  const removeDriver = async (driverId: string) => {
+  const removeWaiter = async (waiterId: string) => {
     if (!user) {
       toast.error("You must be logged in.");
       return;
     }
 
-    const toastId = toast.loading('Removendo entregador...');
+    const toastId = toast.loading('Removendo garçom...');
     
     try {
         const idToken = await user.getIdToken();
-        const response = await fetch('/api/drivers/remove', {
+        const response = await fetch('/api/waiters/remove', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${idToken}`,
             },
-            body: JSON.stringify({ driverId }),
+            body: JSON.stringify({ waiterId }),
         });
 
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.error || "Failed to remove driver.");
+            throw new Error(result.error || "Failed to remove waiter.");
         }
 
         toast.success(result.message, { id: toastId });
 
     } catch (error: any) {
-        console.error("Error removing driver:", error);
+        console.error("Error removing waiter:", error);
         toast.error(error.message, { id: toastId });
         throw error;
     }
   };
 
-  return { drivers, isLoading: authLoading || isLoading, associateDriverByCode, removeDriver };
+  return { waiters, isLoading: authLoading || isLoading, associateWaiterByCode, removeWaiter };
 };

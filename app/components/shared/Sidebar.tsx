@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   User,
+  Users,
   Utensils,
   ShoppingCart,
   ChefHat,
@@ -75,6 +76,11 @@ const navSections: NavSection[] = [
     title: "Entregadores",
     icon: Bike,
     mainHref: "/dashboard/entregadores",
+  },
+  {
+    title: "Garçons",
+    icon: Users,
+    mainHref: "/dashboard/garcons",
   },
   {
     title: "Estatísticas",

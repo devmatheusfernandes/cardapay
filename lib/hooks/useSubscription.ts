@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { auth, db } from "@/lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { auth } from "@/lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { toast } from "react-hot-toast";
 import dayjs from "dayjs";
@@ -34,31 +33,34 @@ export const useSubscription = () => {
       return;
     }
 
-    const docRef = doc(db, "users", user.uid);
-    const unsubscribe = onSnapshot(
-      docRef,
-      (doc) => {
-        if (doc.exists()) {
-          const data = doc.data();
+    const fetchSubscription = async () => {
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch("/api/stripe-subscription/create-checkout", {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+
+        if (response.ok) {
+          const subData = await response.json();
           setSubscription({
-            status: data.subscriptionStatus || null,
-            currentPeriodEnd: data.subscriptionEndDate,
-            stripeSubscriptionId: data.stripeSubscriptionId,
-            planType: data.planType,
+            status: subData.status || null,
+            currentPeriodEnd: subData.currentPeriodEnd,
+            stripeSubscriptionId: subData.stripeSubscriptionId,
+            planType: subData.planType,
           });
         } else {
           setSubscription({ status: null });
         }
-        setIsLoading(false);
-      },
-      (error) => {
+      } catch (error) {
         console.error("Error fetching subscription:", error);
         toast.error("Erro ao carregar dados da assinatura.");
+        setSubscription({ status: null });
+      } finally {
         setIsLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchSubscription();
   }, [user, authLoading]);
 
   const handleAction = useCallback(
