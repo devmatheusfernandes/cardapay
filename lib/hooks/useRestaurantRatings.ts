@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
 
@@ -71,49 +71,42 @@ export const useRestaurantRatings = (restaurantIds: string[]) => {
     fetchRatings();
   }, [restaurantIds]);
 
-  // Fetch favorites for all restaurants
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (restaurantIds.length === 0) return;
+// Fetch favorites for all restaurants
+useEffect(() => {
+  const fetchFavorites = async () => {
+    if (restaurantIds.length === 0) return;
+    
+    try {
+      const favoritesData: {[key: string]: RestaurantFavorite} = {};
       
-      try {
-        const favoritesData: {[key: string]: RestaurantFavorite} = {};
-        
-        for (const restaurantId of restaurantIds) {
-          // Get total favorites count
-          const favoritesQuery = query(
-            collection(db, "favorites"),
-            where("restaurantId", "==", restaurantId)
-          );
-          const favoritesSnapshot = await getDocs(favoritesQuery);
-          const totalFavorites = favoritesSnapshot.size;
-          
-          // Check if current user has favorited this restaurant
-          let isFavorited = false;
-          if (user) {
-            const userFavoriteQuery = query(
-              collection(db, "favorites"),
-              where("restaurantId", "==", restaurantId),
-              where("userId", "==", user.uid)
-            );
-            const userFavoriteSnapshot = await getDocs(userFavoriteQuery);
-            isFavorited = !userFavoriteSnapshot.empty;
+      for (const restaurantId of restaurantIds) {
+        // Check if current user has favorited this restaurant
+        let isFavorited = false;
+        if (user) {
+          try {
+            const favoriteDocRef = doc(db, "favorites", `${user.uid}_${restaurantId}`);
+            const favoriteDoc = await getDoc(favoriteDocRef);
+            isFavorited = favoriteDoc.exists();
+          } catch (error) {
+            console.error(`Error checking favorite for restaurant ${restaurantId}:`, error);
+            isFavorited = false;
           }
-          
-          favoritesData[restaurantId] = {
-            count: totalFavorites,
-            isFavorited
-          };
         }
         
-        setFavorites(favoritesData);
-      } catch (error) {
-        console.error("Error fetching favorites:", error);
+        favoritesData[restaurantId] = {
+          count: 0, // Remove count functionality
+          isFavorited
+        };
       }
-    };
+      
+      setFavorites(favoritesData);
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+    }
+  };
 
-    fetchFavorites();
-  }, [restaurantIds, user]);
+  fetchFavorites();
+}, [restaurantIds, user]);
 
   // Toggle favorite for a restaurant
   const toggleFavorite = async (restaurantId: string) => {

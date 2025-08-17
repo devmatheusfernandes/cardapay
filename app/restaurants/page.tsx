@@ -169,16 +169,12 @@ export default function RestaurantsPage() {
         <div className="max-w-7xl mx-auto">
           <PageHeader
             title="Restaurantes"
-            subtitle={
-              searchTerm
-                ? `${filteredRestaurants.length} de ${restaurants.length} restaurantes encontrados`
-                : `${restaurants.length} restaurantes cadadastrados na plataforma`
-            }
+            subtitle="Encontre o restaurante perfeito para você"
           />
 
           {/* Stats Summary */}
           {!searchTerm && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="hidden mt-6 grid-cols-1 md:grid-cols-3 gap-4">
               <SubContainer variant="white" className="p-4 text-center">
                 <div className="text-2xl font-bold text-emerald-600">
                   {restaurants.length}
@@ -227,7 +223,7 @@ export default function RestaurantsPage() {
                     }`}
                   >
                     <Store className="w-4 h-4" />
-                    Nome
+                    <span className="hidden sm:inline">Nome</span>
                   </button>
                   <button
                     onClick={() => setSortBy("rating")}
@@ -238,7 +234,7 @@ export default function RestaurantsPage() {
                     }`}
                   >
                     <Star className="w-4 h-4" />
-                    Melhor Avaliados
+                    <span className="hidden sm:inline">Melhor Avaliados</span>
                   </button>
                   <button
                     onClick={() => setSortBy("favorites")}
@@ -249,12 +245,8 @@ export default function RestaurantsPage() {
                     }`}
                   >
                     <Heart className="w-4 h-4" />
-                    Mais Favoritados
+                    <span className="hidden sm:inline">Mais Favoritados</span>
                   </button>
-                </div>
-
-                {/* Filter Options */}
-                <div className="flex gap-2">
                   <button
                     onClick={() => {
                       const hasRatings = filteredRestaurants.filter(
@@ -274,7 +266,7 @@ export default function RestaurantsPage() {
                     className="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2"
                   >
                     <Star className="w-4 h-4" />
-                    Com Avaliações
+                    <span className="hidden sm:inline">Com Avaliações</span>
                   </button>
                 </div>
               </div>
