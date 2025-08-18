@@ -1,21 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/lib/context/CartContext";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
-  Plus,
-  Minus,
-  Trash2,
-  LoaderCircle,
   Truck,
   Store,
+  Trash2,
+  Plus,
+  Minus,
   ShoppingCart,
+  LoaderCircle,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { loadStripe } from "@stripe/stripe-js";
+import { useCart } from "@/lib/context/CartContext";
 import { AddressForm } from "./AddressForm";
+import { toast } from "react-hot-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "@/lib/firebase";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -43,6 +45,7 @@ export function CartSidebar({
     setDeliveryOption,
   } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [user] = useAuthState(auth);
 
   const handleCheckout = async () => {
     if (isDelivery && !deliveryAddress.trim()) {
@@ -53,9 +56,24 @@ export function CartSidebar({
     const toastId = toast.loading("Preparando seu pedido...");
 
     try {
+      // Prepare headers with authorization if user is logged in
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (user) {
+        try {
+          const idToken = await user.getIdToken();
+          headers["Authorization"] = `Bearer ${idToken}`;
+        } catch (error) {
+          console.error("Error getting ID token:", error);
+          // Continue without token if there's an error
+        }
+      }
+
       const response = await fetch("/api/checkout-session", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           cartItems,
           restaurantId,

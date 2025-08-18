@@ -1,21 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { CartItem, SelectedOptions } from '@/lib/context/CartContext';
+import { auth } from 'firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
 
 interface RequestBody {
     cartItems: CartItem[];
     restaurantId: string; 
     isDelivery: boolean;
     deliveryAddress: string;
+    clientId?: string; // Optional client ID if user is logged in
+}
+
+// Helper function to get authenticated user ID from request
+async function getClientId(req: NextRequest): Promise<string | null> {
+  try {
+    const authorization = req.headers.get("Authorization");
+    if (!authorization?.startsWith("Bearer ")) {
+      return null;
+    }
+
+    const idToken = authorization.split("Bearer ")[1];
+    if (!idToken) {
+      return null;
+    }
+
+    const decodedToken = await auth().verifyIdToken(idToken);
+    return decodedToken.uid;
+  } catch (error) {
+    console.error("Error verifying ID token:", error);
+    return null;
+  }
 }
 
 function createDescriptionFromOptions(options: SelectedOptions): string {
     const parts: string[] = [];
+    
     if (options.size) {
         parts.push(`Tamanho: ${options.size.name}`);
     }
     if (options.addons && options.addons.length > 0) {
-        const addonNames = options.addons.map(a => a.name).join(', ');
+        const addonNames = options.addons.map(addon => addon.name).join(', ');
         parts.push(`Adicionais: ${addonNames}`);
     }
     if (options.stuffedCrust) {
@@ -31,6 +56,9 @@ export async function POST(req: NextRequest) {
     if (!cartItems || cartItems.length === 0 || !restaurantId) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 });
     }
+
+    // Try to get client ID if user is authenticated
+    const clientId = await getClientId(req);
 
     const line_items = cartItems.map(item => ({
       price_data: {
@@ -71,6 +99,11 @@ export async function POST(req: NextRequest) {
         isDelivery: String(isDelivery),
         deliveryAddress: deliveryAddress || 'N/A', // Garante que não seja nulo
     };
+
+    // Add client ID to metadata if available
+    if (clientId) {
+        metadata.clientId = clientId;
+    }
 
     // 3. Lógica para dividir os metadados do carrinho se forem muito grandes
     const MAX_METADATA_VALUE_LENGTH = 490; // Um pouco menos que 500 para segurança

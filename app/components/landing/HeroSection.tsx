@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { TypeAnimation } from "react-type-animation";
-import Hero from "@/public/images/landing/hero.png";
+import Hero from "@/public/images/landing/hero2.jpg";
 
 interface HeroSectionProps {
   scrollY: number;

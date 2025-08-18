@@ -1,6 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-// Ícones
-import { X, LogIn, UserPlus, PackageSearch } from "lucide-react";
+import {
+  X,
+  LogIn,
+  UserPlus,
+  PackageSearch,
+  ChevronRight,
+  Utensils,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface MobileMenuProps {
@@ -12,7 +18,6 @@ export default function MobileMenu({
   isMenuOpen,
   setIsMenuOpen,
 }: MobileMenuProps) {
-  // CHANGE 1: Transformado em um array de objetos com texto e href
   const navItems = [
     { text: "Sobre Nós", href: "#about" },
     { text: "Recursos", href: "#features" },
@@ -22,6 +27,45 @@ export default function MobileMenu({
   ];
 
   const router = useRouter();
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.1,
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.2,
+        staggerChildren: 0.05,
+        staggerDirection: -1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { x: 50, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 300,
+        damping: 24,
+      },
+    },
+    exit: {
+      x: 50,
+      opacity: 0,
+      transition: {
+        duration: 0.1,
+      },
+    },
+  };
 
   return (
     <AnimatePresence>
@@ -33,71 +77,123 @@ export default function MobileMenu({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsMenuOpen(false)}
-            className="fixed inset-0 bg-black/30 z-50"
+            className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/50 backdrop-blur-sm z-50"
           />
 
           {/* SIDEBAR */}
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 w-64 h-full bg-white/30 shadow-lg z-[99] p-6 backdrop-blur-md rounded-tl-xl rounded-bl-xl flex flex-col"
+            initial={{ x: "100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "100%", opacity: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 40,
+              opacity: { duration: 0.3 },
+            }}
+            className="fixed top-0 right-0 w-80 h-full bg-gradient-to-br from-slate-400/95 via-slate-400/90 to-slate-400/95 
+                     shadow-2xl z-[99] backdrop-blur-xl border-l border-white/20
+                     flex flex-col overflow-hidden"
           >
-            <button
-              onClick={() => setIsMenuOpen(false)}
-              className="absolute top-4 right-4"
+            {/* Header with Close Button */}
+            <div className="relative p-6 border-b border-gray-100/50">
+              <div className="flex items-center justify-between">
+                <Utensils className="w-8 h-8 text-emerald-600" />
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <motion.nav
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="flex-1 p-6 space-y-2"
             >
-              <X className="w-6 h-6 text-slate-700" />
-            </button>
-            <nav className="mt-12 flex flex-col gap-8 items-center">
-              {/* CHANGE 2: Atualizado para usar item.href e item.text */}
-              {navItems.map((item) => (
-                <a
+              {navItems.map((item, index) => (
+                <motion.a
                   key={item.text}
+                  variants={itemVariants}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-slate-900 font-bold text-lg hover:text-emerald-600 transition-colors"
+                  whileHover={{ x: 8 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group flex items-center justify-between p-4 rounded-xl 
+                           hover:bg-gradient-to-r hover:from-emerald-50 hover:to-emerald-100/50 
+                           transition-all duration-200 cursor-pointer"
                 >
-                  {item.text}
-                </a>
+                  <span className="text-gray-800 font-medium text-lg group-hover:text-emerald-700 transition-colors">
+                    {item.text}
+                  </span>
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all duration-200" />
+                </motion.a>
               ))}
-            </nav>
+            </motion.nav>
 
-            <div className="mt-auto space-y-3 flex flex-col items-center">
-              <button
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              transition={{ delay: 0.4, duration: 0.3 }}
+              className="p-6 space-y-3 border-t border-gray-100/50 bg-gradient-to-t from-gray-50/30 to-transparent"
+            >
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   setIsMenuOpen(false);
                   router.push("/sign-in");
                 }}
-                className="w-full px-4 py-2 rounded-lg bg-white text-emerald-500 font-medium hover:bg-emerald-100 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3.5 rounded-xl bg-white/80 text-gray-700 font-semibold 
+                         hover:bg-white hover:shadow-lg border border-gray-200/50
+                         flex items-center justify-center gap-3 transition-all duration-200
+                         backdrop-blur-sm"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-5 h-5" />
                 <span>Entrar</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   setIsMenuOpen(false);
                   router.push("/sign-up");
                 }}
-                className="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 
+                         text-white font-semibold hover:from-emerald-700 hover:to-emerald-800 
+                         flex items-center justify-center gap-3 transition-all duration-200
+                         shadow-lg hover:shadow-xl shadow-emerald-600/25"
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="w-5 h-5" />
                 <span>Criar Conta</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   setIsMenuOpen(false);
                   router.push("/track");
                 }}
-                className="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 
+                         text-white font-semibold hover:from-indigo-700 hover:to-indigo-800 
+                         flex items-center justify-center gap-3 transition-all duration-200
+                         shadow-lg hover:shadow-xl shadow-indigo-600/25"
               >
-                <PackageSearch className="w-4 h-4" />
-                <span>Acompanhar pedido</span>
-              </button>
-            </div>
+                <PackageSearch className="w-5 h-5" />
+                <span>Acompanhar Pedido</span>
+              </motion.button>
+            </motion.div>
           </motion.div>
         </>
       )}

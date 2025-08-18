@@ -15,14 +15,17 @@ import { motion } from "framer-motion";
 import { MapPin, Store, Search, Star, Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import RatingStars from "@/app/components/restaurantSlug/RatingStars";
+import BackButton from "../components/shared/BackButton";
+import { useRouter } from "next/navigation";
 
 export default function RestaurantsPage() {
   const { restaurants, isLoading, error } = useAllRestaurants();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "rating" | "favorites">("name");
   const [user] = useAuthState(auth);
+  const router = useRouter();
 
   // Get restaurant IDs for the hook
   const restaurantIds = useMemo(
@@ -52,6 +55,13 @@ export default function RestaurantsPage() {
         toast.error("Erro ao atualizar favoritos");
       }
     }
+  };
+
+  // Handle login redirect for favorites
+  const handleLoginRedirect = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push("/client-login");
   };
 
   // Filter and sort restaurants
@@ -129,7 +139,6 @@ export default function RestaurantsPage() {
   if (restaurants.length === 0) {
     return (
       <>
-        <Toaster position="top-right" />
         <SectionContainer>
           <div className="max-w-7xl mx-auto">
             <PageHeader
@@ -164,9 +173,9 @@ export default function RestaurantsPage() {
 
   return (
     <>
-      <Toaster position="top-right" />
       <SectionContainer>
-        <div className="max-w-7xl mx-auto">
+        <BackButton pathLink={"/"} />
+        <div className="max-w-7xl mx-auto mt-8">
           <PageHeader
             title="Restaurantes"
             subtitle="Encontre o restaurante perfeito para você"
@@ -198,7 +207,7 @@ export default function RestaurantsPage() {
 
           {/* Search and Filters */}
           <div className="mt-8 mb-6">
-            <SubContainer variant="white" className="p-4">
+            <SubContainer className="p-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 {/* Search Bar */}
                 <div className="relative flex-1">
@@ -316,11 +325,11 @@ export default function RestaurantsPage() {
                   whileHover={{ y: -5, scale: 1.02 }}
                   className="group"
                 >
-                  <SubContainer variant="white" className="p-6 h-full">
+                  <SubContainer className="p-6 h-full">
                     <Link href={`/${restaurant.slug || restaurant.id}`}>
                       <div className="text-center">
                         {/* Logo */}
-                        <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                        <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center">
                           {restaurant.logoUrl ? (
                             <Image
                               src={restaurant.logoUrl}
@@ -339,7 +348,7 @@ export default function RestaurantsPage() {
                             />
                           ) : null}
                           <Store
-                            className={`w-12 h-12 text-gray-400 ${
+                            className={`w-12 h-12 text-emerald-400 ${
                               restaurant.logoUrl ? "hidden" : ""
                             }`}
                           />
@@ -377,7 +386,7 @@ export default function RestaurantsPage() {
                             )}
                           </div>
 
-                          {/* Favorites */}
+                          {/* Favorites - FIXED: Removed nested Link */}
                           <div className="flex items-center gap-1">
                             {user ? (
                               <>
@@ -411,14 +420,15 @@ export default function RestaurantsPage() {
                                 )}
                               </>
                             ) : (
-                              <Link
-                                href="/client-login"
-                                onClick={(e) => e.stopPropagation()}
-                                className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                                title="Faça login para favoritar"
-                              >
-                                <Heart className="w-4 h-4" />
-                              </Link>
+                              <>
+                                <button
+                                  onClick={handleLoginRedirect}
+                                  className="p-1 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                                  title="Faça login para favoritar"
+                                >
+                                  <Heart className="w-4 h-4" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>

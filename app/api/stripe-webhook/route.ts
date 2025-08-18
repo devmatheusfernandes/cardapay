@@ -201,6 +201,11 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
       deliveryAddress: isDelivery ? (metadata.deliveryAddress || null) : null
     };
 
+    // Add client ID if available
+    if (metadata.clientId) {
+      orderData.clientId = metadata.clientId;
+    }
+
     // Só adicionar confirmationCode se existir
     if (confirmationCode) {
       orderData.confirmationCode = confirmationCode;

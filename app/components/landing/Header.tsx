@@ -1,8 +1,9 @@
 // components/landing/Header.tsx
 
 import { motion, Variants } from "framer-motion";
-import { Utensils, Menu } from "lucide-react";
+import { Utensils, Menu, ChevronDown, User, Store } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface NavItem {
   text: string;
@@ -21,6 +22,8 @@ export default function Header({
   containerVariants,
 }: HeaderProps) {
   const router = useRouter();
+  const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
+
   return (
     <header className={`absolute top-0 left-0 w-full z-50`}>
       <div className="max-w-[95vw] mx-auto px-0 md:px-6 py-4">
@@ -66,25 +69,73 @@ export default function Header({
 
           {/* Buttons with animations */}
           <div className="hidden md:flex items-center gap-4">
-            <button
-              onClick={() => router.push("/sign-in")}
-              className="relative text-white hover:text-emerald-600 cursor-pointer 
-             ease-in-out duration-300 transition-all font-medium px-4 py-2 rounded-lg
-             after:content-[''] after:absolute after:bottom-0 after:left-1/2 
-             after:w-0 after:h-0.5 after:bg-emerald-600 after:transition-all 
-             after:duration-300 after:ease-in-out after:-translate-x-1/2
-             hover:after:w-full"
-            >
-              Entrar
-            </button>
+            {/* Client Authentication */}
+            <div className="relative">
+              <button
+                onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)}
+                className="relative text-white hover:text-emerald-600 cursor-pointer 
+                 ease-in-out duration-300 transition-all font-medium px-4 py-2 rounded-lg
+                 after:content-[''] after:absolute after:bottom-0 after:left-1/2 
+                 after:w-0 after:h-0.5 after:bg-emerald-600 after:transition-all 
+                 after:duration-300 after:ease-in-out after:-translate-x-1/2
+                 hover:after:w-full flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                Cliente
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isAuthDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-            <button
-              className="text-white bg-emerald-600 hover:bg-emerald-400 cursor-pointer 
-              ease-in-out duration-300 transition-all font-medium px-4 py-2.5 rounded-lg"
-              onClick={() => router.push("/sign-up")}
-            >
-              Criar Conta
-            </button>
+              {/* Dropdown Menu */}
+              {isAuthDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2"
+                >
+                  <button
+                    onClick={() => {
+                      router.push("/client-login");
+                      setIsAuthDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Entrar
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push("/client-signup");
+                      setIsAuthDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Criar Conta
+                  </button>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Restaurant Owner Authentication */}
+            <div className="relative">
+              <button
+                onClick={() => router.push("/sign-in")}
+                className="relative text-white hover:text-emerald-600 cursor-pointer 
+                 ease-in-out duration-300 transition-all font-medium px-4 py-2 rounded-lg
+                 after:content-[''] after:absolute after:bottom-0 after:left-1/2 
+                 after:w-0 after:h-0.5 after:bg-emerald-600 after:transition-all 
+                 after:duration-300 after:ease-in-out after:-translate-x-1/2
+                 hover:after:w-full flex items-center gap-2"
+              >
+                <Store className="w-4 h-4" />
+                Restaurante
+              </button>
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -98,6 +149,14 @@ export default function Header({
           </motion.button>
         </div>
       </div>
+
+      {/* Click outside to close dropdown */}
+      {isAuthDropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsAuthDropdownOpen(false)}
+        />
+      )}
     </header>
   );
 }

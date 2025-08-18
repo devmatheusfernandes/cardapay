@@ -6,9 +6,9 @@ import Link from "next/link";
 import Image from "next/image"; // CHANGE 1: Import the Next.js Image component
 
 //Images
-import Demo1 from "@/public/images/demo1.jpg";
-import Demo2 from "@/public/images/demo2.jpg";
-import Demo3 from "@/public/images/demo3.jpg";
+import Demo1 from "@/public/images/demo/demo1.jpg";
+import Demo2 from "@/public/images/demo/demo2.jpg";
+import Demo3 from "@/public/images/demo/demo3.jpg";
 
 const BackButton = () => (
   <Link

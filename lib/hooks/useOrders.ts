@@ -56,6 +56,7 @@ export interface Order {
   status: 'Pending' | 'In Progress' | 'Ready for Pickup' | 'Ready to Serve' | 'Delivered' | 'Ready for Delivery' | 'Out for Delivery' | 'Completed' | 'Returned' | 'Canceled' | 'Confirmed';
   createdAt: Timestamp;
   restaurantId: string;
+  clientId?: string; // ID of the client who made the order (if logged in)
   isDelivery: boolean;
   deliveryAddress?: string;
   assignedDriverId?: string;

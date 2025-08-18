@@ -33,6 +33,7 @@ export interface Order {
   createdAt: Timestamp;
   isDelivery: boolean;
   restaurantId: string;
+  clientId?: string; // ID of the client who made the order (if logged in)
   deliveryAddress?: string;
   confirmationCode?: string;
   isReviewed?: boolean;

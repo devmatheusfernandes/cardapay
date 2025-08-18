@@ -22,6 +22,10 @@ function SignUpForm() {
   const [birthDate, setBirthDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [planInfo, setPlanInfo] = useState<{
+    plan: string;
+    trial: string;
+  } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -33,6 +37,7 @@ function SignUpForm() {
     if (plan && trial) {
       const intent = { plan, trial };
       localStorage.setItem("redirectIntent", JSON.stringify(intent));
+      setPlanInfo(intent);
       console.log("Intenção de assinatura salva:", intent);
     }
   }, [searchParams]);
@@ -144,6 +149,23 @@ function SignUpForm() {
         </div>
         <h1 className="text-3xl font-bold text-emerald-900">Cardapay</h1>
         <p className="mt-2 text-slate-600">Crie sua conta para começar.</p>
+        {planInfo && (
+          <div className="mt-2 text-slate-600 flex flex-wrap items-center justify-center gap-1">
+            <span>Se cadastre para aproveitar o plano</span>
+            <span className="font-bold text-emerald-700">
+              {planInfo.plan === "monthly"
+                ? "mensal"
+                : planInfo.plan === "annual"
+                ? "anual"
+                : planInfo.plan === "semiannual"
+                ? "semestral"
+                : planInfo.plan}
+            </span>
+            {planInfo.trial === "true" && (
+              <span>com período de teste gratuito.</span>
+            )}
+          </div>
+        )}
       </motion.div>
 
       <form onSubmit={handleSignUp} className="space-y-4">

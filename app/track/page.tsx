@@ -49,7 +49,7 @@ export default function TrackOrderInputPage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl border border-slate-100"
+        className="w-full max-w-md p-8 space-y-8 bg-emerald-100 rounded-2xl border border-slate-100"
       >
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -86,7 +86,7 @@ export default function TrackOrderInputPage() {
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
                 placeholder="Ex: ABC123"
-                className="w-full px-4 py-3 pl-11 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-slate-700"
+                className="w-full px-4 py-3 pl-11 border border-emerald-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-slate-700"
                 autoFocus
               />
               <Search className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
