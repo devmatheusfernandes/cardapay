@@ -27,6 +27,7 @@ import {
 } from "@/app/components/shared/Container";
 import PageHeader from "@/app/components/shared/PageHeader";
 import Loading from "@/app/components/shared/Loading";
+import { safeTimestampToDate } from "@/lib/utils/timestamp";
 
 const formatter = buildFormatter(ptBrStrings);
 
@@ -291,7 +292,10 @@ const BillItem = ({ bill, onClick }: { bill: Bill; onClick: () => void }) => {
             </div>
             <p className="text-sm text-slate-500">
               Fechada{" "}
-              <TimeAgo date={bill.createdAt.toDate()} formatter={formatter} />
+              <TimeAgo
+                date={safeTimestampToDate(bill.createdAt)}
+                formatter={formatter}
+              />
             </p>
           </div>
         </div>
@@ -370,7 +374,7 @@ export default function BillingHistoryPage() {
 
       // Filtro de período
       if (filters.dateRange !== "all") {
-        const billDate = bill.createdAt.toDate();
+        const billDate = safeTimestampToDate(bill.createdAt);
         const now = new Date();
         const today = new Date(
           now.getFullYear(),

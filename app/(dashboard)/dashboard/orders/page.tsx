@@ -29,6 +29,7 @@ import Modal from "@/app/components/ui/Modal";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
 import { SectionContainer } from "@/app/components/shared/Container";
 import PageHeader from "@/app/components/shared/PageHeader";
+import { safeTimestampToDate } from "@/lib/utils/timestamp";
 
 const allOrderStatuses: Order["status"][] = [
   "Pending",
@@ -115,7 +116,7 @@ export default function OrdersPage() {
   const ordersByDay = useMemo(() => {
     const daysMap = new Map<string, Order[]>();
     filteredOrders.forEach((order) => {
-      const date = order.createdAt.toDate();
+      const date = safeTimestampToDate(order.createdAt);
       const dayKey = date.toLocaleDateString("pt-BR", {
         weekday: "long",
         day: "numeric",
@@ -504,7 +505,7 @@ const OrderCard = ({
         </p>
         <p className="text-xs text-slate-500">
           {" "}
-          <TimeAgo date={order.createdAt.toDate()} />{" "}
+          <TimeAgo date={safeTimestampToDate(order.createdAt)} />{" "}
         </p>
       </div>
       <div

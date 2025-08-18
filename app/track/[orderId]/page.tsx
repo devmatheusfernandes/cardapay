@@ -49,6 +49,7 @@ import toast from "react-hot-toast";
 import OrderDetailsModal from "@/app/components/track/OrderDetailsModal";
 import { Order } from "@/lib/types/track/order";
 import { MenuItem } from "@/lib/hooks/useMenu";
+import { safeTimestampToDate } from "@/lib/utils/timestamp";
 
 const BackButton = () => (
   <Link
@@ -758,7 +759,9 @@ Por favor, me ajudem a resolver esta situação.`;
                     </div>
                     <div className="text-xs text-slate-500 text-center">
                       Processado{" "}
-                      <TimeAgo date={failedPayment.createdAt.toDate()} />
+                      <TimeAgo
+                        date={safeTimestampToDate(failedPayment.createdAt)}
+                      />
                     </div>
                   </motion.div>
 
@@ -964,7 +967,8 @@ Por favor, me ajudem a resolver esta situação.`;
                     variants={itemVariants}
                     className="text-xs mt-auto pt-6 text-slate-500 text-center"
                   >
-                    Feito <TimeAgo date={order.createdAt.toDate()} />.
+                    Feito{" "}
+                    <TimeAgo date={safeTimestampToDate(order.createdAt)} />.
                   </motion.p>
 
                   {finalStatuses.includes(order.status) && (

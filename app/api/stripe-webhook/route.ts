@@ -123,6 +123,8 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleOrderPayment(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata;
+  
   try {
     const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
       session.id,
@@ -132,7 +134,6 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     );
 
     const lineItems = sessionWithLineItems.line_items?.data;
-    const metadata = session.metadata;
 
     if (!lineItems || !metadata?.restaurantId) {
       throw new Error("Required session data not found.");
@@ -216,19 +217,73 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
 
     // Tentar salvar o pedido
     await adminDb.collection("orders").doc(session.id).set(cleanOrderData);
-    
-    const orderType = isDelivery ? "delivery" : "pickup";
-    console.log(
-      `✅ ${orderType} order ${session.id} created successfully${
-        confirmationCode ? ` with confirmation code: ${confirmationCode}` : ""
-      }.`
-    );
 
-  } catch (error: any) {
-    console.error("Error processing order payment:", error);
+    // Update backup order status if backupOrderId exists
+    if (metadata.backupOrderId) {
+      console.log(`🔍 Attempting to update backup order: ${metadata.backupOrderId}`);
+      try {
+        const backupOrderRef = adminDb.collection("backup_orders").doc(metadata.backupOrderId);
+        
+        // Check if the backup order exists before trying to update it
+        const backupOrderDoc = await backupOrderRef.get();
+        if (!backupOrderDoc.exists) {
+          console.warn(`⚠️ Backup order ${metadata.backupOrderId} not found - it may have been created after checkout or failed to save`);
+          console.warn(`📋 This usually indicates the backup order creation failed during checkout, but the payment succeeded`);
+          // Continue with order creation even if backup order is missing
+        } else {
+          await backupOrderRef.update({
+            status: "completed",
+            sessionId: session.id,
+            confirmationCode: confirmationCode || null,
+            updatedAt: Timestamp.now(),
+            metadata: {
+              stripeSessionId: session.id,
+              paymentIntentId: session.payment_intent,
+              backupReason: "payment_successful"
+            }
+          });
+          console.log(`✅ Backup order ${metadata.backupOrderId} updated to completed`);
+        }
+      } catch (backupError) {
+        console.error(`⚠️ Failed to update backup order ${metadata.backupOrderId}:`, backupError);
+        // Don't fail the main order creation if backup update fails
+      }
+    } else {
+      console.log(`ℹ️ No backup order ID found in metadata - proceeding without backup order update`);
+    }
+
+    console.log(`✅ Order created successfully: ${session.id}`);
+  } catch (error) {
+    console.error("❌ Error creating order:", error);
     
-    // Salvar o pagamento que falhou para processamento manual
-    await saveFailedPayment(session, error);
+    // Try to update backup order status to failed if backupOrderId exists
+    if (metadata?.backupOrderId) {
+      console.log(`🔍 Attempting to mark backup order as failed: ${metadata.backupOrderId}`);
+      try {
+        const backupOrderRef = adminDb.collection("backup_orders").doc(metadata.backupOrderId);
+        
+        // Check if the backup order exists before trying to update it
+        const backupOrderDoc = await backupOrderRef.get();
+        if (!backupOrderDoc.exists) {
+          console.warn(`⚠️ Backup order ${metadata.backupOrderId} not found during error handling - it may have been created after checkout or failed to save`);
+          console.warn(`📋 This usually indicates the backup order creation failed during checkout`);
+        } else {
+          await backupOrderRef.update({
+            status: "failed",
+            updatedAt: Timestamp.now(),
+            metadata: {
+              error: error instanceof Error ? error.message : "Unknown error",
+              backupReason: "order_creation_failed"
+            }
+          });
+          console.log(`✅ Backup order ${metadata.backupOrderId} updated to failed`);
+        }
+      } catch (backupError) {
+        console.error(`⚠️ Failed to update backup order ${metadata.backupOrderId}:`, backupError);
+      }
+    } else {
+      console.log(`ℹ️ No backup order ID found in metadata during error handling`);
+    }
     
     // Re-lançar o erro para que o webhook retorne 500
     // Isso fará o Stripe tentar novamente

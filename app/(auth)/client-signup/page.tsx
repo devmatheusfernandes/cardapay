@@ -6,7 +6,15 @@ import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  MapPin,
+} from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -16,13 +24,16 @@ export default function ClientSignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    defaultAddress: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -60,6 +71,7 @@ export default function ClientSignupPage() {
       await setDoc(doc(db, "clients", user.uid), {
         name: formData.name,
         email: formData.email,
+        defaultAddress: formData.defaultAddress || null,
         createdAt: new Date(),
         role: "client",
       });
@@ -230,6 +242,32 @@ export default function ClientSignupPage() {
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Default Address Field */}
+            <div>
+              <label
+                htmlFor="defaultAddress"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Endereço Padrão (opcional)
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                <textarea
+                  id="defaultAddress"
+                  name="defaultAddress"
+                  value={formData.defaultAddress}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
+                  placeholder="Digite seu endereço completo para entregas..."
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Este endereço será usado como opção padrão ao fazer pedidos para
+                entrega
+              </p>
             </div>
 
             {/* Submit Button */}

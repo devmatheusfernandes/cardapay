@@ -13,11 +13,13 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import { useCart } from "@/lib/context/CartContext";
+import { useOrderBackup } from "@/lib/hooks/useOrderBackup";
 import { AddressForm } from "./AddressForm";
 import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
+import { v4 as uuidv4 } from "uuid";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -47,15 +49,45 @@ export function CartSidebar({
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [user] = useAuthState(auth);
 
+  // Order backup system
+  const { createBackupOrder, isBackingUp } = useOrderBackup();
+
   const handleCheckout = async () => {
     if (isDelivery && !deliveryAddress.trim()) {
       toast.error("Por favor, informe um endereço de entrega.");
       return;
     }
+
     setIsCheckingOut(true);
     const toastId = toast.loading("Preparando seu pedido...");
 
     try {
+      // Generate a unique order ID for backup
+      const orderId = uuidv4();
+
+      // Create backup order before proceeding with checkout
+      const backupSuccess = await createBackupOrder(
+        orderId,
+        "pending", // Will be updated with actual session ID
+        restaurantId,
+        user?.uid,
+        cartItems,
+        cartTotal,
+        isDelivery,
+        deliveryAddress
+      );
+
+      if (!backupSuccess) {
+        console.error("❌ Order backup failed - cannot proceed with checkout");
+        toast.error("Falha ao criar backup do pedido. Tente novamente.", {
+          id: toastId,
+        });
+        setIsCheckingOut(false);
+        return; // Stop checkout if backup fails
+      }
+
+      console.log(`✅ Backup order created successfully: ${orderId}`);
+
       // Prepare headers with authorization if user is logged in
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -79,19 +111,27 @@ export function CartSidebar({
           restaurantId,
           isDelivery,
           deliveryAddress,
+          backupOrderId: orderId, // Pass backup order ID to API
         }),
       });
 
+      if (!response.ok) {
+        throw new Error("Falha ao criar a sessão de checkout.");
+      }
+
       const { sessionId } = await response.json();
+
+      // Clear cart only after successful checkout session creation
       clearCart();
-      if (!response.ok) throw new Error("Falha ao criar a sessão de checkout.");
 
       const stripe = await stripePromise;
-      if (stripe) await stripe.redirectToCheckout({ sessionId });
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId });
+      }
 
       toast.dismiss(toastId);
     } catch (error) {
-      console.error(error);
+      console.error("Checkout error:", error);
       toast.error("Não foi possível ir para o pagamento.", { id: toastId });
       setIsCheckingOut(false);
     }
@@ -246,10 +286,10 @@ export function CartSidebar({
                   </div>
                   <button
                     onClick={handleCheckout}
-                    disabled={isCheckingOut}
+                    disabled={isCheckingOut || isBackingUp}
                     className="w-full py-3.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                   >
-                    {isCheckingOut ? (
+                    {isCheckingOut || isBackingUp ? (
                       <LoaderCircle className="w-5 h-5 animate-spin" />
                     ) : (
                       <>

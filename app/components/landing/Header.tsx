@@ -72,7 +72,7 @@ export default function Header({
             {/* Client Authentication */}
             <div className="relative">
               <button
-                onClick={() => setIsAuthDropdownOpen(!isAuthDropdownOpen)}
+                onClick={() => router.push("/client-login")}
                 className="relative text-white hover:text-emerald-600 cursor-pointer 
                  ease-in-out duration-300 transition-all font-medium px-4 py-2 rounded-lg
                  after:content-[''] after:absolute after:bottom-0 after:left-1/2 
@@ -82,43 +82,7 @@ export default function Header({
               >
                 <User className="w-4 h-4" />
                 Cliente
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-200 ${
-                    isAuthDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
               </button>
-
-              {/* Dropdown Menu */}
-              {isAuthDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2"
-                >
-                  <button
-                    onClick={() => {
-                      router.push("/client-login");
-                      setIsAuthDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    Entrar
-                  </button>
-                  <button
-                    onClick={() => {
-                      router.push("/client-signup");
-                      setIsAuthDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    Criar Conta
-                  </button>
-                </motion.div>
-              )}
             </div>
 
             {/* Restaurant Owner Authentication */}

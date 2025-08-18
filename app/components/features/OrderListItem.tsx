@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, onSnapshot, Timestamp, getDoc } from "firebase/firestore";
+import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { safeTimestampToDate } from "@/lib/utils/timestamp";
 import {
   LoaderCircle,
   CheckCircle,
@@ -23,7 +24,7 @@ interface OrderListItemProps {
 interface OrderData {
   status: string;
   restaurantId: string;
-  createdAt: Timestamp;
+  createdAt: Date;
 }
 
 interface RestaurantData {
@@ -56,17 +57,11 @@ export default function OrderListItem({ orderId }: OrderListItemProps) {
         const orderData = orderDoc.data(); // Pega os dados brutos
 
         // Verifica se createdAt precisa ser convertido e o converte
-        if (
-          orderData.createdAt &&
-          typeof orderData.createdAt._seconds === "number"
-        ) {
-          orderData.createdAt = new Timestamp(
-            orderData.createdAt._seconds,
-            orderData.createdAt._nanoseconds
-          );
+        if (orderData.createdAt) {
+          orderData.createdAt = safeTimestampToDate(orderData.createdAt);
         }
 
-        // Agora, orderData.createdAt é um objeto Timestamp garantido
+        // Agora, orderData.createdAt é um objeto Date garantido
         setOrder(orderData as OrderData);
 
         // O resto do código continua igual
@@ -129,7 +124,7 @@ export default function OrderListItem({ orderId }: OrderListItemProps) {
               <span className="font-mono">{orderId.substring(0, 12)}...</span>
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Feito <TimeAgo date={order.createdAt.toDate()} />
+              Feito <TimeAgo date={order.createdAt} />
             </p>
           </div>
           <div className="text-right">

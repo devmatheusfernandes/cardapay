@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { db, auth } from '../firebase';
 import { collection, query, where, onSnapshot, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { safeTimestampToDate } from '../utils/timestamp';
 
 // --- INÍCIO DAS ALTERAÇÕES ---
 // Se estes tipos não estiverem aqui, adicione-os ou importe-os
@@ -73,35 +74,9 @@ export interface Order {
 
 // Função utilitária para converter valores do Firebase em Timestamp
 const convertToTimestamp = (value: any): Timestamp => {
-  // Se já é um Timestamp, retorna como está
-  if (value && typeof value.toDate === 'function') {
-    return value as Timestamp;
-  }
-  
-  // Se é um objeto serverTimestamp não processado, usa o timestamp atual
-  if (value && value._methodName === 'serverTimestamp') {
-    console.warn('ServerTimestamp não processado detectado, usando timestamp atual');
-    return Timestamp.now();
-  }
-  
-  // Se é um objeto Date
-  if (value instanceof Date) {
-    return Timestamp.fromDate(value);
-  }
-  
-  // Se é um número (milliseconds)
-  if (typeof value === 'number') {
-    return Timestamp.fromMillis(value);
-  }
-  
-  // Se é um objeto com seconds e nanoseconds
-  if (value && typeof value === 'object' && 'seconds' in value) {
-    return new Timestamp(value.seconds, value.nanoseconds || 0);
-  }
-  
-  // Fallback: usa o timestamp atual
-  console.warn('Formato de timestamp não reconhecido, usando timestamp atual:', value);
-  return Timestamp.now();
+  // Use the safe utility function
+  const date = safeTimestampToDate(value);
+  return Timestamp.fromDate(date);
 };
 
 export const useOrders = () => {

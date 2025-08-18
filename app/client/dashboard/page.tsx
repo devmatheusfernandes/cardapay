@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useClientFavorites } from "@/lib/hooks/useClientFavorites";
 import { useClientOrders } from "@/lib/hooks/useClientOrders";
+import { useClientProfile } from "@/lib/hooks/useClientProfile";
+import { safeTimestampToDate } from "@/lib/utils/timestamp";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -24,18 +26,27 @@ import {
   CheckCircle,
   Truck,
   XCircle,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import RatingStars from "@/app/components/restaurantSlug/RatingStars";
 
-type TabType = "favorites" | "orders";
+type TabType = "favorites" | "orders" | "profile";
 
 export default function ClientDashboardPage() {
   const [user] = useAuthState(auth);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("favorites");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    defaultAddress: "",
+    phone: "",
+  });
   const router = useRouter();
 
   const {
@@ -46,6 +57,18 @@ export default function ClientDashboardPage() {
   } = useClientFavorites();
 
   const { orders, isLoading: ordersLoading } = useClientOrders();
+  const { profile: clientProfile, updateProfile } = useClientProfile();
+
+  // Update form when profile changes
+  useEffect(() => {
+    if (clientProfile) {
+      setProfileForm({
+        name: clientProfile.name || "",
+        defaultAddress: clientProfile.defaultAddress || "",
+        phone: clientProfile.phone || "",
+      });
+    }
+  }, [clientProfile]);
 
   // Filter favorites based on search term
   const filteredFavorites = favorites.filter(
@@ -77,6 +100,31 @@ export default function ClientDashboardPage() {
       console.error("Error removing favorite:", error);
       toast.error("Erro ao remover dos favoritos");
     }
+  };
+
+  const handleProfileSave = async () => {
+    try {
+      const success = await updateProfile({
+        name: profileForm.name,
+        defaultAddress: profileForm.defaultAddress,
+        phone: profileForm.phone,
+      });
+
+      if (success) {
+        setIsEditingProfile(false);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
+  const handleProfileCancel = () => {
+    setProfileForm({
+      name: clientProfile?.name || "",
+      defaultAddress: clientProfile?.defaultAddress || "",
+      phone: clientProfile?.phone || "",
+    });
+    setIsEditingProfile(false);
   };
 
   const getStatusIcon = (status: string) => {
@@ -199,6 +247,17 @@ export default function ClientDashboardPage() {
             >
               <Package className="w-4 h-4" />
               Meus Pedidos ({orders.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("profile")}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "profile"
+                  ? "bg-white text-emerald-700 shadow-sm"
+                  : "text-gray-600 hover:text-emerald-600"
+              }`}
+            >
+              <User className="w-4 h-4" />
+              Perfil
             </button>
           </div>
 
@@ -407,16 +466,16 @@ export default function ClientDashboardPage() {
                               Pedido #{order.id.slice(-8).toUpperCase()}
                             </h4>
                             <p className="text-sm text-gray-500">
-                              {order.createdAt
-                                .toDate()
-                                .toLocaleDateString("pt-BR")}{" "}
+                              {safeTimestampToDate(
+                                order.createdAt
+                              ).toLocaleDateString("pt-BR")}{" "}
                               às{" "}
-                              {order.createdAt
-                                .toDate()
-                                .toLocaleTimeString("pt-BR", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                              {safeTimestampToDate(
+                                order.createdAt
+                              ).toLocaleTimeString("pt-BR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </p>
                           </div>
                         </div>
@@ -480,6 +539,155 @@ export default function ClientDashboardPage() {
                   ))}
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {/* Profile Tab */}
+          {activeTab === "profile" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="max-w-2xl mx-auto"
+            >
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Informações do Perfil
+                  </h2>
+                  {!isEditingProfile ? (
+                    <button
+                      onClick={() => setIsEditingProfile(true)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Editar
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleProfileSave}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                      >
+                        <Save className="w-4 h-4" />
+                        Salvar
+                      </button>
+                      <button
+                        onClick={handleProfileCancel}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nome
+                    </label>
+                    {isEditingProfile ? (
+                      <input
+                        type="text"
+                        value={profileForm.name}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            name: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                        placeholder="Seu nome completo"
+                      />
+                    ) : (
+                      <p className="text-gray-900">
+                        {clientProfile?.name || "Não informado"}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <p className="text-gray-900">
+                      {clientProfile?.email || user?.email}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      O email não pode ser alterado
+                    </p>
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Telefone
+                    </label>
+                    {isEditingProfile ? (
+                      <input
+                        type="tel"
+                        value={profileForm.phone}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            phone: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                        placeholder="(11) 99999-9999"
+                      />
+                    ) : (
+                      <p className="text-gray-900">
+                        {clientProfile?.phone || "Não informado"}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Default Address */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Endereço Padrão para Entrega
+                    </label>
+                    {isEditingProfile ? (
+                      <textarea
+                        value={profileForm.defaultAddress}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            defaultAddress: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                        rows={3}
+                        placeholder="Digite seu endereço completo para entregas..."
+                      />
+                    ) : (
+                      <div>
+                        {clientProfile?.defaultAddress ? (
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                            <p className="text-gray-900">
+                              {clientProfile.defaultAddress}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 italic">
+                            Nenhum endereço padrão configurado
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Este endereço será usado como opção padrão ao fazer
+                      pedidos para entrega
+                    </p>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
         </div>

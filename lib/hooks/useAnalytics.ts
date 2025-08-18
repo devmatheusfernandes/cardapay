@@ -3,6 +3,7 @@ import { db, auth } from '../firebase';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { startOfDay, subDays } from 'date-fns';
+import { safeTimestampToDate } from '../utils/timestamp';
 
 // Define os tipos de período de tempo
 export type TimePeriod = 'today' | '7d' | '30d' | 'all';
@@ -80,8 +81,8 @@ export const useAnalytics = () => {
         ];
 
         const salesByDayMap = new Map<string, number>();
-        orders.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()).forEach(order => {
-          const date = order.createdAt.toDate().toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' });
+        orders.sort((a, b) => safeTimestampToDate(a.createdAt).getTime() - safeTimestampToDate(b.createdAt).getTime()).forEach(order => {
+          const date = safeTimestampToDate(order.createdAt).toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' });
           salesByDayMap.set(date, (salesByDayMap.get(date) || 0) + order.totalAmount);
         });
         const salesByDay = Array.from(salesByDayMap.entries()).map(([date, total]) => ({ date, total }));

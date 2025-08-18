@@ -210,6 +210,7 @@ export default function FeaturesSection() {
                     fill
                     className="object-cover"
                     priority={index === 0}
+                    sizes="100%"
                   />
                 </motion.div>
               ))}

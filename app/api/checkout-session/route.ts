@@ -5,11 +5,11 @@ import { auth } from 'firebase-admin';
 import { adminDb } from '@/lib/firebase-admin';
 
 interface RequestBody {
-    cartItems: CartItem[];
-    restaurantId: string; 
-    isDelivery: boolean;
-    deliveryAddress: string;
-    clientId?: string; // Optional client ID if user is logged in
+  cartItems: CartItem[];
+  restaurantId: string;
+  isDelivery: boolean;
+  deliveryAddress?: string;
+  backupOrderId?: string; // Add backup order ID
 }
 
 // Helper function to get authenticated user ID from request
@@ -51,7 +51,7 @@ function createDescriptionFromOptions(options: SelectedOptions): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { cartItems, restaurantId, isDelivery, deliveryAddress } = (await req.json()) as RequestBody;
+    const { cartItems, restaurantId, isDelivery, deliveryAddress, backupOrderId } = (await req.json()) as RequestBody;
 
     if (!cartItems || cartItems.length === 0 || !restaurantId) {
       return NextResponse.json({ error: 'Dados obrigatórios ausentes' }, { status: 400 });
@@ -103,6 +103,11 @@ export async function POST(req: NextRequest) {
     // Add client ID to metadata if available
     if (clientId) {
         metadata.clientId = clientId;
+    }
+
+    // Add backup order ID to metadata if available
+    if (backupOrderId) {
+        metadata.backupOrderId = backupOrderId;
     }
 
     // 3. Lógica para dividir os metadados do carrinho se forem muito grandes

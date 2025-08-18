@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
+import { safeTimestampToDate } from '../utils/timestamp';
 
 export interface FavoriteRestaurant {
   id: string;
@@ -90,7 +91,7 @@ export const useClientFavorites = () => {
                 logoUrl: restaurantData.logoUrl,
                 slug: restaurantData.slug,
                 rating,
-                favoritedAt: favoriteData.createdAt?.toDate() || new Date()
+                favoritedAt: favoriteData.createdAt ? safeTimestampToDate(favoriteData.createdAt) : new Date()
               });
             }
           }

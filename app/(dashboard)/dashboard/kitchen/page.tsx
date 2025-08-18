@@ -29,6 +29,7 @@ import buildFormatter from "react-timeago/lib/formatters/buildFormatter";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
 import { SectionContainer } from "@/app/components/shared/Container";
 import PageHeader from "@/app/components/shared/PageHeader";
+import { safeTimestampToDate } from "@/lib/utils/timestamp";
 
 const formatter = buildFormatter(ptBrStrings);
 
@@ -39,7 +40,11 @@ export default function KitchenPage() {
   const kitchenOrders = useMemo(() => {
     return orders
       .filter((order) => order.status === "In Progress")
-      .sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis());
+      .sort(
+        (a, b) =>
+          safeTimestampToDate(a.createdAt).getTime() -
+          safeTimestampToDate(b.createdAt).getTime()
+      );
   }, [orders]);
 
   if (isLoadingOrders || isLoadingMenu) {
@@ -126,11 +131,7 @@ const KitchenOrderCard = ({
   // Função segura para obter a data
   const getOrderDate = () => {
     try {
-      if (order.createdAt && typeof order.createdAt.toDate === "function") {
-        return order.createdAt.toDate();
-      }
-      // Fallback para timestamp atual se não conseguir converter
-      return new Date();
+      return safeTimestampToDate(order.createdAt);
     } catch (error) {
       console.error("Erro ao converter data do pedido:", error);
       return new Date();

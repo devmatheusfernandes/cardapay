@@ -21,6 +21,7 @@ import {
   CreditCard,
   X,
   ChevronDown,
+  Package,
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -70,6 +71,7 @@ const navSections: NavSection[] = [
         label: "Do garçom",
       },
       { href: "/dashboard/billing", icon: CreditCard, label: "Pagamentos" },
+      { href: "/dashboard/backup-orders", icon: Package, label: "Backup" },
     ],
   },
   {
