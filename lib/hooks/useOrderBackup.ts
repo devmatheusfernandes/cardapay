@@ -3,28 +3,75 @@ import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
 
+// Firebase document structure (all fields optional except required ones)
+interface FirebaseOrderData {
+  id: string;
+  restaurantId: string;
+  items: any[];
+  totalAmount: number;
+  status: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  isDelivery: boolean;
+  sessionId?: string;
+  clientId?: string;
+  deliveryAddress?: string;
+  confirmationCode?: string;
+  metadata?: Record<string, any>;
+}
+
 export interface BackupOrder {
   id: string;
-  sessionId?: string;
+  sessionId?: string | null;
   restaurantId: string;
-  clientId?: string;
+  clientId?: string | null;
   items: any[];
   totalAmount: number;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'backup';
   createdAt: Date;
   isDelivery: boolean;
-  deliveryAddress?: string;
-  confirmationCode?: string;
+  deliveryAddress?: string | null;
+  confirmationCode?: string | null;
   metadata?: {
-    stripeSessionId?: string;
-    paymentIntentId?: string;
-    error?: string;
-    backupReason?: string;
-    confirmationCode?: string;
+    stripeSessionId?: string | null;
+    paymentIntentId?: string | null;
+    error?: string | null;
+    backupReason?: string | null;
+    confirmationCode?: string | null;
   };
 }
 
 const BACKUP_ORDERS_KEY = 'cardapay-backup-orders';
+
+// Utility function to deeply clean objects of undefined values
+const cleanFirestoreData = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanFirestoreData(item)).filter(item => item !== undefined);
+  }
+  
+  if (obj instanceof Date || obj instanceof Timestamp) {
+    return obj;
+  }
+  
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        const cleanedValue = cleanFirestoreData(value);
+        if (cleanedValue !== undefined) {
+          cleaned[key] = cleanedValue;
+        }
+      }
+    }
+    return cleaned;
+  }
+  
+  return obj;
+};
 
 export const useOrderBackup = () => {
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -57,51 +104,107 @@ export const useOrderBackup = () => {
   // Save order to Firebase backup collection
   const saveToFirebase = useCallback(async (order: BackupOrder) => {
     try {
-      const orderData = {
-        ...order,
+      // Create the base order data with proper typing
+      const orderData: FirebaseOrderData = {
+        id: order.id,
+        restaurantId: order.restaurantId,
+        items: order.items || [],
+        totalAmount: order.totalAmount,
+        status: order.status,
         createdAt: Timestamp.fromDate(order.createdAt),
         updatedAt: Timestamp.now(),
+        isDelivery: order.isDelivery,
       };
 
-      await setDoc(doc(db, 'backup_orders', order.id), orderData);
+      // Add optional fields only if they have values
+      if (order.sessionId) {
+        orderData.sessionId = order.sessionId;
+      }
+      
+      if (order.clientId) {
+        orderData.clientId = order.clientId;
+      }
+      
+      if (order.deliveryAddress && order.deliveryAddress.trim() !== '') {
+        orderData.deliveryAddress = order.deliveryAddress;
+      }
+      
+      if (order.confirmationCode) {
+        orderData.confirmationCode = order.confirmationCode;
+      }
+      
+      if (order.metadata && Object.keys(order.metadata).length > 0) {
+        const cleanMetadata = cleanFirestoreData(order.metadata);
+        if (cleanMetadata && Object.keys(cleanMetadata).length > 0) {
+          orderData.metadata = cleanMetadata;
+        }
+      }
+
+      // Final cleaning pass to ensure no undefined values
+      const cleanOrderData = cleanFirestoreData(orderData);
+
+      console.log('📤 Sending to Firebase:', JSON.stringify(cleanOrderData, null, 2));
+
+      await setDoc(doc(db, 'backup_orders', order.id), cleanOrderData);
       console.log(`✅ Order ${order.id} backed up to Firebase`);
       return true;
     } catch (error) {
       console.error('❌ Failed to save order to Firebase:', error);
+      console.error('❌ Error details:', error);
       return false;
     }
   }, []);
 
   // Create backup order before checkout
-  const createBackupOrder = useCallback(async (
-    orderId: string,
-    sessionId: string,
-    restaurantId: string,
-    clientId: string | undefined,
-    cartItems: any[],
-    totalAmount: number,
-    isDelivery: boolean,
-    deliveryAddress?: string
-  ) => {
+  const createBackupOrder = useCallback(async (params: {
+    orderId: string;
+    sessionId?: string | null;
+    restaurantId: string;
+    clientId?: string | null;
+    cartItems: any[];
+    totalAmount: number;
+    isDelivery: boolean;
+    deliveryAddress?: string | null;
+  }) => {
+    const {
+      orderId,
+      sessionId,
+      restaurantId,
+      clientId,
+      cartItems,
+      totalAmount,
+      isDelivery,
+      deliveryAddress
+    } = params;
     setIsBackingUp(true);
     
     try {
       const backupOrder: BackupOrder = {
         id: orderId,
-        sessionId,
         restaurantId,
-        clientId,
         items: cartItems,
         totalAmount,
         status: 'pending',
         createdAt: new Date(),
         isDelivery,
-        deliveryAddress,
         metadata: {
-          stripeSessionId: sessionId,
           backupReason: 'pre_checkout_backup'
         }
       };
+
+      // Only add optional fields if they have actual values
+      if (sessionId && sessionId !== 'pending' && sessionId !== '') {
+        backupOrder.sessionId = sessionId;
+        backupOrder.metadata!.stripeSessionId = sessionId;
+      }
+      
+      if (clientId && clientId !== '') {
+        backupOrder.clientId = clientId;
+      }
+      
+      if (deliveryAddress && deliveryAddress.trim() !== '') {
+        backupOrder.deliveryAddress = deliveryAddress.trim();
+      }
 
       // Save to both locations - Firebase must succeed for the backup to be considered successful
       const localSuccess = saveToLocalStorage(backupOrder);
@@ -115,8 +218,6 @@ export const useOrderBackup = () => {
         return true;
       } else {
         console.error(`❌ Failed to backup order ${orderId} to Firebase - this will cause webhook errors`);
-        // If Firebase backup fails, we should not proceed with checkout
-        // as the webhook won't be able to update the backup order
         return false;
       }
     } catch (error) {
@@ -147,12 +248,18 @@ export const useOrderBackup = () => {
         }
       }
 
-      // Update Firebase
-      const orderData = {
+      // Update Firebase - only include fields that have values
+      const orderData: any = {
         status,
         updatedAt: Timestamp.now(),
-        ...(metadata && { metadata: { ...metadata } })
       };
+
+      if (metadata) {
+        const cleanMetadata = cleanFirestoreData(metadata);
+        if (cleanMetadata && Object.keys(cleanMetadata).length > 0) {
+          orderData.metadata = cleanMetadata;
+        }
+      }
 
       await setDoc(doc(db, 'backup_orders', orderId), orderData, { merge: true });
       console.log(`✅ Order ${orderId} status updated to ${status}`);
@@ -207,10 +314,15 @@ export const useOrderBackup = () => {
 
   // Mark order as completed (successful payment)
   const markOrderCompleted = useCallback(async (orderId: string, confirmationCode?: string) => {
-    return await updateOrderStatus(orderId, 'completed', {
-      backupReason: 'payment_successful',
-      confirmationCode
-    });
+    const metadata: any = {
+      backupReason: 'payment_successful'
+    };
+    
+    if (confirmationCode) {
+      metadata.confirmationCode = confirmationCode;
+    }
+    
+    return await updateOrderStatus(orderId, 'completed', metadata);
   }, [updateOrderStatus]);
 
   // Mark order as failed

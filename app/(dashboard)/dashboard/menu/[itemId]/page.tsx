@@ -20,6 +20,7 @@ import {
   PlusCircle,
   XCircle,
   Copy,
+  RotateCcw,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import toast from "react-hot-toast";
@@ -33,6 +34,7 @@ import {
 import ActionButton from "@/app/components/shared/ActionButton";
 import BackButton from "@/app/components/shared/BackButton";
 import Loading from "@/app/components/shared/Loading";
+import Modal from "@/app/components/ui/Modal";
 
 // --- ESTADO INICIAL PARA UM NOVO ITEM ---
 const initialItemData: MenuItemData = {
@@ -65,6 +67,35 @@ const initialItemData: MenuItemData = {
   isPopular: false,
 };
 
+// --- FUNÇÕES DE LOCAL STORAGE ---
+const STORAGE_KEY = "cardapay_menu_item_draft";
+
+const saveToLocalStorage = (data: MenuItemData) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn("Could not save to localStorage:", error);
+  }
+};
+
+const loadFromLocalStorage = (): MenuItemData | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn("Could not load from localStorage:", error);
+    return null;
+  }
+};
+
+const clearLocalStorage = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn("Could not clear localStorage:", error);
+  }
+};
+
 // --- COMPONENTE PRINCIPAL DA PÁGINA ---
 export default function MenuItemFormPage() {
   const { itemId } = useParams<{ itemId: string }>();
@@ -78,9 +109,16 @@ export default function MenuItemFormPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [templateName, setTemplateName] = useState("");
 
   const isNewItem = itemId === "new";
 
+  // --- EFEITO PARA CARREGAR DADOS INICIAIS ---
   useEffect(() => {
     if (!isNewItem) {
       const fetchItem = async () => {
@@ -96,9 +134,62 @@ export default function MenuItemFormPage() {
       };
       fetchItem();
     } else {
+      // Para novos itens, tenta carregar do localStorage
+      const savedData = loadFromLocalStorage();
+      if (savedData) {
+        setFormData(savedData);
+        setHasUnsavedChanges(true);
+        toast.success("Dados salvos anteriormente foram restaurados!");
+      }
       setIsLoading(false);
     }
   }, [itemId, getItemById, isNewItem]);
+
+  // --- EFEITO PARA SALVAR AUTOMATICAMENTE NO LOCAL STORAGE ---
+  useEffect(() => {
+    if (!isLoading && isNewItem && hasUnsavedChanges) {
+      const timeoutId = setTimeout(() => {
+        setIsAutoSaving(true);
+        saveToLocalStorage(formData);
+        // Simula um pequeno delay para mostrar o indicador
+        setTimeout(() => setIsAutoSaving(false), 500);
+      }, 1000); // Salva após 1 segundo de inatividade
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, isLoading, isNewItem, hasUnsavedChanges]);
+
+  // --- EFEITO PARA DETECTAR MUDANÇAS ---
+  useEffect(() => {
+    if (!isLoading) {
+      setHasUnsavedChanges(true);
+    }
+  }, [formData, isLoading]);
+
+  // --- EFEITO PARA AVISAR SOBRE MUDANÇAS NÃO SALVAS ---
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue =
+          "Você tem alterações não salvas. Tem certeza que quer sair?";
+        return "Você tem alterações não salvas. Tem certeza que quer sair?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
+
+  // --- EFEITO PARA LIMPEZA AO DESMONTAR ---
+  useEffect(() => {
+    return () => {
+      // Se o usuário sair sem salvar, mantém os dados no localStorage
+      // Eles serão limpos apenas quando salvar com sucesso ou descartar
+    };
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -140,27 +231,78 @@ export default function MenuItemFormPage() {
     setIsSaving(true);
     await saveItem(itemId, formData, imageFile);
     setIsSaving(false);
+    // Limpa o localStorage após salvar com sucesso
+    if (isNewItem) {
+      clearLocalStorage();
+      setHasUnsavedChanges(false);
+      toast.success(
+        "Item salvo com sucesso! Rascunho removido do armazenamento local."
+      );
+    }
+  };
+
+  // --- LÓGICA PARA DESCARTAR ALTERAÇÕES ---
+  const handleDiscard = () => {
+    if (hasUnsavedChanges) {
+      setShowDiscardModal(true);
+    } else {
+      // Se não há mudanças, apenas volta para a página anterior
+      router.back();
+    }
+  };
+
+  const confirmDiscard = () => {
+    if (isNewItem) {
+      // Para novos itens, limpa o localStorage e reseta o formulário
+      clearLocalStorage();
+      setFormData(initialItemData);
+      setImageFile(null);
+      setImagePreview(null);
+      setHasUnsavedChanges(false);
+      toast.success("Formulário resetado!");
+    } else {
+      // Para itens existentes, recarrega os dados originais
+      if (item) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, ownerId, imageUrl, imagePath, ...data } = item;
+        setFormData(data);
+        setImagePreview(imageUrl || null);
+        setImageFile(null);
+        setHasUnsavedChanges(false);
+        toast.success("Alterações descartadas!");
+      }
+    }
+    setShowDiscardModal(false);
   };
 
   // --- LÓGICA PARA EXCLUIR ---
   const handleDelete = async () => {
     if (isNewItem || !item) return;
-    if (window.confirm(`Tem certeza que quer excluir "${item.name}"?`)) {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (item) {
       setIsSaving(true);
       await deleteItem(item);
       // O hook já redireciona
     }
+    setShowDeleteModal(false);
   };
 
   // --- LÓGICA PARA SALVAR COMO MODELO ---
   const handleSaveAsTemplate = async () => {
-    const templateName = prompt(
-      "Qual o nome deste modelo? (ex: 'Modelo Pizza', 'Modelo Hambúrguer')"
-    );
-    if (templateName) {
+    setShowSaveTemplateModal(true);
+  };
+
+  const confirmSaveAsTemplate = async () => {
+    if (templateName.trim()) {
       setIsSaving(true);
-      await saveAsTemplate({ ...formData, templateName });
+      await saveAsTemplate({ ...formData, templateName: templateName.trim() });
       setIsSaving(false);
+      setTemplateName("");
+      setShowSaveTemplateModal(false);
+      toast.success(`Modelo "${templateName.trim()}" salvo com sucesso!`);
     }
   };
 
@@ -178,6 +320,20 @@ export default function MenuItemFormPage() {
               <h1 className="text-3xl font-bold text-slate-800 mt-2">
                 {isNewItem ? "Adicionar Novo Item" : `Editando: ${item?.name}`}
               </h1>
+              <div className="flex items-center gap-4 mt-1">
+                {hasUnsavedChanges && (
+                  <p className="text-sm text-amber-600 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                    Alterações não salvas
+                  </p>
+                )}
+                {isAutoSaving && (
+                  <p className="text-sm text-emerald-600 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Salvando automaticamente...
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               {!isNewItem && (
@@ -189,6 +345,13 @@ export default function MenuItemFormPage() {
                   icon={<Trash2 className="w-5 h-5" />}
                 />
               )}
+              <ActionButton
+                label="Descartar"
+                onClick={handleDiscard}
+                disabled={isSaving}
+                variant="secondary"
+                icon={<RotateCcw className="w-4 h-4" />}
+              />
               <ActionButton
                 label="Salvar como Modelo"
                 onClick={handleSaveAsTemplate}
@@ -560,6 +723,104 @@ export default function MenuItemFormPage() {
           </SubContainer>
         </main>
       </form>
+
+      {/* Modal de Descarte */}
+      <Modal
+        isOpen={showDiscardModal}
+        onClose={() => setShowDiscardModal(false)}
+        title="Descartar Alterações"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-700">
+            {isNewItem
+              ? "Tem certeza que quer descartar todas as alterações? O formulário será resetado e os dados não salvos serão perdidos."
+              : "Tem certeza que quer descartar todas as alterações? O item voltará ao estado original."}
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDiscardModal(false)}
+              className="px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDiscard}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Descartar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Exclusão */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Confirmar Exclusão"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-700">
+            Tem certeza que quer excluir o item "{item?.name}"? Esta ação é
+            irreversível.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Salvar como Modelo */}
+      <Modal
+        isOpen={showSaveTemplateModal}
+        onClose={() => setShowSaveTemplateModal(false)}
+        title="Salvar como Modelo"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-700">
+            Qual o nome deste modelo? (ex: 'Modelo Pizza', 'Modelo Hambúrguer')
+          </p>
+          <input
+            type="text"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                confirmSaveAsTemplate();
+              }
+            }}
+            className="w-full p-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+            placeholder="Digite o nome do modelo..."
+            autoFocus
+          />
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowSaveTemplateModal(false)}
+              className="px-4 py-2 text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmSaveAsTemplate}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      </Modal>
     </SectionContainer>
   );
 }

@@ -66,16 +66,15 @@ export function CartSidebar({
       const orderId = uuidv4();
 
       // Create backup order before proceeding with checkout
-      const backupSuccess = await createBackupOrder(
+      const backupSuccess = await createBackupOrder({
         orderId,
-        "pending", // Will be updated with actual session ID
         restaurantId,
-        user?.uid,
+        clientId: user?.uid,
         cartItems,
-        cartTotal,
+        totalAmount: cartTotal,
         isDelivery,
-        deliveryAddress
-      );
+        deliveryAddress: deliveryAddress || undefined,
+      });
 
       if (!backupSuccess) {
         console.error("❌ Order backup failed - cannot proceed with checkout");
@@ -110,7 +109,7 @@ export function CartSidebar({
           cartItems,
           restaurantId,
           isDelivery,
-          deliveryAddress,
+          deliveryAddress: deliveryAddress || undefined, // Ensure empty string becomes undefined
           backupOrderId: orderId, // Pass backup order ID to API
         }),
       });
