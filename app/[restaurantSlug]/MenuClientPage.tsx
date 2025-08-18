@@ -301,7 +301,7 @@ export default function MenuClientPage({
         onCartClick={() => setIsCartOpen(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1 mb-8 lg:mb-0">
             <SearchAndFilter

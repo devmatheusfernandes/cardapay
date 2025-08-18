@@ -78,6 +78,47 @@ export const useCart = () => {
 
 const CART_STORAGE_KEY = "cardapay-cart-items";
 
+// Helper function to check if two items are identical (same product + options)
+const areItemsIdentical = (
+  item1: ItemToAdd | CartItem,
+  item2: CartItem
+): boolean => {
+  // Check if product IDs match
+  if (item1.productId !== item2.productId) return false;
+
+  // Check if base prices match
+  if (item1.basePrice !== item2.basePrice) return false;
+
+  const opts1 = item1.options;
+  const opts2 = item2.options;
+
+  // Check size options
+  if (opts1.size?.id !== opts2.size?.id) return false;
+
+  // Check stuffed crust options
+  if (opts1.stuffedCrust?.id !== opts2.stuffedCrust?.id) return false;
+
+  // Check addons (compare arrays of addon IDs)
+  const addons1 = (opts1.addons || []).map((a) => a.id).sort();
+  const addons2 = (opts2.addons || []).map((a) => a.id).sort();
+  if (addons1.length !== addons2.length) return false;
+  if (!addons1.every((id, index) => id === addons2[index])) return false;
+
+  // Check removable ingredients
+  const removable1 = (opts1.removableIngredients || []).sort();
+  const removable2 = (opts2.removableIngredients || []).sort();
+  if (removable1.length !== removable2.length) return false;
+  if (!removable1.every((ing, index) => ing === removable2[index]))
+    return false;
+
+  // Check notes (treat empty string and undefined as equal)
+  const notes1 = opts1.notes?.trim() || "";
+  const notes2 = opts2.notes?.trim() || "";
+  if (notes1 !== notes2) return false;
+
+  return true;
+};
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -128,18 +169,37 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       finalPrice += itemToAdd.options.stuffedCrust.price;
     }
 
-    const newCartItem: CartItem = {
-      cartItemId: uuidv4(),
-      productId: itemToAdd.productId,
-      name: itemToAdd.name,
-      quantity: 1,
-      imageUrl: itemToAdd.imageUrl,
-      basePrice: itemToAdd.basePrice,
-      finalPrice,
-      options: itemToAdd.options,
-    };
+    setCartItems((prevItems) => {
+      // Check if an identical item already exists
+      const existingItemIndex = prevItems.findIndex((item) =>
+        areItemsIdentical(itemToAdd, item)
+      );
 
-    setCartItems((prevItems) => [...prevItems, newCartItem]);
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        console.log("ITEM IDÊNTICO ENCONTRADO - ATUALIZANDO QUANTIDADE");
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + 1,
+        };
+        return updatedItems;
+      } else {
+        // Add new item
+        console.log("ITEM NOVO - ADICIONANDO AO CARRINHO");
+        const newCartItem: CartItem = {
+          cartItemId: uuidv4(),
+          productId: itemToAdd.productId,
+          name: itemToAdd.name,
+          quantity: 1,
+          imageUrl: itemToAdd.imageUrl,
+          basePrice: itemToAdd.basePrice,
+          finalPrice,
+          options: itemToAdd.options,
+        };
+        return [...prevItems, newCartItem];
+      }
+    });
   }, []);
 
   const updateQuantity = useCallback(
