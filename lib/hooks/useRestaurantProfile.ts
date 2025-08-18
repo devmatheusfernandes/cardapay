@@ -79,12 +79,19 @@ export const useRestaurantProfile = () => {
     if (!user) return;
     try {
         const idToken = await user.getIdToken();
+        console.log('Fetching Stripe status...');
         const response = await fetch('/api/stripe-connect/get-account-status', {
             headers: { 'Authorization': `Bearer ${idToken}` }
         });
+        console.log('Stripe status response:', response.status, response.statusText);
         if (response.ok) {
             const data = await response.json();
+            console.log('Stripe status data:', data);
             setStripeStatus(data);
+        } else {
+            console.error('Stripe status response not ok:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error response body:', errorText);
         }
     } catch (error) {
         console.error("Failed to fetch Stripe status:", error);

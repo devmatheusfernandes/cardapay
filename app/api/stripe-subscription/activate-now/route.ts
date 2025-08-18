@@ -14,25 +14,43 @@ export async function POST(req: NextRequest) {
     const decodedToken = await adminAuth().verifyIdToken(idToken);
     const userId = decodedToken.uid;
 
-    // 2. Buscar o ID da assinatura no Firestore
+    // 2. Buscar o stripeCustomerId no Firestore
     const userDoc = await adminDb.collection("users").doc(userId).get();
     const userData = userDoc.data();
-    const subscriptionId = userData?.stripeSubscriptionId;
+    const customerId = userData?.stripeCustomerId;
 
-    if (!subscriptionId) {
+    if (!customerId) {
       return NextResponse.json(
-        { error: "Nenhuma assinatura encontrada para este usuário." },
+        { error: "Cliente Stripe não encontrado para este usuário." },
         { status: 404 }
       );
     }
 
-    // 3. Atualizar a assinatura no Stripe para encerrar o trial
+    // 3. Buscar assinaturas ativas do usuário no Stripe
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 10,
+    });
+
+    const activeSubscription = subscriptions.data.find((sub) =>
+      ["active", "trialing", "past_due"].includes(sub.status)
+    );
+
+    if (!activeSubscription) {
+      return NextResponse.json(
+        { error: "Nenhuma assinatura ativa encontrada para este usuário." },
+        { status: 404 }
+      );
+    }
+
+    // 4. Atualizar a assinatura no Stripe para encerrar o trial
     // O 'trial_end: "now"' encerra o período de teste e inicia o ciclo de cobrança.
-    await stripe.subscriptions.update(subscriptionId, {
+    await stripe.subscriptions.update(activeSubscription.id, {
       trial_end: "now",
     });
 
-    console.log(`Subscription ${subscriptionId} activated immediately for user ${userId}.`);
+    console.log(`Subscription ${activeSubscription.id} activated immediately for user ${userId}.`);
 
     return NextResponse.json({ message: "Assinatura ativada com sucesso." });
 

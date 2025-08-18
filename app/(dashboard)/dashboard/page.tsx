@@ -31,6 +31,7 @@ import Loading from "@/app/components/shared/Loading";
 import ProfileSetupModal, {
   ProfileData,
 } from "@/app/components/profile/ProfileSetupModal";
+import WelcomeModal from "@/app/components/profile/WelcomeModal";
 
 // Interface para o perfil do usuário
 interface UserProfile {
@@ -175,6 +176,7 @@ export default function DashboardPage() {
   );
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -393,6 +395,21 @@ export default function DashboardPage() {
           </SubContainer>
         </div>
       )}
+
+      {/* Floating Action Button for Welcome Modal */}
+      <button
+        onClick={() => setShowWelcomeModal(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-emerald-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center z-40"
+        title="Guia de Configuração"
+      >
+        <Gift className="w-6 h-6" />
+      </button>
+
+      {/* Welcome Modal */}
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+      />
     </SectionContainer>
   );
 }

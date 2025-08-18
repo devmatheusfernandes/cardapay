@@ -191,7 +191,7 @@ const Sidebar = () => {
           </button>
         </div>
 
-        <nav className="flex-grow p-3 overflow-y-auto">
+        <nav className="flex-grow p-3 overflow-y-auto scrollbar-hide">
           <ul className="space-y-1">
             {navSections.map((section) => (
               <li key={section.title}>
@@ -333,7 +333,7 @@ const MobileMenuDrawer = ({
                 <X className="w-6 h-6 text-slate-600" />
               </button>
             </div>
-            <nav className="flex-grow overflow-y-auto">
+            <nav className="flex-grow overflow-y-auto scrollbar-hide">
               <ul className="space-y-2">
                 {navSections.map((section) => (
                   <li key={section.title}>

@@ -28,6 +28,8 @@ import {
   Edit,
   X,
   Save,
+  AlertCircle,
+  Info,
 } from "lucide-react";
 import InputField from "@/app/components/ui/InputField";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +37,9 @@ import { toast } from "react-hot-toast";
 import QRCodeGenerator from "@/app/components/features/QRCodeGenerator";
 import SubscriptionGuard from "@/app/components/guards/SubscriptionGuard";
 import PageHeader from "@/app/components/shared/PageHeader";
+import OnboardingChecklist from "@/app/components/profile/OnboardingChecklist";
+import WelcomeModal from "@/app/components/profile/WelcomeModal";
+import ActionButton from "@/app/components/shared/ActionButton";
 
 const defaultWorkingHours: WorkingHours = {
   monday: { open: "09:00", close: "22:00", closed: false },
@@ -95,6 +100,7 @@ export default function ProfilePage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -712,13 +718,24 @@ export default function ProfilePage() {
             </motion.div>
           </AnimatePresence>
 
+          {/* Onboarding Checklist */}
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.1 }}
+            className="w-full"
+          >
+            <OnboardingChecklist />
+          </motion.div>
+
           <div className="flex flex-col md:flex-row items-stretch justify-between w-full gap-4">
             {/* Stripe Connect Section */}
             <motion.div
               variants={cardVariants}
               initial="hidden"
               animate="visible"
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.2 }}
             >
               <StripeConnectSection stripeStatus={stripeStatus} />
             </motion.div>
@@ -729,7 +746,7 @@ export default function ProfilePage() {
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.3 }}
                 className="bg-emerald-100 w-full rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8"
               >
                 <div className="space-y-6">
@@ -765,6 +782,11 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+      />
     </SubscriptionGuard>
   );
 }
@@ -775,6 +797,11 @@ const StripeConnectSection = ({
   stripeStatus: StripeAccountStatus | null;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("StripeConnectSection - stripeStatus:", stripeStatus);
+  }, [stripeStatus]);
 
   const handleConnect = async () => {
     setIsLoading(true);
@@ -807,20 +834,21 @@ const StripeConnectSection = ({
   const renderContent = () => {
     if (!stripeStatus || stripeStatus.status === "not_connected") {
       return (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleConnect}
-          disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-gradient-to-r from-emerald-600 to-purple-600 text-white hover:from-emerald-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-colors shadow-lg w-full sm:w-auto"
-        >
-          {isLoading ? (
-            <LoaderCircle className="w-5 h-5 animate-spin" />
-          ) : (
-            <ExternalLink className="w-5 h-5" />
-          )}
-          {isLoading ? "Redirecting..." : "Connect with Stripe"}
-        </motion.button>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <ActionButton
+            variant="secondary"
+            label={isLoading ? "Redirecionando..." : "Conectar com Stripe"}
+            icon={
+              isLoading ? (
+                <LoaderCircle className="w-5 h-5 animate-spin" />
+              ) : (
+                <ExternalLink className="w-5 h-5" />
+              )
+            }
+            onClick={handleConnect}
+            disabled={isLoading}
+          />
+        </motion.div>
       );
     }
 
@@ -829,20 +857,42 @@ const StripeConnectSection = ({
       !stripeStatus.details_submitted
     ) {
       return (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleConnect}
-          disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-gradient-to-r from-emerald-500 to-purple-500 text-white hover:from-emerald-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-colors shadow-lg w-full sm:w-auto"
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <ActionButton
+            variant="warning"
+            label={
+              isLoading
+                ? "Redirecionando..."
+                : "Concluir configuração do Stripe"
+            }
+            icon={
+              isLoading ? (
+                <LoaderCircle className="w-5 h-5 animate-spin" />
+              ) : (
+                <ExternalLink className="w-5 h-5" />
+              )
+            }
+            onClick={handleConnect}
+            disabled={isLoading}
+          />
+        </motion.div>
+      );
+    }
+
+    if (
+      stripeStatus.status === "connected" &&
+      stripeStatus.details_submitted &&
+      !stripeStatus.payouts_enabled
+    ) {
+      return (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="inline-flex items-center gap-2 py-2 px-4 rounded-lg bg-yellow-100 border border-yellow-200 text-yellow-700 font-medium"
         >
-          {isLoading ? (
-            <LoaderCircle className="w-5 h-5 animate-spin" />
-          ) : (
-            <ExternalLink className="w-5 h-5" />
-          )}
-          {isLoading ? "Redirecting..." : "Complete Stripe Setup"}
-        </motion.button>
+          <AlertCircle className="w-5 h-5 text-yellow-500" />
+          <span>Conta conectada - Algumas informações pendentes</span>
+        </motion.div>
       );
     }
 
@@ -854,22 +904,34 @@ const StripeConnectSection = ({
           className="inline-flex items-center gap-2 py-2 px-4 rounded-lg bg-emerald-200 border border-green-100 text-green-700 font-medium"
         >
           <CheckCircle className="w-5 h-5 text-green-500" />
-          <span>Payments Connected</span>
+          <span>Pagamentos conectados</span>
         </motion.div>
       );
     }
 
-    return <p className="text-gray-500">Status checking...</p>;
+    // Handle any other status
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="inline-flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 font-medium"
+      >
+        <Info className="w-5 h-5 text-gray-500" />
+        <span>Status: {stripeStatus?.status || "Unknown"}</span>
+      </motion.div>
+    );
   };
 
   return (
     <div className="bg-emerald-100 rounded-2xl w-full shadow-lg border border-gray-200 p-6 sm:p-8">
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Payment Setup</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            Configuração de pagamento
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Connect your Stripe account to receive payments directly from
-            customers
+            Conecte sua conta Stripe para receber pagamentos diretamente dos
+            clientes
           </p>
         </div>
         <div>{renderContent()}</div>
