@@ -155,78 +155,87 @@ export const useOrderBackup = () => {
     }
   }, []);
 
-  // Create backup order before checkout
-  const createBackupOrder = useCallback(async (params: {
-    orderId: string;
-    sessionId?: string | null;
-    restaurantId: string;
-    clientId?: string | null;
-    cartItems: any[];
-    totalAmount: number;
-    isDelivery: boolean;
-    deliveryAddress?: string | null;
-  }) => {
-    const {
-      orderId,
-      sessionId,
+// Modified createBackupOrder method in useOrderBackup.ts
+const createBackupOrder = useCallback(async (params: {
+  orderId: string;
+  sessionId?: string | null;
+  restaurantId: string;
+  clientId?: string | null;
+  cartItems: any[];
+  totalAmount: number;
+  isDelivery: boolean;
+  deliveryAddress?: string | null;
+}) => {
+  const {
+    orderId,
+    sessionId,
+    restaurantId,
+    clientId,
+    cartItems,
+    totalAmount,
+    isDelivery,
+    deliveryAddress
+  } = params;
+  setIsBackingUp(true);
+  
+  try {
+    const backupOrder: BackupOrder = {
+      id: orderId,
       restaurantId,
-      clientId,
-      cartItems,
+      items: cartItems,
       totalAmount,
+      status: 'pending',
+      createdAt: new Date(),
       isDelivery,
-      deliveryAddress
-    } = params;
-    setIsBackingUp(true);
-    
-    try {
-      const backupOrder: BackupOrder = {
-        id: orderId,
-        restaurantId,
-        items: cartItems,
-        totalAmount,
-        status: 'pending',
-        createdAt: new Date(),
-        isDelivery,
-        metadata: {
-          backupReason: 'pre_checkout_backup'
-        }
-      };
+      metadata: {
+        backupReason: 'pre_checkout_backup'
+      }
+    };
 
-      // Only add optional fields if they have actual values
-      if (sessionId && sessionId !== 'pending' && sessionId !== '') {
-        backupOrder.sessionId = sessionId;
-        backupOrder.metadata!.stripeSessionId = sessionId;
-      }
-      
-      if (clientId && clientId !== '') {
-        backupOrder.clientId = clientId;
-      }
-      
-      if (deliveryAddress && deliveryAddress.trim() !== '') {
-        backupOrder.deliveryAddress = deliveryAddress.trim();
-      }
-
-      // Save to both locations - Firebase must succeed for the backup to be considered successful
-      const localSuccess = saveToLocalStorage(backupOrder);
-      const firebaseSuccess = await saveToFirebase(backupOrder);
-
-      if (localSuccess && firebaseSuccess) {
-        console.log(`✅ Order ${orderId} fully backed up to both locations`);
-        return true;
-      } else if (firebaseSuccess) {
-        console.log(`⚠️ Order ${orderId} backed up to Firebase only (local storage failed)`);
-        return true;
-      } else {
-        console.error(`❌ Failed to backup order ${orderId} to Firebase - this will cause webhook errors`);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Error creating backup order:', error);
-      return false;
-    } finally {
-      setIsBackingUp(false);
+    // Only add optional fields if they have actual values
+    if (sessionId && sessionId !== 'pending' && sessionId !== '') {
+      backupOrder.sessionId = sessionId;
+      backupOrder.metadata!.stripeSessionId = sessionId;
     }
-  }, [saveToLocalStorage, saveToFirebase]);
+    
+    if (clientId && clientId !== '') {
+      backupOrder.clientId = clientId;
+    }
+    
+    if (deliveryAddress && deliveryAddress.trim() !== '') {
+      backupOrder.deliveryAddress = deliveryAddress.trim();
+    }
+
+    // Always save to local storage first (this should always work)
+    const localSuccess = saveToLocalStorage(backupOrder);
+    
+    // Try Firebase backup, but don't fail if it doesn't work
+    let firebaseSuccess = false;
+    try {
+      firebaseSuccess = await saveToFirebase(backupOrder);
+    } catch (firebaseError) {
+      console.warn(`⚠️ Firebase backup failed for order ${orderId}, continuing with local backup only:`, firebaseError);
+      // Don't throw - continue with just local backup
+    }
+
+    if (localSuccess) {
+      if (firebaseSuccess) {
+        console.log(`✅ Order ${orderId} fully backed up to both locations`);
+      } else {
+        console.log(`⚠️ Order ${orderId} backed up to local storage only (Firebase failed)`);
+      }
+      return true; // Success if at least local backup worked
+    } else {
+      console.error(`❌ Failed to backup order ${orderId} even to local storage`);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Error creating backup order:', error);
+    return false;
+  } finally {
+    setIsBackingUp(false);
+  }
+}, [saveToLocalStorage, saveToFirebase]);
 
   // Update order status
   const updateOrderStatus = useCallback(async (
