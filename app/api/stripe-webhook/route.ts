@@ -42,8 +42,14 @@ function removeUndefined(obj: any): any {
 }
 
 export async function POST(req: NextRequest) {
+  console.log('🚀 Webhook recebido - Iniciando processamento');
+  
   const body = await req.text();
   const signature = (await headers()).get("Stripe-Signature") as string;
+
+  console.log('📝 Body length:', body.length);
+  console.log('🔐 Signature present:', !!signature);
+  console.log('🔑 STRIPE_WEBHOOK_SECRET exists:', !!process.env.STRIPE_WEBHOOK_SECRET);
 
   let event: Stripe.Event;
 
@@ -53,21 +59,27 @@ export async function POST(req: NextRequest) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
+    console.log('✅ Evento Stripe verificado com sucesso:', event.type);
   } catch (error: any) {
     console.error(`❌ Webhook signature verification failed: ${error.message}`);
     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
   }
 
   try {
+    console.log('🔄 Processando evento:', event.type);
+    
     switch (event.type) {
       // Handle one-time payments (existing orders)
       case "checkout.session.completed": {
+        console.log('💰 Processando checkout.session.completed');
         const session = event.data.object as Stripe.Checkout.Session;
 
         if (session.mode === "payment") {
+          console.log('💳 Modo de pagamento: payment - chamando handleOrderPayment');
           // Handle one-time payment (existing order logic)
           await handleOrderPayment(session);
         } else if (session.mode === "subscription") {
+          console.log('📅 Modo de pagamento: subscription - chamando handleSubscriptionCheckout');
           // Handle subscription checkout completion
           await handleSubscriptionCheckout(session);
         }
@@ -123,9 +135,13 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleOrderPayment(session: Stripe.Checkout.Session) {
+  console.log('🎯 handleOrderPayment iniciado para sessão:', session.id);
   const metadata = session.metadata;
   
+  console.log('📋 Metadata recebida:', JSON.stringify(metadata, null, 2));
+  
   try {
+    console.log('🔍 Recuperando sessão com line items...');
     const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
       session.id,
       {
@@ -134,34 +150,49 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     );
 
     const lineItems = sessionWithLineItems.line_items?.data;
+    console.log('📦 Line items encontrados:', lineItems?.length || 0);
 
     if (!lineItems || !metadata?.restaurantId) {
+      console.error('❌ Dados obrigatórios não encontrados:', {
+        hasLineItems: !!lineItems,
+        hasRestaurantId: !!metadata?.restaurantId
+      });
       throw new Error("Required session data not found.");
     }
 
     // 1. RECONSTRUIR O CARRINHO A PARTIR DOS METADADOS
+    console.log('🛒 Reconstruindo carrinho dos metadados...');
     let reconstructedCartJson = "";
     if (metadata.cartItems_chunks) {
       const totalChunks = parseInt(metadata.cartItems_chunks, 10);
+      console.log('📦 Total de chunks:', totalChunks);
       for (let i = 0; i < totalChunks; i++) {
-        reconstructedCartJson += metadata[`cartItems_${i}`];
+        const chunk = metadata[`cartItems_${i}`];
+        console.log(`📦 Chunk ${i}:`, chunk ? chunk.length : 'undefined');
+        reconstructedCartJson += chunk || '';
       }
     } else if (metadata.cartItems) {
+      console.log('📦 Carrinho em chunk único, tamanho:', metadata.cartItems.length);
       reconstructedCartJson = metadata.cartItems;
     }
 
     if (!reconstructedCartJson) {
+      console.error('❌ JSON do carrinho não encontrado nos metadados');
       throw new Error("Cart items not found in session metadata.");
     }
     
+    console.log('🛒 JSON do carrinho reconstruído:', reconstructedCartJson);
     const reconstructedCart: ReconstructedCartItem[] = JSON.parse(reconstructedCartJson);
+    console.log('🛒 Carrinho reconstruído com sucesso, itens:', reconstructedCart.length);
 
     // 2. USAR O CARRINHO RECONSTRUÍDO PARA MONTAR OS ITENS DO PEDIDO
+    console.log('🔧 Montando itens do pedido...');
     const orderItems = lineItems.map((lineItem, index) => {
       const product = lineItem.price?.product as Stripe.Product;
       const cartItem = reconstructedCart[index];
 
       if (!cartItem) {
+          console.error(`❌ Mismatch entre line items e cart metadata no índice ${index}`);
           throw new Error(`Mismatch between line items and cart metadata at index ${index}.`);
       }
 
@@ -185,13 +216,21 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
       return item;
     });
     
+    console.log('✅ Itens do pedido montados:', orderItems.length);
+    
     const isDelivery = metadata.isDelivery === "true";
+    console.log('🚚 É entrega?', isDelivery);
     
     const confirmationCode = isDelivery
       ? Math.floor(1000 + Math.random() * 9000).toString()
       : undefined;
+    
+    if (confirmationCode) {
+      console.log('🔢 Código de confirmação gerado:', confirmationCode);
+    }
 
     // Construir orderData
+    console.log('📝 Construindo dados do pedido...');
     const orderData: any = {
       restaurantId: metadata.restaurantId,
       items: orderItems,
@@ -205,6 +244,7 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     // Add client ID if available
     if (metadata.clientId) {
       orderData.clientId = metadata.clientId;
+      console.log('👤 Client ID adicionado:', metadata.clientId);
     }
 
     // Só adicionar confirmationCode se existir
@@ -214,9 +254,14 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
 
     // Remove todos os valores undefined antes de salvar
     const cleanOrderData = removeUndefined(orderData);
+    console.log('🧹 Dados limpos do pedido:', JSON.stringify(cleanOrderData, null, 2));
 
     // Tentar salvar o pedido
+    console.log('💾 Salvando pedido no Firebase...');
+    console.log('🔑 Firebase Admin disponível:', !!adminDb);
+    
     await adminDb.collection("orders").doc(session.id).set(cleanOrderData);
+    console.log('✅ Pedido salvo com sucesso no Firebase!');
 
     // Update backup order status if backupOrderId exists
     if (metadata.backupOrderId) {
@@ -253,8 +298,14 @@ async function handleOrderPayment(session: Stripe.Checkout.Session) {
     }
 
     console.log(`✅ Order created successfully: ${session.id}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error creating order:", error);
+    console.error("❌ Error stack:", error.stack);
+    console.error("❌ Error details:", {
+      message: error.message,
+      name: error.name,
+      code: error.code
+    });
     
     // Try to update backup order status to failed if backupOrderId exists
     if (metadata?.backupOrderId) {
