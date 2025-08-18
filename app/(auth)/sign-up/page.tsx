@@ -6,8 +6,9 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
-import { UserPlus, Mail, Lock, Calendar } from "lucide-react";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../../../lib/firebase";
+import { UserPlus, Mail, Lock, Calendar, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import InputField from "@/app/components/ui/InputField";
@@ -16,16 +17,14 @@ import BackButton from "@/app/components/shared/BackButton";
 
 // Separate the component that uses useSearchParams
 function SignUpForm() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [planInfo, setPlanInfo] = useState<{
-    plan: string;
-    trial: string;
-  } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -37,7 +36,6 @@ function SignUpForm() {
     if (plan && trial) {
       const intent = { plan, trial };
       localStorage.setItem("redirectIntent", JSON.stringify(intent));
-      setPlanInfo(intent);
       console.log("Intenção de assinatura salva:", intent);
     }
   }, [searchParams]);
@@ -46,6 +44,28 @@ function SignUpForm() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    // Validate name
+    if (!name.trim()) {
+      setError("Por favor, insira seu nome.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate phone
+    if (!phone.trim()) {
+      setError("Por favor, insira seu telefone.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Phone validation (Brazilian format)
+    const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/;
+    if (!phoneRegex.test(phone)) {
+      setError("Por favor, insira um telefone válido (ex: 11 99999-9999).");
+      setIsLoading(false);
+      return;
+    }
 
     // 3. Implementar a lógica de validação de idade
     if (!birthDate) {
@@ -92,6 +112,18 @@ function SignUpForm() {
         email,
         password
       );
+
+      // Create user document in Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: name.trim(),
+        email: email,
+        phone: phone.trim(),
+        birthDate: birthDate,
+        createdAt: new Date(),
+        role: "user", // Default role for main signup
+        emailVerified: false,
+      });
+
       await sendEmailVerification(userCredential.user);
       toast.success(
         "Conta criada com sucesso! Um e-mail de verificação foi enviado."
@@ -149,26 +181,27 @@ function SignUpForm() {
         </div>
         <h1 className="text-3xl font-bold text-emerald-900">Cardapay</h1>
         <p className="mt-2 text-slate-600">Crie sua conta para começar.</p>
-        {planInfo && (
-          <div className="mt-2 text-slate-600 flex flex-wrap items-center justify-center gap-1">
-            <span>Se cadastre para aproveitar o plano</span>
-            <span className="font-bold text-emerald-700">
-              {planInfo.plan === "monthly"
-                ? "mensal"
-                : planInfo.plan === "annual"
-                ? "anual"
-                : planInfo.plan === "semiannual"
-                ? "semestral"
-                : planInfo.plan}
-            </span>
-            {planInfo.trial === "true" && (
-              <span>com período de teste gratuito.</span>
-            )}
-          </div>
-        )}
       </motion.div>
 
       <form onSubmit={handleSignUp} className="space-y-4">
+        <motion.div
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <InputField
+            icon={UserPlus}
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nome completo"
+          />
+        </motion.div>
+
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -187,11 +220,35 @@ function SignUpForm() {
           />
         </motion.div>
 
-        {/* 4. Adicionar o campo de data de nascimento no formulário */}
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
+        >
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-slate-700 mb-1 pl-1"
+          >
+            Telefone
+          </label>
+          <InputField
+            icon={Phone}
+            id="phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="(11) 99999-9999"
+          />
+        </motion.div>
+
+        {/* 4. Adicionar o campo de data de nascimento no formulário */}
+        <motion.div
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
         >
           <label
             htmlFor="birthDate"
@@ -213,7 +270,7 @@ function SignUpForm() {
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }} // Atraso ajustado
+          transition={{ delay: 0.6 }} // Atraso ajustado
         >
           <InputField
             icon={Lock}
@@ -231,7 +288,7 @@ function SignUpForm() {
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }} // Atraso ajustado
+          transition={{ delay: 0.7 }} // Atraso ajustado
         >
           <InputField
             icon={Lock}
@@ -249,7 +306,7 @@ function SignUpForm() {
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }} // Atraso ajustado
+          transition={{ delay: 0.8 }} // Atraso ajustado
           className="pt-2"
         >
           <motion.button
@@ -277,7 +334,7 @@ function SignUpForm() {
       <motion.p
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }} // Atraso ajustado
+        transition={{ delay: 0.9 }} // Atraso ajustado
         className="mt-6 text-sm text-center text-slate-600"
       >
         Já tem uma conta?{" "}
