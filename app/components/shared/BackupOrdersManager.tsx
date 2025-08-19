@@ -40,6 +40,7 @@ export function BackupOrdersManager({
     cleanupOldBackups,
     exportBackupOrders,
     updateOrderStatus,
+    isFetching,
   } = useOrderBackup();
 
   useEffect(() => {
@@ -50,27 +51,26 @@ export function BackupOrdersManager({
     filterOrders();
   }, [orders, searchQuery, statusFilter]);
 
-  const loadOrders = () => {
+  const loadOrders = async () => {
     setIsLoading(true);
     try {
-      const allOrders: BackupOrder[] = getBackupOrders();
+      console.log("🔄 Loading orders for restaurant:", restaurantId);
 
-      // Filter by restaurant if specified
-      let filtered = allOrders;
-      if (restaurantId) {
-        filtered = allOrders.filter(
-          (order: BackupOrder) => order.restaurantId === restaurantId
-        );
-      }
+      // Now getBackupOrders is async and fetches from Firebase
+      const allOrders: BackupOrder[] = await getBackupOrders(restaurantId);
+
+      console.log(
+        `📦 Loaded ${allOrders.length} orders from Firebase/localStorage`
+      );
 
       // Sort by creation date (newest first)
-      filtered.sort(
+      allOrders.sort(
         (a, b) =>
           safeTimestampToDate(b.createdAt).getTime() -
           safeTimestampToDate(a.createdAt).getTime()
       );
 
-      setOrders(filtered);
+      setOrders(allOrders);
     } catch (error) {
       console.error("Failed to load backup orders:", error);
       toast.error("Falha ao carregar pedidos de backup");
@@ -151,16 +151,20 @@ export function BackupOrdersManager({
 
   const handleCleanup = async () => {
     try {
-      cleanupOldBackups();
-      loadOrders(); // Reload orders after cleanup
+      await cleanupOldBackups();
+      await loadOrders(); // Reload orders after cleanup
       toast.success("Backup antigos removidos com sucesso");
     } catch (error) {
       toast.error("Falha ao limpar backups antigos");
     }
   };
 
-  const handleExport = () => {
-    exportBackupOrders();
+  const handleExport = async () => {
+    try {
+      await exportBackupOrders();
+    } catch (error) {
+      toast.error("Falha ao exportar pedidos de backup");
+    }
   };
 
   const handleUpdateStatus = async (
@@ -169,7 +173,7 @@ export function BackupOrdersManager({
   ) => {
     try {
       await updateOrderStatus(orderId, newStatus);
-      loadOrders(); // Reload orders after update
+      await loadOrders(); // Reload orders after update
       toast.success(
         `Status do pedido atualizado para ${getStatusText(newStatus)}`
       );
@@ -196,8 +200,10 @@ export function BackupOrdersManager({
     }).format(amount);
   };
 
+  const isLoadingData = isLoading || isFetching;
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -207,31 +213,38 @@ export function BackupOrdersManager({
             </h2>
             <p className="text-gray-600 mt-1">
               Sistema de backup para recuperação de pedidos
+              {restaurantId && (
+                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  Restaurant: {restaurantId.slice(-8)}
+                </span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleCleanup}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              disabled={isLoadingData}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4 mr-2 inline" />
               Limpar Antigos
             </button>
             <button
               onClick={handleExport}
-              className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+              disabled={isLoadingData}
+              className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
             >
               <Download className="w-4 h-4 mr-2 inline" />
               Exportar
             </button>
             <button
               onClick={loadOrders}
-              disabled={isLoading}
+              disabled={isLoadingData}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               <RefreshCw
                 className={`w-4 h-4 mr-2 inline ${
-                  isLoading ? "animate-spin" : ""
+                  isLoadingData ? "animate-spin" : ""
                 }`}
               />
               Atualizar
@@ -252,6 +265,7 @@ export function BackupOrdersManager({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                disabled={isLoadingData}
               />
             </div>
           </div>
@@ -260,7 +274,8 @@ export function BackupOrdersManager({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              disabled={isLoadingData}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50"
             >
               <option value="all">Todos os Status</option>
               <option value="pending">Pendente</option>
@@ -274,10 +289,14 @@ export function BackupOrdersManager({
 
       {/* Orders List */}
       <div className="p-6">
-        {isLoading ? (
+        {isLoadingData ? (
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Carregando pedidos...</p>
+            <p className="text-gray-500">
+              {isFetching
+                ? "Buscando pedidos no Firebase..."
+                : "Carregando pedidos..."}
+            </p>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12">
@@ -293,6 +312,9 @@ export function BackupOrdersManager({
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="text-sm text-gray-600 mb-4">
+              Exibindo {filteredOrders.length} de {orders.length} pedidos
+            </div>
             {filteredOrders.map((order) => (
               <motion.div
                 key={order.id}

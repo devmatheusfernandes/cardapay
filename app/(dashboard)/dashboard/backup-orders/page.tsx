@@ -4,12 +4,13 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { redirect } from "next/navigation";
 import PageHeader from "@/app/components/shared/PageHeader";
+import Loading from "@/app/components/shared/Loading";
 
 export default function BackupOrdersPage() {
   const [user, loading] = useAuthState(auth);
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return <Loading />;
   }
 
   if (!user) {
@@ -23,7 +24,7 @@ export default function BackupOrdersPage() {
         subtitle="Sistema de backup para recuperação de pedidos em caso de falhas"
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full mx-auto py-8">
         <BackupOrdersManager restaurantId={user.uid} isAdmin={false} />
       </div>
     </div>

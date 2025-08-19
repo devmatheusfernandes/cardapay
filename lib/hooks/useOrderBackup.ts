@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, Timestamp, collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
 
@@ -73,8 +73,28 @@ const cleanFirestoreData = (obj: any): any => {
   return obj;
 };
 
+// Convert Firebase document to BackupOrder
+const convertFirebaseToBackupOrder = (doc: any): BackupOrder => {
+  const data = doc.data();
+  return {
+    id: data.id,
+    sessionId: data.sessionId || null,
+    restaurantId: data.restaurantId,
+    clientId: data.clientId || null,
+    items: data.items || [],
+    totalAmount: data.totalAmount,
+    status: data.status,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    isDelivery: data.isDelivery,
+    deliveryAddress: data.deliveryAddress || null,
+    confirmationCode: data.confirmationCode || null,
+    metadata: data.metadata || {}
+  };
+};
+
 export const useOrderBackup = () => {
   const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
 
   // Save order to local storage
   const saveToLocalStorage = useCallback((order: BackupOrder) => {
@@ -152,6 +172,50 @@ export const useOrderBackup = () => {
       console.error('❌ Failed to save order to Firebase:', error);
       console.error('❌ Error details:', error);
       return false;
+    }
+  }, []);
+
+  // NEW: Fetch backup orders from Firebase
+  const fetchBackupOrdersFromFirebase = useCallback(async (restaurantId?: string): Promise<BackupOrder[]> => {
+    setIsFetching(true);
+    try {
+      console.log('🔍 Fetching backup orders from Firebase...', { restaurantId });
+      
+      let q;
+      if (restaurantId) {
+        // Query for specific restaurant
+        q = query(
+          collection(db, 'backup_orders'),
+          where('restaurantId', '==', restaurantId),
+          orderBy('createdAt', 'desc')
+        );
+      } else {
+        // Query for all orders
+        q = query(
+          collection(db, 'backup_orders'),
+          orderBy('createdAt', 'desc')
+        );
+      }
+
+      const querySnapshot = await getDocs(q);
+      const orders: BackupOrder[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        try {
+          const order = convertFirebaseToBackupOrder(doc);
+          orders.push(order);
+        } catch (error) {
+          console.error(`❌ Error converting document ${doc.id}:`, error);
+        }
+      });
+
+      console.log(`✅ Fetched ${orders.length} backup orders from Firebase`);
+      return orders;
+    } catch (error) {
+      console.error('❌ Failed to fetch backup orders from Firebase:', error);
+      throw error;
+    } finally {
+      setIsFetching(false);
     }
   }, []);
 
@@ -279,21 +343,49 @@ const createBackupOrder = useCallback(async (params: {
     }
   }, []);
 
-  // Get all backup orders from local storage
-  const getBackupOrders = useCallback((): BackupOrder[] => {
+  // UPDATED: Get all backup orders - now tries Firebase first, falls back to localStorage
+  const getBackupOrders = useCallback(async (restaurantId?: string): Promise<BackupOrder[]> => {
     try {
+      // Try Firebase first
+      const firebaseOrders = await fetchBackupOrdersFromFirebase(restaurantId);
+      if (firebaseOrders.length > 0) {
+        return firebaseOrders;
+      }
+      
+      // Fall back to localStorage if Firebase has no orders
       const existingOrders = localStorage.getItem(BACKUP_ORDERS_KEY);
-      return existingOrders ? JSON.parse(existingOrders) : [];
+      const localOrders: BackupOrder[] = existingOrders ? JSON.parse(existingOrders) : [];
+      
+      // Filter by restaurant if specified
+      if (restaurantId) {
+        return localOrders.filter(order => order.restaurantId === restaurantId);
+      }
+      
+      return localOrders;
     } catch (error) {
-      console.error('❌ Failed to get backup orders from local storage:', error);
-      return [];
+      console.error('❌ Failed to get backup orders from Firebase, trying localStorage:', error);
+      
+      // Fall back to localStorage
+      try {
+        const existingOrders = localStorage.getItem(BACKUP_ORDERS_KEY);
+        const localOrders: BackupOrder[] = existingOrders ? JSON.parse(existingOrders) : [];
+        
+        if (restaurantId) {
+          return localOrders.filter(order => order.restaurantId === restaurantId);
+        }
+        
+        return localOrders;
+      } catch (localError) {
+        console.error('❌ Failed to get backup orders from localStorage too:', localError);
+        return [];
+      }
     }
-  }, []);
+  }, [fetchBackupOrdersFromFirebase]);
 
   // Get specific backup order
-  const getBackupOrder = useCallback((orderId: string) => {
+  const getBackupOrder = useCallback(async (orderId: string) => {
     try {
-      const orders = getBackupOrders();
+      const orders = await getBackupOrders();
       return orders.find((o: BackupOrder) => o.id === orderId);
     } catch (error) {
       console.error('❌ Failed to get backup order:', error);
@@ -302,9 +394,9 @@ const createBackupOrder = useCallback(async (params: {
   }, [getBackupOrders]);
 
   // Clean up old backup orders (older than 30 days)
-  const cleanupOldBackups = useCallback(() => {
+  const cleanupOldBackups = useCallback(async () => {
     try {
-      const orders = getBackupOrders();
+      const orders = await getBackupOrders();
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -343,9 +435,9 @@ const createBackupOrder = useCallback(async (params: {
   }, [updateOrderStatus]);
 
   // Recover failed orders for manual processing
-  const getFailedOrders = useCallback(() => {
+  const getFailedOrders = useCallback(async () => {
     try {
-      const orders = getBackupOrders();
+      const orders = await getBackupOrders();
       return orders.filter((o: BackupOrder) => o.status === 'failed');
     } catch (error) {
       console.error('❌ Failed to get failed orders:', error);
@@ -354,9 +446,9 @@ const createBackupOrder = useCallback(async (params: {
   }, [getBackupOrders]);
 
   // Export backup orders for customer support
-  const exportBackupOrders = useCallback(() => {
+  const exportBackupOrders = useCallback(async () => {
     try {
-      const orders = getBackupOrders();
+      const orders = await getBackupOrders();
       const dataStr = JSON.stringify(orders, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       
@@ -376,6 +468,7 @@ const createBackupOrder = useCallback(async (params: {
 
   return {
     isBackingUp,
+    isFetching,
     createBackupOrder,
     updateOrderStatus,
     markOrderCompleted,
@@ -386,6 +479,7 @@ const createBackupOrder = useCallback(async (params: {
     cleanupOldBackups,
     exportBackupOrders,
     saveToLocalStorage,
-    saveToFirebase
+    saveToFirebase,
+    fetchBackupOrdersFromFirebase
   };
 };

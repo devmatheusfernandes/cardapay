@@ -14,10 +14,12 @@ export default function LastOrdersPage() {
 
   useEffect(() => {
     try {
-      // Supondo que os IDs dos pedidos são salvos no localStorage na página de sucesso
       const stored = localStorage.getItem("lastOrders");
       if (stored) {
-        setOrderIds(JSON.parse(stored));
+        const parsedOrders = JSON.parse(stored);
+        console.log("Loaded orders:", parsedOrders);
+        console.log("Number of orders:", parsedOrders.length);
+        setOrderIds(parsedOrders);
       }
     } catch (e) {
       console.error("Falha ao carregar pedidos do localStorage", e);
@@ -70,11 +72,52 @@ export default function LastOrdersPage() {
               </Link>
             </div>
           ) : (
-            <ul className="space-y-4">
-              {orderIds.map((id) => (
-                <OrderListItem key={id} orderId={id} />
-              ))}
-            </ul>
+            <div>
+              <p className="text-sm text-gray-600 mb-4">
+                Encontrados {orderIds.length} pedidos
+              </p>
+              <ul className="space-y-4">
+                {orderIds.map((id, index) => {
+                  console.log(`Rendering order ${index}:`, id);
+                  // Temporary simple card for testing
+                  return (
+                    <li
+                      key={id}
+                      className="p-4 bg-white rounded-lg shadow-md border border-gray-200"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-gray-800">
+                            Pedido #{id.slice(-8)}
+                          </h3>
+                          <p className="text-sm text-gray-600">{id}</p>
+                          <p className="text-sm text-blue-600 mt-1">
+                            Status: Processando
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">
+                            {new Date().toLocaleDateString("pt-BR")}
+                          </p>
+                        </div>
+                      </div>
+                    </li>
+                  );
+
+                  // Original component (commented out for testing)
+                  // try {
+                  //   return <OrderListItem key={id} orderId={id} />;
+                  // } catch (error) {
+                  //   console.error(`Error rendering order ${id}:`, error);
+                  //   return (
+                  //     <li key={id} className="p-4 bg-red-100 rounded-lg">
+                  //       <p className="text-red-600">Erro ao carregar pedido: {id}</p>
+                  //     </li>
+                  //   );
+                  // }
+                })}
+              </ul>
+            </div>
           )}
         </motion.div>
       </div>
