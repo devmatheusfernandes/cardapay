@@ -625,7 +625,7 @@ Por favor, me ajudem a resolver esta situação.`;
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-3 py-1 flex items-center justify-center">
       <BackButton />
       {order && (
         <button
@@ -659,7 +659,7 @@ Por favor, me ajudem a resolver esta situação.`;
           transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
           style={{
             transformStyle: "preserve-3d",
-            minHeight: "500px",
+            minHeight: "550px",
           }}
           className="relative w-full"
         >
@@ -687,7 +687,7 @@ Por favor, me ajudem a resolver esta situação.`;
                 >
                   <motion.div
                     variants={itemVariants}
-                    className="flex items-center justify-center gap-3 text-amber-600"
+                    className="flex items-center justify-center gap-2 text-amber-600"
                   >
                     <CreditCard className="w-6 h-6" />
                     <span className="text-xl font-bold">
@@ -698,7 +698,7 @@ Por favor, me ajudem a resolver esta situação.`;
                   {restaurant && (
                     <motion.div
                       variants={itemVariants}
-                      className="flex items-center justify-center gap-2 mt-4 text-slate-700 bg-black/5 p-2 rounded-md"
+                      className="flex items-center justify-center text-slate-700 bg-black/5 p-2 rounded-md"
                     >
                       <Utensils className="w-5 h-5 flex-shrink-0" />
                       <p className="font-semibold text-center">
@@ -895,7 +895,7 @@ Por favor, me ajudem a resolver esta situação.`;
                   {restaurant && (
                     <motion.div
                       variants={itemVariants}
-                      className="flex items-center justify-center gap-2 mt-4 text-slate-700 bg-black/5 p-2 rounded-md"
+                      className="flex items-center justify-center gap-2 mt-2 text-slate-700 bg-black/5 p-2 rounded-md"
                     >
                       <Utensils className="w-5 h-5 flex-shrink-0" />
                       <p className="font-semibold text-center">
@@ -915,7 +915,7 @@ Por favor, me ajudem a resolver esta situação.`;
 
                   <motion.div
                     variants={itemVariants}
-                    className="mt-8 flex-grow flex items-center justify-center"
+                    className="mt-4 flex-grow flex items-center justify-center"
                   >
                     <StatusDisplay status={order.status} />
                   </motion.div>
@@ -965,7 +965,7 @@ Por favor, me ajudem a resolver esta situação.`;
 
                   <motion.p
                     variants={itemVariants}
-                    className="text-xs mt-auto pt-6 text-slate-500 text-center"
+                    className="text-xs mt-auto text-slate-500 text-center"
                   >
                     Feito{" "}
                     <TimeAgo date={safeTimestampToDate(order.createdAt)} />.

@@ -4,8 +4,6 @@ import { adminDb } from "@/lib/firebase-admin";
 import { notFound } from "next/navigation";
 import { CartProvider } from "@/lib/context/CartContext";
 import MenuClientPage from "./MenuClientPage";
-import { Toaster } from "react-hot-toast";
-// ATENÇÃO: Caminho do import corrigido para o arquivo de tipos central
 import { Restaurant, MenuItem } from "@/lib/types/restaurantSlug/types";
 
 // A lógica de busca de dados no servidor permanece a mesma
@@ -53,7 +51,7 @@ export default async function RestaurantMenuPage({
   // ATENÇÃO: Correção principal - aguardamos a promise de params ser resolvida
   const resolvedParams = await params;
   const { restaurantSlug } = resolvedParams;
-  
+
   const data = await getRestaurantData(restaurantSlug);
 
   if (!data) {
@@ -64,16 +62,6 @@ export default async function RestaurantMenuPage({
 
   return (
     <CartProvider>
-      <Toaster
-        position="bottom-center"
-        toastOptions={{
-          style: {
-            background: "#1e293b",
-            color: "#f8fafc",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          },
-        }}
-      />
       <MenuClientPage restaurant={restaurant} menuItems={menuItems} />
     </CartProvider>
   );
