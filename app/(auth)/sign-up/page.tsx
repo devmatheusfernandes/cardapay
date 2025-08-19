@@ -8,12 +8,21 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../../lib/firebase";
-import { UserPlus, Mail, Lock, Calendar, Phone } from "lucide-react";
+import {
+  UserPlus,
+  Mail,
+  Lock,
+  Calendar,
+  Phone,
+  User,
+  Eye,
+  EyeOff,
+  ArrowRight,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import InputField from "@/app/components/ui/InputField";
 import toast from "react-hot-toast";
-import BackButton from "@/app/components/shared/BackButton";
+import Loading from "@/app/components/shared/Loading";
 
 // Separate the component that uses useSearchParams
 function SignUpForm() {
@@ -23,7 +32,8 @@ function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,18 +53,17 @@ function SignUpForm() {
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
     // Validate name
     if (!name.trim()) {
-      setError("Por favor, insira seu nome.");
+      toast.error("Por favor, insira seu nome.");
       setIsLoading(false);
       return;
     }
 
     // Validate phone
     if (!phone.trim()) {
-      setError("Por favor, insira seu telefone.");
+      toast.error("Por favor, insira seu telefone.");
       setIsLoading(false);
       return;
     }
@@ -62,14 +71,14 @@ function SignUpForm() {
     // Phone validation (Brazilian format)
     const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/;
     if (!phoneRegex.test(phone)) {
-      setError("Por favor, insira um telefone válido (ex: 11 99999-9999).");
+      toast.error("Por favor, insira um telefone válido (ex: 11 99999-9999).");
       setIsLoading(false);
       return;
     }
 
     // 3. Implementar a lógica de validação de idade
     if (!birthDate) {
-      setError("Por favor, insira sua data de nascimento.");
+      toast.error("Por favor, insira sua data de nascimento.");
       setIsLoading(false);
       return;
     }
@@ -88,23 +97,25 @@ function SignUpForm() {
     }
 
     if (age < 18) {
-      setError("Você precisa ter pelo menos 18 anos para se cadastrar.");
+      toast.error("Você precisa ter pelo menos 18 anos para se cadastrar.");
       setIsLoading(false);
       return;
     }
     // Fim da validação de idade
 
     if (password !== confirmPassword) {
-      setError("As senhas não coincidem.");
+      toast.error("As senhas não coincidem.");
       setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres.");
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
       setIsLoading(false);
       return;
     }
+
+    const toastId = toast.loading("Criando sua conta...");
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -113,268 +124,289 @@ function SignUpForm() {
         password
       );
 
+      const user = userCredential.user;
+
       // Create user document in Firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        name: name.trim(),
-        email: email,
-        phone: phone.trim(),
+      await setDoc(doc(db, "restaurants", user.uid), {
+        name: name,
+        email: user.email,
+        phone: phone,
         birthDate: birthDate,
         createdAt: new Date(),
-        role: "user", // Default role for main signup
-        emailVerified: false,
+        role: "restaurant_owner",
+        subscriptionStatus: "trial",
+        trialEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
       });
 
-      await sendEmailVerification(userCredential.user);
-      toast.success(
-        "Conta criada com sucesso! Um e-mail de verificação foi enviado."
-      );
+      // Send email verification
+      await sendEmailVerification(user);
+
+      toast.success("Conta criada com sucesso! Verifique seu email.", {
+        id: toastId,
+      });
+
+      // Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
-      let errorMessage = "Falha ao criar conta. Por favor, tente novamente.";
-      switch (err.code) {
-        case "auth/email-already-in-use":
-          errorMessage = "Este e-mail já está em uso.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Por favor, insira um e-mail válido.";
-          break;
-        case "auth/weak-password":
-          errorMessage = "A senha é muito fraca.";
-          break;
+      console.error("Error creating account:", err);
+
+      let errorMessage = "Erro ao criar conta. Tente novamente.";
+      if (err.code === "auth/email-already-in-use") {
+        errorMessage = "Este email já está em uso.";
+      } else if (err.code === "auth/weak-password") {
+        errorMessage = "A senha é muito fraca.";
+      } else if (err.code === "auth/invalid-email") {
+        errorMessage = "Email inválido.";
       }
-      setError(errorMessage);
+
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (error) {
-    toast.error(error, {
-      id: "sign-in-error",
-      duration: 4000,
-      position: "top-center",
-    });
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="w-full max-w-md p-8 space-y-6 bg-emerald-100 rounded-2xl shadow-xs border border-slate-100"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
       <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
       >
-        <div className="flex justify-center mb-4">
+        {/* Header */}
+        <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center"
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-20 h-20 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center"
           >
-            <UserPlus className="w-8 h-8 text-emerald-600" />
+            <UserPlus className="w-10 h-10 text-emerald-600" />
           </motion.div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Criar Conta</h1>
+          <p className="text-gray-600">
+            Junte-se ao CardaPay e gerencie seu restaurante
+          </p>
         </div>
-        <h1 className="text-3xl font-bold text-emerald-900">Cardapay</h1>
-        <p className="mt-2 text-slate-600">Crie sua conta para começar.</p>
-      </motion.div>
 
-      <form onSubmit={handleSignUp} className="space-y-4">
+        {/* Signup Form */}
         <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="bg-white rounded-2xl shadow-xl p-8"
         >
-          <InputField
-            icon={UserPlus}
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nome completo"
-          />
-        </motion.div>
+          <form onSubmit={handleSignUp} className="space-y-6">
+            {/* Name Field */}
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Nome Completo
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite seu nome completo"
+                />
+              </div>
+            </div>
 
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <InputField
-            icon={Mail}
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Endereço de e-mail"
-          />
-        </motion.div>
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite seu email"
+                />
+              </div>
+            </div>
 
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <label
-            htmlFor="phone"
-            className="block text-sm font-medium text-slate-700 mb-1 pl-1"
-          >
-            Telefone
-          </label>
-          <InputField
-            icon={Phone}
-            id="phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            required
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="(11) 99999-9999"
-          />
-        </motion.div>
+            {/* Phone Field */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Telefone
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+            </div>
 
-        {/* 4. Adicionar o campo de data de nascimento no formulário */}
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <label
-            htmlFor="birthDate"
-            className="block text-sm font-medium text-slate-700 mb-1 pl-1"
-          >
-            Data de Nascimento
-          </label>
-          <InputField
-            icon={Calendar}
-            id="birthDate"
-            name="birthDate"
-            type="date"
-            required
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-          />
-        </motion.div>
+            {/* Birth Date Field */}
+            <div>
+              <label
+                htmlFor="birthDate"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Data de Nascimento
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="date"
+                  id="birthDate"
+                  name="birthDate"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                />
+              </div>
+            </div>
 
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }} // Atraso ajustado
-        >
-          <InputField
-            icon={Lock}
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Senha"
-          />
-        </motion.div>
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
 
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }} // Atraso ajustado
-        >
-          <InputField
-            icon={Lock}
-            id="confirm-password"
-            name="confirm-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirme sua senha"
-          />
-        </motion.div>
+            {/* Confirm Password Field */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Confirmar Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Confirme sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
 
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.8 }} // Atraso ajustado
-          className="pt-2"
-        >
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
-          >
-            {isLoading ? (
-              <motion.span
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="block w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-              />
-            ) : (
-              <>
-                Criar Conta <UserPlus className="w-5 h-5" />
-              </>
-            )}
-          </motion.button>
-        </motion.div>
-      </form>
+            {/* Submit Button */}
+            <motion.button
+              type="submit"
+              disabled={isLoading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                "Criando conta..."
+              ) : (
+                <>
+                  Criar Conta
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </motion.button>
+          </form>
 
-      <motion.p
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.9 }} // Atraso ajustado
-        className="mt-6 text-sm text-center text-slate-600"
-      >
-        Já tem uma conta?{" "}
-        <Link
-          href="/sign-in"
-          className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
-        >
-          Faça login
-        </Link>
-      </motion.p>
-    </motion.div>
-  );
-}
-
-// Loading fallback component
-function SignUpLoading() {
-  return (
-    <div className="w-full max-w-md p-8 space-y-6 bg-emerald-100 rounded-2xl shadow-xs border border-slate-100">
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 bg-emerald-200 rounded-2xl flex items-center justify-center animate-pulse">
-            <UserPlus className="w-8 h-8 text-emerald-600" />
+          {/* Login Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Já tem uma conta?{" "}
+              <Link
+                href="/sign-in"
+                className="text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                Faça login
+              </Link>
+            </p>
           </div>
+        </motion.div>
+
+        {/* Back to Home */}
+        <div className="text-center mt-6">
+          <Link
+            href="/"
+            className="text-gray-500 hover:text-gray-700 font-medium text-sm"
+          >
+            ← Voltar para o início
+          </Link>
         </div>
-        <h1 className="text-3xl font-bold text-emerald-900">Cardapay</h1>
-        <p className="mt-2 text-slate-600">Carregando...</p>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-// Main component with Suspense boundary
 export default function SignUpPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4 relative">
-      <BackButton pathLink="/" />
-
-      <Suspense fallback={<SignUpLoading />}>
-        <SignUpForm />
-      </Suspense>
-    </div>
+    <Suspense fallback={<Loading />}>
+      <SignUpForm />
+    </Suspense>
   );
 }

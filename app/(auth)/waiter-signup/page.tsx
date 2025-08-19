@@ -5,12 +5,19 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../../lib/firebase";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
-import { UserPlus, Mail, Lock, User, Phone } from "lucide-react";
+import {
+  UserPlus,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Eye,
+  EyeOff,
+  ArrowRight,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import InputField from "@/app/components/ui/InputField";
 import { toast } from "react-hot-toast";
-import BackButton from "@/app/components/shared/BackButton";
 
 const generateWaiterCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -22,6 +29,8 @@ export default function WaiterSignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -72,141 +81,214 @@ export default function WaiterSignUpPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen py-18 md:py-0 bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4 relative">
-      <BackButton pathLink={"/"} />
-
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md p-8 space-y-8 bg-emerald-100 rounded-2xl shadow-xs border border-slate-100"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
       >
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-center"
-        >
-          <div className="flex justify-center mb-4">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center"
-            >
-              <UserPlus className="w-8 h-8 text-emerald-600" />
-            </motion.div>
-          </div>
-          <h1 className="text-3xl font-bold text-emerald-900">
-            Cadastro de Garçom
-          </h1>
-          <p className="mt-2 text-slate-600">
-            Crie sua conta para começar a trabalhar como garçom
-          </p>
-        </motion.div>
-
-        <form onSubmit={handleSignUp} className="space-y-6">
-          {[
-            {
-              icon: User,
-              type: "text",
-              value: name,
-              onChange: setName,
-              placeholder: "Seu nome completo",
-              required: true,
-            },
-            {
-              icon: Phone,
-              type: "tel",
-              value: phone,
-              onChange: setPhone,
-              placeholder: "Seu telefone",
-              required: true,
-            },
-            {
-              icon: Mail,
-              type: "email",
-              value: email,
-              onChange: setEmail,
-              placeholder: "Seu email",
-              required: true,
-            },
-            {
-              icon: Lock,
-              type: "password",
-              value: password,
-              onChange: setPassword,
-              placeholder: "Crie uma senha",
-              required: true,
-            },
-            {
-              icon: Lock,
-              type: "password",
-              value: confirmPassword,
-              onChange: setConfirmPassword,
-              placeholder: "Confirme sua senha",
-              required: true,
-            },
-          ].map((field, index) => (
-            <motion.div
-              key={index}
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 + index * 0.1 }}
-            >
-              <InputField
-                icon={field.icon}
-                type={field.type}
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                placeholder={field.placeholder}
-                required={field.required}
-              />
-            </motion.div>
-          ))}
-
+        {/* Header */}
+        <div className="text-center mb-8">
           <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.8 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-20 h-20 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center"
           >
+            <UserPlus className="w-10 h-10 text-emerald-600" />
+          </motion.div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Criar Conta</h1>
+          <p className="text-gray-600">Junte-se ao CardaPay como garçom</p>
+        </div>
+
+        {/* Signup Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="bg-white rounded-2xl shadow-xl p-8"
+        >
+          <form onSubmit={handleSignUp} className="space-y-6">
+            {/* Name Field */}
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Nome Completo
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite seu nome completo"
+                />
+              </div>
+            </div>
+
+            {/* Phone Field */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Telefone
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite seu email"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Confirmar Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Confirme sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <motion.span
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="block w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                />
+                "Criando conta..."
               ) : (
                 <>
                   Criar Conta
-                  <UserPlus className="w-5 h-5" />
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </motion.button>
-          </motion.div>
-        </form>
+          </form>
 
-        <motion.p
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="mt-8 text-sm text-center text-slate-600"
-        >
-          Já tem uma conta?{" "}
+          {/* Login Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Já tem uma conta?{" "}
+              <Link
+                href="/waiter-login"
+                className="text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                Faça login
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Back to Home */}
+        <div className="text-center mt-6">
           <Link
-            href="/waiter-login"
-            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
+            href="/"
+            className="text-gray-500 hover:text-gray-700 font-medium text-sm"
           >
-            Faça login
+            ← Voltar para o início
           </Link>
-        </motion.p>
+        </div>
       </motion.div>
     </div>
   );

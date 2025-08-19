@@ -4,155 +4,178 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
-import { LogIn, Mail, Lock } from "lucide-react";
 import { motion } from "framer-motion";
+import { User, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import InputField from "@/app/components/ui/InputField";
 import { toast } from "react-hot-toast";
-import BackButton from "@/app/components/shared/BackButton";
 
 export default function WaiterLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const toastId = toast.loading("Entrando...");
+    const toastId = toast.loading("Fazendo login...");
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Login bem-sucedido!", { id: toastId });
+      toast.success("Login realizado com sucesso!", { id: toastId });
       router.push("/waiter/dashboard");
     } catch (err: any) {
-      toast.error("Email ou senha inválidos.", { id: toastId });
+      let errorMessage = "Erro ao fazer login. Tente novamente.";
+      if (err.code === "auth/user-not-found") {
+        errorMessage = "Usuário não encontrado.";
+      } else if (err.code === "auth/wrong-password") {
+        errorMessage = "Senha incorreta.";
+      } else if (err.code === "auth/invalid-email") {
+        errorMessage = "Email inválido.";
+      } else if (err.code === "auth/too-many-requests") {
+        errorMessage = "Muitas tentativas. Tente novamente mais tarde.";
+      }
+
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-slate-50 text-slate-900 px-4 relative">
-      <BackButton pathLink={"/"} />
-
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md p-8 space-y-8 bg-emerald-100 rounded-2xl shadow-xl border border-slate-100"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
       >
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-center"
-        >
-          <div className="flex justify-center mb-4">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center"
-            >
-              <LogIn className="w-8 h-8 text-emerald-600" />
-            </motion.div>
-          </div>
-          <h1 className="text-3xl font-bold text-emerald-900">
-            Cardapay Garçons
+        {/* Header */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-20 h-20 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center"
+          >
+            <User className="w-10 h-10 text-emerald-600" />
+          </motion.div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Bem-vindo de volta!
           </h1>
-          <p className="mt-2 text-slate-600">Acesse sua conta de garçom</p>
-        </motion.div>
+          <p className="text-gray-600">
+            Faça login para acessar sua conta de garçom
+          </p>
+        </div>
 
-        <form onSubmit={handleSignIn} className="space-y-6">
-          <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <InputField
-              icon={Mail}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Seu email"
-              required
-            />
-          </motion.div>
+        {/* Login Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="bg-white rounded-2xl shadow-xl p-8"
+        >
+          <form onSubmit={handleSignIn} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite seu email"
+                />
+              </div>
+            </div>
 
-          <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <InputField
-              icon={Lock}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Sua senha"
-              required
-            />
-          </motion.div>
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Digite sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
 
-          <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
+            {/* Submit Button */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:bg-emerald-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <motion.span
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="block w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                />
+                "Fazendo login..."
               ) : (
                 <>
                   Entrar
-                  <LogIn className="w-5 h-5" />
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </motion.button>
-          </motion.div>
-        </form>
+          </form>
 
-        <motion.p
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8 text-sm text-center text-slate-600"
-        >
-          É proprietário de um restaurante?{" "}
-          <Link
-            href="/sign-in"
-            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
-          >
-            Acesse aqui
-          </Link>
-        </motion.p>
+          {/* Sign Up Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Não tem uma conta?{" "}
+              <Link
+                href="/waiter-signup"
+                className="text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                Cadastre-se
+              </Link>
+            </p>
+          </div>
+        </motion.div>
 
-        <motion.p
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-sm text-center text-slate-600"
-        >
-          Quer ser garçom?{" "}
+        {/* Back to Home */}
+        <div className="text-center mt-6">
           <Link
-            href="/waiter-signup"
-            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition"
+            href="/"
+            className="text-gray-500 hover:text-gray-700 font-medium text-sm"
           >
-            Acesse aqui
+            ← Voltar para o início
           </Link>
-        </motion.p>
+        </div>
       </motion.div>
     </div>
   );
