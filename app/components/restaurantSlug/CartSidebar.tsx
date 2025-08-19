@@ -226,6 +226,28 @@ export function CartSidebar({
                               item.options.addons.map((addon) => (
                                 <div key={addon.id}>+ {addon.name}</div>
                               ))}
+                            {item.options.notes && (
+                              <div className="text-blue-600 italic">
+                                📝 {item.options.notes}
+                              </div>
+                            )}
+                            {item.options.selectedFlavors &&
+                              item.options.selectedFlavors.length > 0 && (
+                                <div className="text-purple-600">
+                                  🎨{" "}
+                                  {item.options.selectedFlavors.map(
+                                    (flavor, index) => (
+                                      <span key={index}>
+                                        {flavor.percentage}% {flavor.flavorName}
+                                        {index <
+                                        item.options.selectedFlavors!.length - 1
+                                          ? ", "
+                                          : ""}
+                                      </span>
+                                    )
+                                  )}
+                                </div>
+                              )}
                           </div>
 
                           {/* ATENÇÃO: Usando o preço final do item */}

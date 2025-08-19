@@ -80,6 +80,7 @@ export default function TablePage() {
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
     addons: [],
     removableIngredients: [],
+    selectedFlavors: [],
   });
   const [itemNotes, setItemNotes] = useState<string>("");
 
@@ -114,7 +115,11 @@ export default function TablePage() {
 
     setSelectedItem(item);
     setItemNotes("");
-    setSelectedOptions({ addons: [], removableIngredients: [] });
+    setSelectedOptions({
+      addons: [],
+      removableIngredients: [],
+      selectedFlavors: [],
+    });
     setIsMenuModalOpen(false);
 
     if (hasOptions) {
@@ -130,7 +135,10 @@ export default function TablePage() {
     price: number
   ) => {
     if (!selectedItem) return;
-    setSelectedOptions(options);
+    setSelectedOptions({
+      ...options,
+      selectedFlavors: options.selectedFlavors || [],
+    });
     setItemNotes(notes);
     setIsOptionsModalOpen(false);
     setIsSeatModalOpen(true);
@@ -148,13 +156,18 @@ export default function TablePage() {
       selectedOptions.size,
       selectedOptions.addons,
       selectedOptions.stuffedCrust,
-      selectedOptions.removableIngredients
+      selectedOptions.removableIngredients,
+      selectedOptions.selectedFlavors
     );
     toast.success(`${selectedItem.name} adicionado para Pessoa ${seatId}`);
     setIsSeatModalOpen(false);
     setSelectedItem(null);
     setItemNotes("");
-    setSelectedOptions({ addons: [], removableIngredients: [] });
+    setSelectedOptions({
+      addons: [],
+      removableIngredients: [],
+      selectedFlavors: [],
+    });
   };
 
   const handleGoToPayment = async () => {

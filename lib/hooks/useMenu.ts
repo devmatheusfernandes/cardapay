@@ -20,11 +20,30 @@ export interface SizeOption {
   price: number;
 }
 
-
 export interface StuffedCrustOption {
   id: string;
   name: string; // Catupiry, Cheddar
   price: number;
+}
+
+// New interfaces for multiple flavors support
+export interface FlavorOption {
+  id: string;
+  name: string;
+  price: number; // Additional price for this flavor
+  description?: string;
+  available: boolean;
+}
+
+export interface FlavorCombination {
+  id: string;
+  name: string; // e.g., "Meia Margherita, Meia Pepperoni"
+  flavors: Array<{
+    flavorId: string;
+    percentage: number; // 50 for 50%
+  }>;
+  price: number; // Total price for this combination
+  description?: string;
 }
 
 export type SpicinessLevel = 'leve' | 'médio' | 'forte' | 'nenhum';
@@ -46,6 +65,10 @@ export interface MenuItem {
   // 2. Opções de Variação
   sizes: SizeOption[];
   allowMultipleFlavors: boolean;
+  // New fields for multiple flavors
+  availableFlavors: FlavorOption[];
+  flavorCombinations: FlavorCombination[];
+  maxFlavors: number; // Maximum number of flavors per item (default: 4)
   stuffedCrust: {
     available: boolean;
     options: StuffedCrustOption[];

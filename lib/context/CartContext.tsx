@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { AddonOption } from "../hooks/useOrders";
+import { SelectedFlavor } from "../../app/components/restaurantSlug/FlavorSelectionModal";
 
 // --- Interfaces ---
 export interface SizeOption {
@@ -32,6 +33,7 @@ export interface SelectedOptions {
   stuffedCrust?: StuffedCrustOption;
   removableIngredients?: string[];
   notes?: string;
+  selectedFlavors?: SelectedFlavor[];
 }
 
 export interface CartItem {
@@ -116,6 +118,17 @@ const areItemsIdentical = (
   const notes2 = opts2.notes?.trim() || "";
   if (notes1 !== notes2) return false;
 
+  // Check selected flavors (compare arrays of flavor selections)
+  const flavors1 = (opts1.selectedFlavors || [])
+    .map((f) => `${f.flavorId}:${f.percentage}`)
+    .sort();
+  const flavors2 = (opts2.selectedFlavors || [])
+    .map((f) => `${f.flavorId}:${f.percentage}`)
+    .sort();
+  if (flavors1.length !== flavors2.length) return false;
+  if (!flavors1.every((flavor, index) => flavor === flavors2[index]))
+    return false;
+
   return true;
 };
 
@@ -167,6 +180,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
     if (itemToAdd.options.stuffedCrust) {
       finalPrice += itemToAdd.options.stuffedCrust.price;
+    }
+    // Add flavor costs
+    if (itemToAdd.options.selectedFlavors) {
+      itemToAdd.options.selectedFlavors.forEach((flavor) => {
+        finalPrice += flavor.additionalPrice * (flavor.percentage / 100);
+      });
     }
 
     setCartItems((prevItems) => {

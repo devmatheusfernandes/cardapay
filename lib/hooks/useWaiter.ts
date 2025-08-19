@@ -33,6 +33,12 @@ export interface WaiterOrderItem {
   selectedAddons?: AddonOption[];
   selectedStuffedCrust?: StuffedCrustOption;
   removedIngredients?: string[];
+  selectedFlavors?: Array<{
+    flavorId: string;
+    flavorName: string;
+    percentage: number;
+    additionalPrice: number;
+  }>;
 }
 
 export interface Seat {
@@ -212,7 +218,13 @@ export const useWaiter = (tableId: string) => {
     selectedSize?: SizeOption,
     selectedAddons: AddonOption[] = [],
     selectedStuffedCrust?: StuffedCrustOption,
-    removedIngredients: string[] = []
+    removedIngredients: string[] = [],
+    selectedFlavors?: Array<{
+      flavorId: string;
+      flavorName: string;
+      percentage: number;
+      additionalPrice: number;
+    }>
   ) => {
     const newItem: WaiterOrderItem = {
       productId: menuItem.id,
@@ -241,6 +253,10 @@ export const useWaiter = (tableId: string) => {
 
     if (removedIngredients && removedIngredients.length > 0) {
       newItem.removedIngredients = removedIngredients;
+    }
+
+    if (selectedFlavors && selectedFlavors.length > 0) {
+      newItem.selectedFlavors = selectedFlavors;
     }
 
     const newState = {
@@ -299,6 +315,11 @@ export const useWaiter = (tableId: string) => {
     if (item.selectedStuffedCrust) {
       total += item.selectedStuffedCrust.price;
     }
+
+    // Adicionar preços das variações de sabor
+    if (item.selectedFlavors) {
+      total += item.selectedFlavors.reduce((sum, flavor) => sum + flavor.additionalPrice, 0);
+    }
     
     return total;
   }, []);
@@ -337,6 +358,13 @@ export const useWaiter = (tableId: string) => {
             if (item.removedIngredients && item.removedIngredients.length > 0) {
               options.removableIngredients = item.removedIngredients;
             }
+
+            if (item.selectedFlavors && item.selectedFlavors.length > 0) {
+              options.flavors = item.selectedFlavors.map(flavor => ({
+                flavorId: flavor.flavorId,
+                percentage: flavor.percentage
+              }));
+            }
             
             if (item.notes && item.notes.trim()) {
               options.notes = item.notes.trim();
@@ -354,7 +382,8 @@ export const useWaiter = (tableId: string) => {
               selectedSize: item.selectedSize || null,
               selectedAddons: item.selectedAddons || null,
               selectedStuffedCrust: item.selectedStuffedCrust || null,
-              removedIngredients: item.removedIngredients || null
+              removedIngredients: item.removedIngredients || null,
+              selectedFlavors: item.selectedFlavors || null
             };
 
             // Adicionar opções apenas se existirem

@@ -965,7 +965,7 @@ Por favor, me ajudem a resolver esta situação.`;
 
                   <motion.p
                     variants={itemVariants}
-                    className="text-xs mt-auto text-slate-500 text-center"
+                    className="text-xs mt-1 text-slate-500 text-center"
                   >
                     Feito{" "}
                     <TimeAgo date={safeTimestampToDate(order.createdAt)} />.

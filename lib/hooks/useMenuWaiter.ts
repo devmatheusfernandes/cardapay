@@ -34,6 +34,26 @@ export interface MenuItem {
   addons?: AddonOption[];
   stuffedCrust?: StuffedCrust;
   removableIngredients?: string[];
+  // New fields for multiple flavors
+  allowMultipleFlavors?: boolean;
+  availableFlavors?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    description?: string;
+    available: boolean;
+  }>;
+  flavorCombinations?: Array<{
+    id: string;
+    name: string;
+    flavors: Array<{
+      flavorId: string;
+      percentage: number;
+    }>;
+    price: number;
+    description?: string;
+  }>;
+  maxFlavors?: number;
 }
 
 export const useMenuWaiter = () => {

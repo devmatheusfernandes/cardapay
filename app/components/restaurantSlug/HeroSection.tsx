@@ -18,9 +18,9 @@ export function HeroSection({
       ref={heroRef}
       className="relative h-screen max-h-[100vh] w-full overflow-hidden bg-gray-900"
     >
-      {restaurant.logoUrl ? (
+      {restaurant.coverUrl ? (
         <motion.img
-          src={restaurant.logoUrl}
+          src={restaurant.coverUrl}
           alt={restaurant.name}
           className="absolute inset-0 w-full h-full object-cover opacity-70"
           initial={{ scale: 1 }}

@@ -21,6 +21,7 @@ import {
   Package,
   HelpCircle,
   Ban,
+  Palette,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import TimeAgo from "react-timeago";
@@ -252,12 +253,25 @@ const OrderItemDetailsResolver = ({
   // Normalização das Observações
   const notes = item.notes || options?.notes;
 
+  // Normalização dos Sabores Selecionados
+  const selectedFlavors = item.selectedFlavors || options?.flavors || [];
+
+  // Se temos flavors em options mas não em selectedFlavors, precisamos buscar os nomes
+  const flavorDetails =
+    selectedFlavors.length > 0 && !selectedFlavors[0].flavorName
+      ? selectedFlavors.map((flavor) => ({
+          ...flavor,
+          flavorName: flavor.flavorId, // Fallback para quando só temos o ID
+        }))
+      : selectedFlavors;
+
   // Verifica se é um item padrão (sem customizações)
   const isStandard =
     !sizeDetails &&
     !crustDetails &&
     addonDetails.length === 0 &&
     removedIngredients.length === 0 &&
+    selectedFlavors.length === 0 &&
     !notes;
 
   return (
@@ -319,6 +333,23 @@ const OrderItemDetailsResolver = ({
                 </span>
                 <span className="ml-4 text-red-600">
                   {removedIngredients.join(", ")}
+                </span>
+              </div>
+            )}
+
+            {flavorDetails.length > 0 && (
+              <div className="text-xs">
+                <span className="text-purple-700 font-medium flex items-center gap-1.5">
+                  <Palette className="w-3 h-3 text-purple-500" /> Sabores:
+                </span>
+                <span className="ml-4 text-purple-600">
+                  {flavorDetails.map((flavor, index) => (
+                    <span key={index}>
+                      {flavor.percentage}%{" "}
+                      {flavor.flavorName || flavor.flavorId}
+                      {index < flavorDetails.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
                 </span>
               </div>
             )}

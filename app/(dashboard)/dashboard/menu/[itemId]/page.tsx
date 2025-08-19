@@ -11,6 +11,8 @@ import {
   StuffedCrustOption,
   DietaryTag,
   SpicinessLevel,
+  FlavorOption,
+  FlavorCombination,
 } from "@/lib/hooks/useMenu";
 import {
   LoaderCircle,
@@ -44,6 +46,10 @@ const initialItemData: MenuItemData = {
   basePrice: 0,
   sizes: [],
   allowMultipleFlavors: false,
+  // New flavor fields
+  availableFlavors: [],
+  flavorCombinations: [],
+  maxFlavors: 4,
   stuffedCrust: { available: false, options: [] },
   addons: [],
   removableIngredients: [],
@@ -542,6 +548,256 @@ export default function MenuItemFormPage() {
                   Permitir múltiplos sabores (para pizza, açaí, etc.)
                 </label>
               </div>
+
+              {/* Flavor Management Section - Only show when allowMultipleFlavors is true */}
+              {formData.allowMultipleFlavors && (
+                <div className="mt-6 space-y-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-slate-700">
+                      Configuração de Sabores
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-slate-600">
+                        Máximo de sabores:
+                      </label>
+                      <input
+                        type="number"
+                        min="2"
+                        max="8"
+                        value={formData.maxFlavors}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            maxFlavors: parseInt(e.target.value) || 4,
+                          }))
+                        }
+                        className="w-16 p-1 border rounded text-center text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Available Flavors */}
+                  <div>
+                    <h4 className="text-md font-medium text-slate-600 mb-3">
+                      Sabores Disponíveis
+                    </h4>
+                    <DynamicListManager<FlavorOption>
+                      title=""
+                      items={formData.availableFlavors}
+                      setItems={(items) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          availableFlavors: items,
+                        }))
+                      }
+                      newItemFactory={() => ({
+                        id: uuidv4(),
+                        name: "",
+                        price: 0,
+                        description: "",
+                        available: true,
+                      })}
+                      renderItem={(item, onChange) => (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => onChange("name", e.target.value)}
+                            placeholder="Nome do sabor"
+                            className="p-2 border rounded-md w-full"
+                          />
+                          <input
+                            type="number"
+                            value={item.price}
+                            onChange={(e) =>
+                              onChange("price", parseFloat(e.target.value) || 0)
+                            }
+                            placeholder="Preço adicional"
+                            className="p-2 border rounded-md w-full"
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={item.description || ""}
+                              onChange={(e) =>
+                                onChange("description", e.target.value)
+                              }
+                              placeholder="Descrição (opcional)"
+                              className="p-2 border rounded-md w-full"
+                            />
+                            <label className="flex items-center gap-1 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={item.available}
+                                onChange={(e) =>
+                                  onChange("available", e.target.checked)
+                                }
+                                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                              />
+                              Ativo
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </div>
+
+                  {/* Flavor Combinations */}
+                  <div>
+                    <h4 className="text-md font-medium text-slate-600 mb-3">
+                      Combinações de Sabores (Opcional)
+                    </h4>
+                    <p className="text-sm text-slate-500 mb-3">
+                      Crie combinações pré-definidas para facilitar o pedido dos
+                      clientes
+                    </p>
+                    <DynamicListManager<FlavorCombination>
+                      title=""
+                      items={formData.flavorCombinations}
+                      setItems={(items) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          flavorCombinations: items,
+                        }))
+                      }
+                      newItemFactory={() => ({
+                        id: uuidv4(),
+                        name: "",
+                        flavors: [],
+                        price: 0,
+                        description: "",
+                      })}
+                      renderItem={(item, onChange) => (
+                        <div className="space-y-3 p-3 border rounded-lg bg-white">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => onChange("name", e.target.value)}
+                              placeholder="Nome da combinação (ex: Meia Margherita, Meia Pepperoni)"
+                              className="p-2 border rounded-md w-full"
+                            />
+                            <input
+                              type="number"
+                              value={item.price}
+                              onChange={(e) =>
+                                onChange(
+                                  "price",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="Preço total da combinação"
+                              className="p-2 border rounded-md w-full"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            value={item.description || ""}
+                            onChange={(e) =>
+                              onChange("description", e.target.value)
+                            }
+                            placeholder="Descrição da combinação (opcional)"
+                            className="p-2 border rounded-md w-full"
+                          />
+
+                          {/* Flavor Selection for Combination */}
+                          <div>
+                            <label className="block text-sm font-medium text-slate-600 mb-2">
+                              Sabores na combinação:
+                            </label>
+                            <div className="space-y-2">
+                              {item.flavors.map(
+                                (
+                                  flavor: {
+                                    flavorId: string;
+                                    percentage: number;
+                                  },
+                                  index: number
+                                ) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <select
+                                      value={flavor.flavorId}
+                                      onChange={(e) => {
+                                        const newFlavors = [...item.flavors];
+                                        newFlavors[index] = {
+                                          ...newFlavors[index],
+                                          flavorId: e.target.value,
+                                        };
+                                        onChange("flavors", newFlavors);
+                                      }}
+                                      className="flex-1 p-2 border rounded-md"
+                                    >
+                                      <option value="">
+                                        Selecione um sabor
+                                      </option>
+                                      {formData.availableFlavors
+                                        .filter((f) => f.available)
+                                        .map((flavor) => (
+                                          <option
+                                            key={flavor.id}
+                                            value={flavor.id}
+                                          >
+                                            {flavor.name}
+                                          </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      max="100"
+                                      value={flavor.percentage}
+                                      onChange={(e) => {
+                                        const newFlavors = [...item.flavors];
+                                        newFlavors[index] = {
+                                          ...newFlavors[index],
+                                          percentage:
+                                            parseInt(e.target.value) || 0,
+                                        };
+                                        onChange("flavors", newFlavors);
+                                      }}
+                                      placeholder="%"
+                                      className="w-20 p-2 border rounded-md text-center"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newFlavors = item.flavors.filter(
+                                          (_: any, i: number) => i !== index
+                                        );
+                                        onChange("flavors", newFlavors);
+                                      }}
+                                      className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                                    >
+                                      <XCircle className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newFlavors = [
+                                    ...item.flavors,
+                                    { flavorId: "", percentage: 0 },
+                                  ];
+                                  onChange("flavors", newFlavors);
+                                }}
+                                className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700"
+                              >
+                                <PlusCircle className="w-4 h-4" />
+                                Adicionar sabor
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </SubContainer>
 

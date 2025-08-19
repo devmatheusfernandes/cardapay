@@ -46,6 +46,12 @@ function createDescriptionFromOptions(options: SelectedOptions): string {
     if (options.stuffedCrust) {
         parts.push(`Borda: ${options.stuffedCrust.name}`);
     }
+    if (options.selectedFlavors && options.selectedFlavors.length > 0) {
+        const flavorDescription = options.selectedFlavors
+            .map(flavor => `${flavor.percentage}% ${flavor.flavorName}`)
+            .join(', ');
+        parts.push(`Sabores: ${flavorDescription}`);
+    }
     return parts.join(' | ');
 }
 
@@ -88,6 +94,12 @@ export async function POST(req: NextRequest) {
         addons: item.options.addons?.map(a => a.id),
         stuffedCrust: item.options.stuffedCrust?.id,
         notes: item.options.notes || undefined,
+        flavors: item.options.selectedFlavors?.map(f => ({
+          id: f.flavorId,
+          name: f.flavorName,
+          percentage: f.percentage,
+          price: f.additionalPrice
+        })) || undefined,
       }
     }));
 

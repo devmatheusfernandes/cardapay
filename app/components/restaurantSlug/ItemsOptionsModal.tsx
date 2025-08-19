@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Flame, Leaf } from "lucide-react";
+import { X, Flame, Leaf, Palette } from "lucide-react";
 import {
   SelectedOptions,
   SizeOption,
@@ -11,6 +11,7 @@ import {
 } from "@/lib/context/CartContext";
 import { MenuItem } from "@/lib/types/restaurantSlug/types";
 import { AddonOption } from "@/lib/hooks/useOrders";
+import FlavorSelectionModal, { SelectedFlavor } from "./FlavorSelectionModal";
 
 interface ItemOptionsModalProps {
   item: MenuItem | null;
@@ -20,6 +21,7 @@ interface ItemOptionsModalProps {
     options: SelectedOptions & {
       removableIngredients?: string[];
       observation?: string;
+      selectedFlavors?: SelectedFlavor[];
     }
   ) => void;
 }
@@ -41,6 +43,8 @@ export function ItemOptionsModal({
   >(undefined);
   const [removedIngredients, setRemovedIngredients] = useState<string[]>([]);
   const [observation, setObservation] = useState("");
+  const [selectedFlavors, setSelectedFlavors] = useState<SelectedFlavor[]>([]);
+  const [showFlavorModal, setShowFlavorModal] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -51,6 +55,7 @@ export function ItemOptionsModal({
       setSelectedStuffedCrust(undefined);
       setRemovedIngredients([]);
       setObservation("");
+      setSelectedFlavors([]);
     }
   }, [item]);
 
@@ -72,8 +77,12 @@ export function ItemOptionsModal({
     if (selectedStuffedCrust) {
       total += selectedStuffedCrust.price;
     }
+    // Add flavor costs
+    selectedFlavors.forEach((flavor) => {
+      total += flavor.additionalPrice * (flavor.percentage / 100);
+    });
     return total;
-  }, [basePrice, selectedAddons, selectedStuffedCrust]);
+  }, [basePrice, selectedAddons, selectedStuffedCrust, selectedFlavors]);
 
   const handleAddonClick = (addon: AddonOption) => {
     setSelectedAddons((prev) =>
@@ -91,6 +100,14 @@ export function ItemOptionsModal({
     );
   };
 
+  const handleFlavorSelection = (
+    flavors: SelectedFlavor[],
+    totalPrice: number
+  ) => {
+    setSelectedFlavors(flavors);
+    setShowFlavorModal(false);
+  };
+
   const handleAddToCartClick = () => {
     if (!item) return;
     onAddToCart({
@@ -99,8 +116,8 @@ export function ItemOptionsModal({
       stuffedCrust: selectedStuffedCrust,
       removableIngredients: removedIngredients,
       notes: observation,
+      selectedFlavors: selectedFlavors.length > 0 ? selectedFlavors : undefined,
     });
-    onClose();
   };
 
   if (!item) return null;
@@ -260,6 +277,57 @@ export function ItemOptionsModal({
                   </div>
                 )}
 
+                {/* Multiple Flavors Section */}
+                {item.allowMultipleFlavors &&
+                  item.availableFlavors &&
+                  item.availableFlavors.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-800 mb-3">
+                        Seleção de Sabores
+                      </h3>
+                      <div className="space-y-3">
+                        {selectedFlavors.length > 0 ? (
+                          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium text-emerald-800">
+                                Sabores selecionados:
+                              </span>
+                              <button
+                                onClick={() => setShowFlavorModal(true)}
+                                className="text-sm text-emerald-600 hover:text-emerald-700 underline"
+                              >
+                                Editar
+                              </button>
+                            </div>
+                            <div className="space-y-1">
+                              {selectedFlavors.map((flavor, index) => (
+                                <div
+                                  key={index}
+                                  className="flex justify-between text-sm"
+                                >
+                                  <span className="text-emerald-700">
+                                    {flavor.percentage}% {flavor.flavorName}
+                                  </span>
+                                  <span className="text-emerald-600">
+                                    +R$ {flavor.additionalPrice.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setShowFlavorModal(true)}
+                            className="w-full p-4 border-2 border-dashed border-emerald-300 rounded-lg text-emerald-600 hover:border-emerald-400 hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Palette className="w-5 h-5" />
+                            Escolher Sabores
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                 {item.addons && item.addons.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-lg text-gray-800 mb-3">
@@ -360,6 +428,21 @@ export function ItemOptionsModal({
             </footer>
           </motion.div>
         </motion.div>
+      )}
+
+      {/* Flavor Selection Modal */}
+      {item && item.allowMultipleFlavors && showFlavorModal && (
+        <FlavorSelectionModal
+          key={`flavor-modal-${item.id}`}
+          isOpen={showFlavorModal}
+          onClose={() => setShowFlavorModal(false)}
+          onConfirm={handleFlavorSelection}
+          availableFlavors={item.availableFlavors || []}
+          flavorCombinations={item.flavorCombinations || []}
+          maxFlavors={item.maxFlavors || 4}
+          basePrice={basePrice}
+          itemName={item.name}
+        />
       )}
     </AnimatePresence>
   );

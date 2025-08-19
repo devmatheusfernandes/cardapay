@@ -13,6 +13,13 @@ export interface StuffedCrustOption { id: string; name: string; price: number; }
 
 // Em lib/hooks/useOrders.ts
 
+export interface FlavorOption {
+  flavorId: string;
+  flavorName: string;
+  percentage: number;
+  additionalPrice: number;
+}
+
 // A interface para opções salvas como IDs (geralmente de fontes mais simples como um pedido online)
 export interface OrderOptions {
   size?: string;
@@ -20,6 +27,7 @@ export interface OrderOptions {
   stuffedCrust?: string;
   removableIngredients?: string[];
   notes?: string;
+  flavors?: FlavorOption[];
 }
 
 // INTERFACE CORRIGIDA para OrderItem
@@ -37,6 +45,12 @@ export interface OrderItem {
   selectedStuffedCrust?: StuffedCrustOption;
   selectedAddons?: AddonOption[];
   removedIngredients?: string[];
+  selectedFlavors?: Array<{
+    flavorId: string;
+    flavorName: string;
+    percentage: number;
+    additionalPrice: number;
+  }>;
   
   // A propriedade 'notes' pode ser parte de 'options' ou estar no nível principal
   notes?: string; 
