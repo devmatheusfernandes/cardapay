@@ -77,7 +77,7 @@ export interface Order {
   assignedDriverId?: string;
   assignedDriverName?: string;
   confirmationCode?: string;
-  source?: 'waiter' | 'online' | 'waiter-bill';
+  source?: 'waiter' | 'online' | 'waiter-bill' | 'online-recovery';
   tableId?: string;
   paymentMethod?: 'together' | 'separated';
   seatsInvolved?: OrderSeat[];

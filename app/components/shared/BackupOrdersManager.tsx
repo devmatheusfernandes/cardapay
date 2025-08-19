@@ -14,6 +14,7 @@ import {
   Filter,
   Eye,
   Trash2,
+  Copy,
 } from "lucide-react";
 import { useOrderBackup, BackupOrder } from "@/lib/hooks/useOrderBackup";
 import { toast } from "react-hot-toast";
@@ -41,6 +42,8 @@ export function BackupOrdersManager({
     exportBackupOrders,
     updateOrderStatus,
     isFetching,
+    isRecreating,
+    recreateOrderFromBackup,
   } = useOrderBackup();
 
   useEffect(() => {
@@ -200,7 +203,14 @@ export function BackupOrdersManager({
     }).format(amount);
   };
 
-  const isLoadingData = isLoading || isFetching;
+  const handleRecreateOrder = async (order: BackupOrder) => {
+    const success = await recreateOrderFromBackup(order);
+    if (success) {
+      await loadOrders(); // Recarrega a lista para mostrar a mudança de status
+    }
+  };
+
+  const isLoadingData = isLoading || isFetching || isRecreating;
 
   return (
     <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200">
@@ -410,6 +420,17 @@ export function BackupOrdersManager({
                         title="Marcar como pendente"
                       >
                         <Clock className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {order.status === "failed" && (
+                      <button
+                        onClick={() => handleRecreateOrder(order)}
+                        disabled={isLoadingData}
+                        className="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Recriar Pedido na Cozinha"
+                      >
+                        <Copy className="w-4 h-4" />
                       </button>
                     )}
                   </div>

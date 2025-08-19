@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { doc, setDoc, Timestamp, collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
+import { Order, OrderItem } from './useOrders';
 
 // Firebase document structure (all fields optional except required ones)
 interface FirebaseOrderData {
@@ -95,7 +96,8 @@ const convertFirebaseToBackupOrder = (doc: any): BackupOrder => {
 export const useOrderBackup = () => {
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-
+  const [isRecreating, setIsRecreating] = useState(false);
+  
   // Save order to local storage
   const saveToLocalStorage = useCallback((order: BackupOrder) => {
     try {
@@ -466,6 +468,69 @@ const createBackupOrder = useCallback(async (params: {
     }
   }, [getBackupOrders]);
 
+  // NOVO: Função para recriar um pedido na coleção principal 'orders'
+  const recreateOrderFromBackup = useCallback(async (backupOrder: BackupOrder) => {
+      setIsRecreating(true);
+      const toastId = toast.loading('Recriando pedido...');
+  
+      try {
+        // 1. Transforma os itens do backup para o formato de OrderItem
+        const orderItems: OrderItem[] = backupOrder.items.map((item: any) => ({
+          productId: item.productId,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.finalPrice || item.price,
+          options: item.options ? {
+            size: item.options.size?.id,
+            addons: item.options.addons?.map((a: any) => a.id),
+            stuffedCrust: item.options.stuffedCrust?.id,
+            removableIngredients: item.options.removableIngredients,
+            notes: item.options.notes,
+            flavors: item.options.selectedFlavors,
+          } : {},
+          selectedSize: item.options?.size,
+          selectedStuffedCrust: item.options?.stuffedCrust,
+          selectedAddons: item.options?.addons,
+          removedIngredients: item.options?.removableIngredients,
+          selectedFlavors: item.options?.selectedFlavors,
+          notes: item.options?.notes,
+        }));
+  
+        // 2. Cria o novo objeto de Pedido (Order)
+        const newOrder: Omit<Order, 'seats'> = {
+          id: backupOrder.id,
+          items: orderItems,
+          totalAmount: backupOrder.totalAmount,
+          status: 'Confirmed',
+          createdAt: Timestamp.fromDate(new Date(backupOrder.createdAt)),
+          restaurantId: backupOrder.restaurantId,
+          clientId: backupOrder.clientId || undefined,
+          isDelivery: backupOrder.isDelivery,
+          deliveryAddress: backupOrder.deliveryAddress || undefined,
+          confirmationCode: backupOrder.confirmationCode || undefined,
+          source: 'online-recovery',
+        };
+  
+        // 3. Salva o novo pedido na coleção 'orders'
+        await setDoc(doc(db, 'orders', newOrder.id), newOrder);
+  
+        // 4. Atualiza o status do pedido de backup
+        await updateOrderStatus(backupOrder.id, 'completed', {
+          backupReason: 'Order successfully recreated.',
+        });
+  
+        toast.success('Pedido recriado com sucesso!', { id: toastId });
+        return true;
+  
+      } catch (error) {
+        console.error('❌ Falha ao recriar pedido:', error);
+        toast.error('Erro ao recriar o pedido.', { id: toastId });
+        return false;
+      } finally {
+        setIsRecreating(false);
+      }
+    }, []);
+
   return {
     isBackingUp,
     isFetching,
@@ -480,6 +545,8 @@ const createBackupOrder = useCallback(async (params: {
     exportBackupOrders,
     saveToLocalStorage,
     saveToFirebase,
-    fetchBackupOrdersFromFirebase
+    fetchBackupOrdersFromFirebase,
+    isRecreating,
+    recreateOrderFromBackup,
   };
 };
